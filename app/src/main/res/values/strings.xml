@@ -199,7 +199,6 @@
     <string name="settings_license_link">License text</string>
 
     <!-- Reader -->
-    <string name="reader_placeholder">The reader is not available in this build.</string>
     <string name="reader_toc">Table of contents</string>
     <string name="reader_settings">Reader settings</string>
     <string name="reader_flow">Layout</string>

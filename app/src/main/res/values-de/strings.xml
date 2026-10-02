@@ -199,7 +199,6 @@
     <string name="settings_license_link">Lizenztext</string>
 
     <!-- Reader -->
-    <string name="reader_placeholder">Der Reader ist in dieser Version nicht verfügbar.</string>
     <string name="reader_toc">Inhaltsverzeichnis</string>
     <string name="reader_settings">Reader-Einstellungen</string>
     <string name="reader_flow">Layout</string>
