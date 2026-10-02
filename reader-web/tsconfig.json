@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["vite/client", "node"],
+    "baseUrl": ".",
+    "paths": { "libarchive.js": ["./node_modules/libarchive.js"], "libarchive.js/*": ["./node_modules/libarchive.js/*"] }
+  },
+  "include": ["src/**/*.ts", "vite.config.ts", "../third_party/nextcloud_ebook_reader/packages/reader-core/foliate.d.ts"]
+}

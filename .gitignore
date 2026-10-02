@@ -1,0 +1,22 @@
+# Gradle / Android
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# reader-web
+reader-web/node_modules/
+reader-web/dist/
+app/src/main/assets/reader/
+
+# OS
+.DS_Store
+Thumbs.db

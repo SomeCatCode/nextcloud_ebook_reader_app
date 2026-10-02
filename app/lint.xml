@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Dependency version hints are handled outside of lint. -->
+    <issue id="GradleDependency" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
+    <issue id="OldTargetApi" severity="ignore" />
+    <!-- Intended: self-hosted Nextclouds with private CAs (PLAN.md section 5). -->
+    <issue id="AcceptsUserCertificates" severity="ignore" />
+    <!-- aapt2 needs the -v26 qualifier for adaptive icons even when minSdk is 26. -->
+    <issue id="ObsoleteSdkInt">
+        <ignore path="**/mipmap-anydpi-v26/**" />
+        <ignore path="src/main/res/mipmap-anydpi-v26" />
+    </issue>
+</lint>

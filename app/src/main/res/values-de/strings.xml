@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">E-Book Reader</string>
+    <string name="nav_accounts">Konten</string>
+    <string name="nav_library">Bibliothek</string>
+    <string name="nav_downloads">Downloads</string>
+    <string name="nav_settings">Einstellungen</string>
+    <string name="screen_book_detail">Buchdetails</string>
+    <string name="screen_reader">Reader</string>
+    <string name="placeholder_body">Folgt in Kürze.</string>
+    <string name="action_back">Zurück</string>
+</resources>
