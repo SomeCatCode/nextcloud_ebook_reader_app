@@ -199,12 +199,12 @@ class AccountsViewModel(
         val api = apiClientFactory.forCredentials(result.server, result.loginName, result.appPassword)
         suspend fun revokeNewPassword() = runCatching { api.revokeAppPassword() }
         try {
-            val compatibility = when (val c = api.checkCompatibility()) {
+            val compatibility = when (val c = retryNetwork { api.checkCompatibility() }) {
                 ServerCompatibility.AppMissing -> { revokeNewPassword(); fail(AddError.APP_MISSING); return }
                 ServerCompatibility.AppTooOld -> { revokeNewPassword(); fail(AddError.APP_TOO_OLD); return }
                 is ServerCompatibility.Ok -> c
             }
-            val user = api.currentUser()
+            val user = retryNetwork { api.currentUser() }
             if (reloginAccountId != null) {
                 val existing = accountStore.get(reloginAccountId)
                 if (existing == null || existing.userId != user.id) {
@@ -250,6 +250,23 @@ class AccountsViewModel(
         }
     }
 
+    /**
+     * The Login Flow result can be fetched only once, so short network hiccups right after returning
+     * from the browser (DNS not ready yet, network briefly blocked) must not lose it.
+     */
+    private suspend fun <T> retryNetwork(block: suspend () -> T): T {
+        var attempt = 0
+        while (true) {
+            try {
+                return block()
+            } catch (e: ApiException.Network) {
+                if (++attempt >= NETWORK_RETRIES) throw e
+                Log.i(TAG, "Network error during verification, retry $attempt: ${e.message}")
+                delay(pollIntervalMs * attempt)
+            }
+        }
+    }
+
     private fun fail(error: AddError) {
         addFlow.update { it?.copy(stage = AddStage.INPUT, error = error) }
     }
@@ -286,3 +303,4 @@ class AccountsViewModel(
 }
 
 private const val TAG = "EbrAccounts"
+private const val NETWORK_RETRIES = 6
