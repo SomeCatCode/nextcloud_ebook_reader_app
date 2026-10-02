@@ -1,12 +1,221 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">E-Book Reader</string>
+
+    <!-- Navigation / Bildschirme -->
     <string name="nav_accounts">Konten</string>
     <string name="nav_library">Bibliothek</string>
     <string name="nav_downloads">Downloads</string>
     <string name="nav_settings">Einstellungen</string>
     <string name="screen_book_detail">Buchdetails</string>
-    <string name="screen_reader">Reader</string>
-    <string name="placeholder_body">Folgt in Kürze.</string>
+
+    <!-- Allgemeine Aktionen -->
     <string name="action_back">Zurück</string>
+    <string name="action_cancel">Abbrechen</string>
+    <string name="action_ok">OK</string>
+    <string name="action_save">Speichern</string>
+    <string name="action_apply">Übernehmen</string>
+    <string name="action_clear">Zurücksetzen</string>
+    <string name="action_remove">Entfernen</string>
+    <string name="action_retry">Erneut versuchen</string>
+    <string name="action_refresh">Aktualisieren</string>
+    <string name="action_more">Weitere Optionen</string>
+
+    <!-- Konten -->
+    <string name="accounts_add">Konto hinzufügen</string>
+    <string name="accounts_empty_title">Noch keine Konten</string>
+    <string name="accounts_empty_body">Melde dich an deinem Nextcloud-Server an, um deine E-Book-Bibliothek zu sehen.</string>
+    <string name="account_last_sync">Letzte Synchronisierung: %1$s</string>
+    <string name="account_never_synced">Noch nicht synchronisiert</string>
+    <string name="account_sign_in_again">Neu anmelden</string>
+    <string name="account_sync_now">Jetzt synchronisieren</string>
+    <string name="account_remove">Entfernen</string>
+    <string name="status_ok">Verbunden</string>
+    <string name="status_syncing">Synchronisiere…</string>
+    <string name="status_offline">Offline</string>
+    <string name="status_auth_expired">Anmeldung abgelaufen. Bitte neu anmelden.</string>
+    <string name="status_app_unavailable">Die E-Book-Reader-App fehlt auf dem Server oder ist älter als Version 0.5.0.</string>
+    <string name="status_error">Synchronisierung fehlgeschlagen. Der Server meldet einen Fehler.</string>
+
+    <string name="add_title">Konto hinzufügen</string>
+    <string name="relogin_title">Neu anmelden</string>
+    <string name="add_server_intro">Gib die Adresse deines Nextcloud-Servers ein. Die Anmeldung erfolgt im Browser, die App sieht dein Passwort nie.</string>
+    <string name="add_server_label">Serveradresse</string>
+    <string name="add_server_hint">cloud.example.org</string>
+    <string name="add_sign_in">Anmelden</string>
+    <string name="add_starting">Verbinde mit dem Server…</string>
+    <string name="add_waiting">Warte auf den Browser…</string>
+    <string name="add_waiting_body">Melde dich im Browser an und erlaube den Zugriff. Kehre danach zu dieser App zurück.</string>
+    <string name="add_open_browser">Browser erneut öffnen</string>
+    <string name="add_verifying">Prüfe den Server…</string>
+    <string name="add_error_invalid_url">Gib eine gültige HTTPS-Adresse ein, zum Beispiel cloud.example.org.</string>
+    <string name="add_error_network">Der Server ist nicht erreichbar. Prüfe die Adresse und deine Verbindung.</string>
+    <string name="add_error_timeout">Die Anmeldung wurde nicht rechtzeitig abgeschlossen. Bitte erneut versuchen.</string>
+    <string name="add_error_app_missing">Auf diesem Server ist die E-Book-Reader-App nicht installiert.</string>
+    <string name="add_error_app_too_old">Die E-Book-Reader-App auf diesem Server ist zu alt. Version 0.5.0 oder neuer ist erforderlich.</string>
+    <string name="add_error_duplicate">Dieses Konto wurde bereits hinzugefügt.</string>
+    <string name="add_error_wrong_user">Du hast dich mit einem anderen Benutzer als diesem Konto angemeldet.</string>
+    <string name="add_error_rejected">Der Server hat die Anmeldung abgelehnt.</string>
+    <string name="add_error_generic">Anmeldung fehlgeschlagen. Bitte erneut versuchen.</string>
+
+    <string name="remove_title">Konto entfernen?</string>
+    <string name="remove_body">%1$s (%2$s) wird abgemeldet. Das App-Passwort wird auf dem Server widerrufen, die gespeicherte Bibliothek und die Offline-Bücher dieses Kontos werden von diesem Gerät gelöscht.</string>
+    <string name="remove_confirm">Konto entfernen</string>
+    <string name="remove_revoke_failed_title">Konto entfernt</string>
+    <string name="remove_revoke_failed_body">Das App-Passwort konnte auf dem Server nicht widerrufen werden (keine Verbindung?). Entferne es manuell in Nextcloud unter Einstellungen, Sicherheit, Geräte und Sitzungen.</string>
+
+    <!-- Bibliothek -->
+    <string name="library_welcome_title">Willkommen beim E-Book Reader</string>
+    <string name="library_welcome_body">Füge dein Nextcloud-Konto hinzu, um deine E-Books zu durchsuchen, herunterzuladen und zu lesen. Dies ist eine inoffizielle App ohne Verbindung zur Nextcloud GmbH.</string>
+    <string name="library_all_accounts">Alle Konten</string>
+    <string name="library_tab_books">Bücher</string>
+    <string name="library_tab_shelves">Regale</string>
+    <string name="library_tab_series">Serien</string>
+    <string name="library_search">Suchen</string>
+    <string name="library_search_close">Suche schließen</string>
+    <string name="library_search_hint">Titel, Autor, Serie suchen</string>
+    <string name="library_layout_list">Als Liste anzeigen</string>
+    <string name="library_layout_grid">Als Raster anzeigen</string>
+    <string name="library_sort">Sortieren</string>
+    <string name="library_continue_reading">Weiterlesen</string>
+    <string name="library_empty_title">Noch keine Bücher</string>
+    <string name="library_empty_body">Zum Synchronisieren der Bibliothek nach unten ziehen.</string>
+    <string name="library_no_results">Keine Bücher passen zu den Filtern</string>
+    <string name="library_select_book">Wähle ein Buch aus</string>
+    <string name="shelves_empty">Keine Regale</string>
+    <string name="series_empty">Keine Serien</string>
+    <string name="shelf_smart">Intelligentes Regal</string>
+    <string name="series_read_count">%1$d von %2$d gelesen</string>
+    <plurals name="books_count">
+        <item quantity="one">%d Buch</item>
+        <item quantity="other">%d Bücher</item>
+    </plurals>
+    <plurals name="volumes_count">
+        <item quantity="one">%d Band</item>
+        <item quantity="other">%d Bände</item>
+    </plurals>
+
+    <string name="filter_status">Status</string>
+    <string name="filter_any">Alle</string>
+    <string name="filter_genres">Genres</string>
+    <string name="filter_tags">Tags</string>
+    <string name="filter_format">Format</string>
+    <string name="filter_offline_only">Nur offline</string>
+    <string name="filter_clear_all">Filter zurücksetzen</string>
+    <string name="filter_none_available">Noch keine Auswahl vorhanden.</string>
+
+    <string name="sort_title">Titel</string>
+    <string name="sort_author">Autor</string>
+    <string name="sort_series">Serie</string>
+    <string name="sort_rating">Bewertung</string>
+    <string name="sort_added">Hinzugefügt am</string>
+    <string name="sort_recently_read">Zuletzt gelesen</string>
+    <string name="sort_ascending">Aufsteigend</string>
+    <string name="sort_descending">Absteigend</string>
+
+    <string name="status_unread">Ungelesen</string>
+    <string name="status_reading">Wird gelesen</string>
+    <string name="status_finished">Gelesen</string>
+
+    <string name="banner_offline">Offline. Die gespeicherte Bibliothek wird angezeigt.</string>
+    <string name="banner_auth_expired">Deine Anmeldung ist abgelaufen.</string>
+    <string name="banner_server_error">Die Synchronisierung ist wegen eines Serverfehlers fehlgeschlagen.</string>
+
+    <!-- Buchdetails / Bearbeiten -->
+    <string name="book_not_found">Dieses Buch ist nicht mehr verfügbar.</string>
+    <string name="book_read_online">Lesen</string>
+    <string name="book_read_offline">Lesen (offline)</string>
+    <string name="book_view_only">Dieses Buch ist nur zur Ansicht freigegeben und lässt sich in der App nicht öffnen.</string>
+    <string name="book_available_offline">Offline verfügbar</string>
+    <string name="book_progress">Fortschritt: %1$s</string>
+    <string name="book_rating">Bewertung</string>
+    <string name="book_status">Lesestatus</string>
+    <string name="book_genres">Genres</string>
+    <string name="book_tags">Tags</string>
+    <string name="book_description">Beschreibung</string>
+    <string name="book_publisher">Verlag</string>
+    <string name="book_language">Sprache</string>
+    <string name="book_isbn">ISBN</string>
+    <string name="book_edit">Buch bearbeiten</string>
+    <string name="rating_stars">%1$d Sterne</string>
+    <string name="edit_title">Titel</string>
+    <string name="edit_authors">Autoren</string>
+    <string name="edit_series">Serie</string>
+    <string name="edit_series_index">Band</string>
+    <string name="edit_comma_separated">Einträge mit Komma trennen</string>
+    <string name="edit_error_title_empty">Der Titel darf nicht leer sein.</string>
+    <string name="edit_error_index_invalid">Gib den Band als Zahl ein.</string>
+    <string name="edit_pending">Wartet auf Synchronisierung</string>
+    <string name="edit_failed">Der Server hat eine Änderung abgelehnt: %1$s</string>
+
+    <string name="collection_empty">Keine Bücher enthalten</string>
+    <string name="collection_offline_shelf">Dieses Regal offline verfügbar machen</string>
+    <string name="collection_offline_series">Diese Serie offline verfügbar machen</string>
+
+    <!-- Downloads -->
+    <string name="offline_available">Offline verfügbar</string>
+    <string name="download_queued">Wartet auf den Download</string>
+    <string name="download_in_progress">Wird heruntergeladen</string>
+    <string name="download_failed">Download fehlgeschlagen</string>
+    <string name="download_failed_reason">Download fehlgeschlagen: %1$s</string>
+    <string name="download_cancel">Download abbrechen</string>
+    <string name="downloads_empty_title">Keine Offline-Bücher</string>
+    <string name="downloads_empty_body">Aktiviere „Offline verfügbar“ für ein Buch, Regal oder eine Serie, um ohne Verbindung zu lesen.</string>
+    <string name="downloads_storage_used">Belegter Speicher: %1$s</string>
+    <string name="downloads_remove_all">Alle entfernen</string>
+    <string name="downloads_remove_all_title">Alle Downloads entfernen?</string>
+    <string name="downloads_remove_all_body">Alle Offline-Bücher werden von diesem Gerät gelöscht. Die Bibliothek bleibt erhalten.</string>
+    <string name="downloads_remove_account">Alle entfernen</string>
+    <string name="downloads_remove_account_title">Downloads entfernen?</string>
+    <string name="downloads_remove_account_body">Alle Offline-Bücher von %1$s werden von diesem Gerät gelöscht.</string>
+
+    <!-- Einstellungen -->
+    <string name="settings_appearance">Darstellung</string>
+    <string name="settings_theme">Design</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="settings_dynamic_color">Dynamische Farben</string>
+    <string name="settings_dynamic_color_hint">Farben aus dem Hintergrundbild verwenden (Android 12 und neuer).</string>
+    <string name="settings_eink">E-Ink-Modus</string>
+    <string name="settings_eink_hint">Hoher Kontrast, keine Animationen. Für E-Paper-Displays geeignet.</string>
+    <string name="settings_downloads">Downloads</string>
+    <string name="settings_wifi_only">Nur per WLAN herunterladen</string>
+    <string name="settings_wifi_only_hint">Schont das mobile Datenvolumen. Downloads warten, bis WLAN verfügbar ist.</string>
+    <string name="settings_sync">Lesefortschritt</string>
+    <string name="settings_device_name">Gerätename</string>
+    <string name="settings_device_name_hint">Wird auf deinen anderen Geräten angezeigt, wenn sie einen Sprung zu dieser Position anbieten.</string>
+    <string name="settings_reader">Reader-Voreinstellungen</string>
+    <string name="settings_reader_font_size">Schriftgröße: %1$d %%</string>
+    <string name="settings_reader_theme">Reader-Design</string>
+    <string name="reader_theme_auto">Automatisch</string>
+    <string name="reader_theme_sepia">Sepia</string>
+    <string name="settings_about">Über die App</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_license">Lizenz: AGPL-3.0-or-later</string>
+    <string name="settings_unofficial">Inoffizielle App, nicht mit der Nextcloud GmbH verbunden.</string>
+    <string name="settings_source">Quellcode</string>
+    <string name="settings_privacy">Datenschutzerklärung</string>
+    <string name="settings_license_link">Lizenztext</string>
+
+    <!-- Reader -->
+    <string name="reader_placeholder">Der Reader ist in dieser Version nicht verfügbar.</string>
+    <string name="reader_toc">Inhaltsverzeichnis</string>
+    <string name="reader_settings">Reader-Einstellungen</string>
+    <string name="reader_flow">Layout</string>
+    <string name="reader_flow_paginated">Seiten</string>
+    <string name="reader_flow_scrolled">Scrollen</string>
+    <string name="reader_keep_screen_on">Bildschirm anlassen</string>
+    <string name="reader_conflict_title">Neuere Position von %1$s</string>
+    <string name="reader_conflict_body">Dorthin springen (%1$s) oder an der Position auf diesem Gerät bleiben (%2$s)?</string>
+    <string name="reader_conflict_unknown_device">einem anderen Gerät</string>
+    <string name="reader_conflict_jump">Springen</string>
+    <string name="reader_conflict_keep">Hier bleiben</string>
+    <string name="reader_link_title">Link öffnen?</string>
+    <string name="reader_link_body">Dieses Buch möchte einen externen Link öffnen:\n\n%1$s</string>
+    <string name="reader_link_open">Öffnen</string>
+    <string name="reader_error_title">Das Buch konnte nicht geöffnet werden</string>
+    <string name="reader_error_network">Keine Verbindung zum Server. Mache das Buch offline verfügbar, um ohne Verbindung zu lesen.</string>
+    <string name="reader_error_unsupported">Dieses Format wird nicht unterstützt.</string>
+    <string name="reader_error_open">Die Datei konnte nicht gelesen werden.</string>
 </resources>
