@@ -12,7 +12,7 @@ export default defineConfig({
 	build: {
 		outDir: resolve(import.meta.dirname, '../app/src/main/assets/reader'),
 		emptyOutDir: true,
-		target: 'es2022',
+		target: ['chrome83'],
 		assetsInlineLimit: 0,
 		sourcemap: false,
 	},
