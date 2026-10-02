@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.somecatcode.ebookreader.data.account.Account
@@ -158,8 +159,10 @@ class AccountsViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: ApiException) {
+                Log.w(TAG, "Login failed: ${e::class.simpleName}: ${e.message}", e)
                 fail(if (e is ApiException.Network) AddError.NETWORK else AddError.GENERIC)
             } catch (e: Exception) {
+                Log.w(TAG, "Login failed: ${e::class.simpleName}: ${e.message}", e)
                 fail(AddError.GENERIC)
             }
         }
@@ -233,9 +236,17 @@ class AccountsViewModel(
             revokeNewPassword()
             fail(AddError.DUPLICATE)
         } catch (e: ApiException.Unauthorized) {
+            Log.w(TAG, "Login rejected: ${e.message}")
             fail(AddError.REJECTED)
         } catch (e: ApiException.Network) {
+            Log.w(TAG, "Login network error: ${e.message}", e)
             fail(AddError.NETWORK)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // e.g. storing the credentials failed: do not leave an unused app password on the server
+            revokeNewPassword()
+            throw e
         }
     }
 
@@ -273,3 +284,5 @@ class AccountsViewModel(
 
     fun sync(account: Account) = syncEngine.requestSync(account.id)
 }
+
+private const val TAG = "EbrAccounts"

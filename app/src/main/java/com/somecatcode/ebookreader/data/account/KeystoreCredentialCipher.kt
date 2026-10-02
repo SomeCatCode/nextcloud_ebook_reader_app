@@ -4,7 +4,6 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import java.security.GeneralSecurityException
 import java.security.KeyStore
-import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -19,13 +18,14 @@ open class AesGcmCredentialCipher(
     private val keyProvider: (create: Boolean) -> SecretKey?,
 ) : CredentialCipher {
 
-    private val random = SecureRandom()
-
     override fun encrypt(plain: ByteArray, aad: ByteArray): ByteArray {
         val key = keyProvider(true) ?: throw GeneralSecurityException("No encryption key")
-        val iv = ByteArray(IV_BYTES).also { random.nextBytes(it) }
+        // The provider picks the random IV: Android Keystore keys reject caller-provided IVs
+        // (randomized encryption is required by default).
         val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(TAG_BITS, iv))
+        cipher.init(Cipher.ENCRYPT_MODE, key)
+        val iv = cipher.iv
+        if (iv == null || iv.size != IV_BYTES) throw GeneralSecurityException("Unexpected IV length")
         cipher.updateAAD(aad)
         return iv + cipher.doFinal(plain)
     }
