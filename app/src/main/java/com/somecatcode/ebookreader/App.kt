@@ -1,6 +1,7 @@
 package com.somecatcode.ebookreader
 
 import android.app.Application
+import android.os.Build
 
 /**
  * Application class. Owns the [AppContainer] (manual dependency injection, no Hilt).
@@ -13,6 +14,9 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        container = DefaultAppContainer(this)
+        container = DefaultAppContainer(this).also {
+            // Robolectric UI tests replace the container; do not start WorkManager machinery there.
+            if (!Build.FINGERPRINT.orEmpty().contains("robolectric")) it.startBackgroundWork()
+        }
     }
 }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="data_channel_name">Sync and downloads</string>
+    <string name="data_channel_description">Shown while the library is synchronised or large books are downloaded.</string>
+    <string name="data_notification_downloading">Downloading book</string>
+    <string name="data_notification_syncing">Synchronising library</string>
+</resources>

@@ -82,6 +82,18 @@ interface BookDao {
     @Query("UPDATE book SET rating = :rating, readStatus = :readStatus WHERE accountId = :accountId AND fileId = :fileId")
     suspend fun updateAppData(accountId: String, fileId: Long, rating: Int?, readStatus: String)
 
+    @Query("SELECT * FROM book WHERE accountId = :accountId AND deleted = 0")
+    suspend fun getAllActive(accountId: String): List<BookEntity>
+
+    @Query("SELECT * FROM book WHERE accountId = :accountId AND fileId IN (:fileIds)")
+    suspend fun getByIds(accountId: String, fileIds: List<Long>): List<BookEntity>
+
+    @Query("SELECT fileId FROM book WHERE accountId = :accountId AND deleted = 0")
+    suspend fun activeFileIds(accountId: String): List<Long>
+
+    @Query("UPDATE book SET fileEtag = :etag WHERE accountId = :accountId AND fileId = :fileId")
+    suspend fun updateFileEtag(accountId: String, fileId: Long, etag: String?)
+
     @Query("SELECT COUNT(*) FROM book WHERE accountId = :accountId AND deleted = 0")
     suspend fun count(accountId: String): Int
 }
@@ -104,6 +116,18 @@ interface BookTagDao {
 
     @Query("SELECT name, COUNT(*) AS count FROM book_tag WHERE accountId IN (:accountIds) AND type = :type GROUP BY name ORDER BY name COLLATE NOCASE")
     fun observeFacet(accountIds: List<String>, type: String): Flow<List<TagCount>>
+
+    @Query("SELECT * FROM book_tag WHERE accountId = :accountId AND fileId = :fileId")
+    fun observeForBook(accountId: String, fileId: Long): Flow<List<BookTagEntity>>
+
+    @Query("SELECT * FROM book_tag WHERE accountId = :accountId AND fileId IN (:fileIds)")
+    suspend fun forBooks(accountId: String, fileIds: List<Long>): List<BookTagEntity>
+
+    @Query("SELECT * FROM book_tag WHERE accountId = :accountId")
+    suspend fun allOf(accountId: String): List<BookTagEntity>
+
+    @Query("DELETE FROM book_tag WHERE accountId = :accountId AND fileId IN (:fileIds)")
+    suspend fun deleteForBooks(accountId: String, fileIds: List<Long>)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(tags: List<BookTagEntity>)
@@ -141,6 +165,9 @@ interface ProgressDao {
     @Upsert
     suspend fun upsertAll(progress: List<ProgressEntity>)
 
+    @Query("DELETE FROM progress WHERE accountId = :accountId AND fileId IN (:fileIds)")
+    suspend fun deleteForBooks(accountId: String, fileIds: List<Long>)
+
     @Query("SELECT COUNT(*) FROM progress WHERE dirty = 1")
     fun observeDirtyCount(): Flow<Int>
 }
@@ -161,6 +188,15 @@ interface ShelfDao {
 
     @Upsert
     suspend fun upsertShelves(shelves: List<ShelfEntity>)
+
+    @Query("SELECT * FROM shelf WHERE accountId = :accountId AND id = :shelfId")
+    suspend fun get(accountId: String, shelfId: Long): ShelfEntity?
+
+    @Query("SELECT * FROM shelf_book WHERE accountId IN (:accountIds)")
+    fun observeAllMembers(accountIds: List<String>): Flow<List<ShelfBookEntity>>
+
+    @Query("SELECT * FROM shelf_book WHERE accountId = :accountId")
+    suspend fun allMembers(accountId: String): List<ShelfBookEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMembers(members: List<ShelfBookEntity>)
@@ -204,9 +240,41 @@ interface DownloadDao {
     @Query("DELETE FROM download WHERE accountId = :accountId AND fileId = :fileId")
     suspend fun delete(accountId: String, fileId: Long)
 
+    @Query("SELECT * FROM download WHERE accountId = :accountId")
+    suspend fun forAccount(accountId: String): List<DownloadEntity>
+
+    @Query("SELECT * FROM download")
+    suspend fun all(): List<DownloadEntity>
+
+    @Query("UPDATE download SET state = :state, errorMessage = :error, updatedAt = :now WHERE accountId = :accountId AND fileId = :fileId")
+    suspend fun updateState(accountId: String, fileId: Long, state: String, error: String?, now: Long)
+
+    /** Downloads joined with the book title for the offline list. */
+    @Query(
+        """
+        SELECT d.accountId AS accountId, d.fileId AS fileId, b.title AS title, b.path AS path, d.state AS state,
+               d.bytes AS bytes, d.total AS total, d.pinnedBy AS pinnedBy, d.errorMessage AS errorMessage
+        FROM download d LEFT JOIN book b ON b.accountId = d.accountId AND b.fileId = d.fileId
+        ORDER BY d.updatedAt DESC
+        """,
+    )
+    fun observeItems(): Flow<List<DownloadItemRow>>
+
     @Query("SELECT COALESCE(SUM(bytes), 0) FROM download WHERE state = 'DONE'")
     fun observeUsedBytes(): Flow<Long>
 }
+
+data class DownloadItemRow(
+    val accountId: String,
+    val fileId: Long,
+    val title: String?,
+    val path: String?,
+    val state: String,
+    val bytes: Long,
+    val total: Long,
+    val pinnedBy: String,
+    val errorMessage: String?,
+)
 
 @Dao
 interface PendingEditDao {
@@ -215,6 +283,21 @@ interface PendingEditDao {
 
     @Query("SELECT * FROM pending_edit WHERE accountId = :accountId AND fileId = :fileId AND kind = :kind LIMIT 1")
     suspend fun find(accountId: String, fileId: Long, kind: String): PendingEditEntity?
+
+    @Query("SELECT * FROM pending_edit WHERE accountId IN (:accountIds)")
+    fun observeAll(accountIds: List<String>): Flow<List<PendingEditEntity>>
+
+    @Query("SELECT COUNT(*) FROM pending_edit WHERE accountId = :accountId AND fileId = :fileId")
+    fun observeCountForBook(accountId: String, fileId: Long): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM pending_edit WHERE accountId = :accountId AND fileId = :fileId")
+    suspend fun countForBook(accountId: String, fileId: Long): Int
+
+    @Query("SELECT * FROM pending_edit WHERE id = :id")
+    suspend fun get(id: Long): PendingEditEntity?
+
+    @Query("DELETE FROM pending_edit WHERE accountId = :accountId AND fileId IN (:fileIds)")
+    suspend fun deleteForBooks(accountId: String, fileIds: List<Long>)
 
     @Query("SELECT COUNT(*) FROM pending_edit")
     fun observeCount(): Flow<Int>
