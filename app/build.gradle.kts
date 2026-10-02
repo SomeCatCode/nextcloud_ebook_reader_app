@@ -49,6 +49,9 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfigs.findByName("release")?.let { signingConfig = it }
+            // native libs come only from AndroidX (graphics path, DataStore); ship their symbol tables so
+            // Play can symbolicate crashes and ANRs (ends up in BUNDLE-METADATA of the AAB)
+            ndk { debugSymbolLevel = "SYMBOL_TABLE" }
         }
     }
 

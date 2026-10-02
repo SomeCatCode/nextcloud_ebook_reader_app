@@ -104,6 +104,12 @@ jobs:
           cp app/build/outputs/apk/release/app-release.apk "dist/$name.apk"
           cp app/build/outputs/mapping/release/mapping.txt "dist/$name-mapping.txt"
           (cd dist && sha256sum "$name.apk" "$name.aab" > "$name.sha256")
+          # native debug symbols for Play (needs an NDK on the runner, AGP extracts them from the AndroidX .so files)
+          if unzip -l "dist/$name.aab" | grep -q 'BUNDLE-METADATA/com.android.tools.build.debugsymbols/'; then
+            echo "native debug symbols included"
+          else
+            echo "::warning::No native debug symbols in the AAB (NDK missing?); Play will show a warning"
+          fi
           # the APK must be signed with the upload key (not the debug key)
           "$ANDROID_HOME"/build-tools/*/apksigner verify --print-certs "dist/$name.apk" | head -3
           echo "name=$name" >> "$GITHUB_OUTPUT"
