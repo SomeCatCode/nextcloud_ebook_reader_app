@@ -145,7 +145,7 @@ class AccountsViewModel(
         addFlow.value = flow.copy(serverInput = server, stage = AddStage.STARTING, error = null)
         addJob = viewModelScope.launch {
             try {
-                val start = loginFlowClient.start(server)
+                val start = retryNetwork { loginFlowClient.start(server) }
                 lastLoginUrl = start.login
                 addFlow.update { it?.copy(stage = AddStage.WAITING) }
                 eventChannel.send(AccountsEvent.OpenBrowser(start.login))
@@ -252,7 +252,8 @@ class AccountsViewModel(
 
     /**
      * The Login Flow result can be fetched only once, so short network hiccups right after returning
-     * from the browser (DNS not ready yet, network briefly blocked) must not lose it.
+     * from the browser must not lose it. Some devices (Samsung) also block an app's network for a few
+     * seconds after it comes to the foreground, which surfaces as a DNS failure.
      */
     private suspend fun <T> retryNetwork(block: suspend () -> T): T {
         var attempt = 0
