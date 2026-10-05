@@ -275,4 +275,25 @@
     <string name="sync_never">Not synced yet</string>
     <string name="sync_running">Syncing…</string>
     <string name="book_in_shelves">Shelves</string>
+    <string name="reader_annotations">Highlights &amp; notes</string>
+    <string name="reader_annotation_highlight">Highlight</string>
+    <string name="reader_annotation_note">Note</string>
+    <string name="annotations_empty">No highlights or notes yet. Select text in the book to highlight it or add a note.</string>
+    <string name="annotations_empty_fixed">Highlights and notes are only available in text books. Bookmarks made in the web app appear here.</string>
+    <string name="annotations_group_highlights">Highlights</string>
+    <string name="annotations_group_notes">Notes</string>
+    <string name="annotations_group_bookmarks">Bookmarks</string>
+    <string name="annotation_add_note">Add note</string>
+    <string name="annotation_edit_note">Edit note</string>
+    <string name="annotation_delete">Delete</string>
+    <string name="annotation_note_label">Note</string>
+    <string name="annotation_note_title_new">New note</string>
+    <string name="annotation_pending">Not synced yet</string>
+    <string name="annotation_bookmark">Bookmark</string>
+    <string name="annotation_color_yellow">Yellow</string>
+    <string name="annotation_color_green">Green</string>
+    <string name="annotation_color_blue">Blue</string>
+    <string name="annotation_color_pink">Pink</string>
+    <string name="annotation_color_purple">Purple</string>
+    <string name="annotation_color_selected">%1$s (selected)</string>
 </resources>

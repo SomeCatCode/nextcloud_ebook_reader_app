@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
@@ -176,6 +177,86 @@ class ReaderBridgeTest {
         host.send(HostToReader.Next)
         assertEquals(1, js.size)
         assertTrue(js[0].contains("destroy"))
+    }
+
+    // ---- annotations --------------------------------------------------------------------------
+
+    @Test
+    fun annotationMessagesRoundTrip() {
+        val set = roundTrip(HostToReader.SetAnnotations(listOf(DrawnAnnotation("u1", "epubcfi(/6/4!/4/2,/1:0,/1:5)", "green", hasNote = true))))
+        assertEquals("setAnnotations", set["type"]!!.jsonPrimitive.content)
+        val first = set["annotations"]!!.jsonArray[0].jsonObject
+        assertEquals("u1", first["id"]!!.jsonPrimitive.content)
+        assertEquals("green", first["color"]!!.jsonPrimitive.content)
+        assertEquals(JsonPrimitive(true), first["hasNote"])
+        // no color = the key is left out (reader-core draws yellow)
+        val plain = roundTrip(HostToReader.SetAnnotations(listOf(DrawnAnnotation("u2", "epubcfi(/6/2!/4)"))))
+        assertFalse(plain["annotations"]!!.jsonArray[0].jsonObject.containsKey("color"))
+        assertEquals("""{"type":"clearSelection"}""", BridgeJson.encodeToString<HostToReader>(HostToReader.ClearSelection))
+
+        val rect = SelectionRect(1.0, 2.0, 3.0, 4.0)
+        roundTrip(ReaderToHost.Selection("Hello", "epubcfi(/6/4!/4/2,/1:0,/1:5)", locator, rect))
+        roundTrip(ReaderToHost.SelectionClear)
+        roundTrip(ReaderToHost.AnnotationClick("u1", rect))
+    }
+
+    @Test
+    fun decodesTheAnnotationMessagesOfTheJsSide() {
+        // exact shapes of reader-web/src/host.ts
+        val sel = BridgeJson.decodeFromString<ReaderToHost>(
+            """{"type":"selection","text":"Hello world","cfi":"epubcfi(/6/4!/4/2,/1:0,/1:11)","locator":{"href":"c1.xhtml","title":"One","locations":{"cfi":"epubcfi(/6/4!/4/2,/1:0,/1:11)","progression":0.1,"totalProgression":0.05}},"rect":{"left":10.5,"top":20,"right":200,"bottom":44}}""",
+        ) as ReaderToHost.Selection
+        assertEquals("Hello world", sel.text)
+        assertEquals("epubcfi(/6/4!/4/2,/1:0,/1:11)", sel.locator.locations?.cfi)
+        assertEquals(10.5, sel.rect.left, 0.0)
+        assertEquals(ReaderToHost.SelectionClear, BridgeJson.decodeFromString<ReaderToHost>("""{"type":"selectionClear"}"""))
+        val click = BridgeJson.decodeFromString<ReaderToHost>("""{"type":"annotationClick","id":"u1","rect":{"left":0,"top":0,"right":1,"bottom":1}}""") as ReaderToHost.AnnotationClick
+        assertEquals("u1", click.id)
+        val opened = BridgeJson.decodeFromString<ReaderToHost>(
+            """{"type":"opened","info":{"authors":[],"isComic":false,"fixedLayout":false,"rtl":false,"pageCount":3,"supportsAnnotations":true}}""",
+        ) as ReaderToHost.Opened
+        assertTrue(opened.info.supportsAnnotations)
+        // older bundles without the flag: no annotations
+        val old = BridgeJson.decodeFromString<ReaderToHost>("""{"type":"opened","info":{"authors":[],"isComic":false,"fixedLayout":false,"rtl":false,"pageCount":3}}""") as ReaderToHost.Opened
+        assertFalse(old.info.supportsAnnotations)
+    }
+
+    @Test
+    fun reattachingRedrawsTheLatestHighlightsAfterTheReopen() {
+        val host = newHost()
+        host.attach { }
+        host.send(openMsg)
+        host.onPageMessage("""{"type":"ready","protocol":1}""")
+        host.send(HostToReader.SetAnnotations(listOf(DrawnAnnotation("old", "epubcfi(/6/2!/4)"))))
+        host.send(HostToReader.SetAnnotations(listOf(DrawnAnnotation("new", "epubcfi(/6/2!/6)"))))
+        val second = mutableListOf<String>()
+        host.attach { second += it }
+        host.onPageMessage("""{"type":"ready","protocol":1}""")
+        assertEquals(2, second.size)
+        assertTrue(second[0].contains("\"type\":\"open\""))
+        assertTrue(second[1].contains("\"type\":\"setAnnotations\"") && second[1].contains("\"new\"") && !second[1].contains("\"old\""))
+    }
+
+    @Test
+    fun queuedHighlightsKeepOnlyTheLatestListAndSelectionActionsAreForwarded() = runTest {
+        val host = newHost()
+        val js = mutableListOf<String>()
+        host.attach { js += it }
+        host.send(openMsg)
+        host.send(HostToReader.SetAnnotations(emptyList()))
+        host.send(HostToReader.SetAnnotations(listOf(DrawnAnnotation("u", "epubcfi(/6/2!/4)"))))
+        host.onPageMessage("""{"type":"ready","protocol":1}""")
+        assertEquals(2, js.size)
+        assertTrue(js[1].contains("\"u\""))
+
+        assertFalse(host.supportsAnnotations)
+        host.onPageMessage("""{"type":"opened","info":{"authors":[],"isComic":false,"fixedLayout":false,"rtl":false,"pageCount":3,"supportsAnnotations":true}}""")
+        assertTrue(host.supportsAnnotations)
+        val actions = mutableListOf<SelectionAction>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { host.selectionActions.collect { actions += it } }
+        host.onSelectionAction(SelectionAction.HIGHLIGHT)
+        host.onSelectionAction(SelectionAction.NOTE)
+        assertEquals(listOf(SelectionAction.HIGHLIGHT, SelectionAction.NOTE), actions)
     }
 
     @Test

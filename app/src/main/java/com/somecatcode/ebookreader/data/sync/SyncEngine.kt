@@ -6,10 +6,12 @@ import kotlinx.coroutines.flow.Flow
  * Library synchronisation per account (PLAN.md section 2, WorkManager based).
  *
  * One sync run for an account:
- * 1. `EditRepository.flushPending` and `ProgressRepository.pushDirty` (local changes first).
+ * 1. `EditRepository.flushPending`, `ProgressRepository.pushDirty` and `AnnotationRepository.pushDirty`
+ *    (local changes first).
  * 2. `GET /sync?cursor=<lastSyncCursor>` repeatedly while `hasMore`; upsert books (+ tags), apply
  *    `deleted` (mark deleted, remove downloads), merge `progress` (server wins unless the local row is
- *    dirty and has a newer `clientUpdatedAt`). Persist the cursor only after the page was written
+ *    dirty and has a newer `clientUpdatedAt`), merge `annotations` by uuid (tombstones remove the local row,
+ *    otherwise the server row wins unless the local one is dirty with a newer `clientUpdatedAt`). Persist the cursor only after the page was written
  *    (single Room transaction per page) so an interrupted run resumes cleanly.
  * 3. Refresh shelves (`/shelves`, membership of manual shelves via `/books?include[]=shelf:`).
  * 4. Enqueue downloads for new books of pinned shelves/series (`DownloadManager`).
@@ -55,6 +57,6 @@ enum class SyncError {
 }
 
 sealed interface SyncOutcome {
-    data class Success(val booksChanged: Int, val booksDeleted: Int, val progressMerged: Int) : SyncOutcome
+    data class Success(val booksChanged: Int, val booksDeleted: Int, val progressMerged: Int, val annotationsMerged: Int = 0) : SyncOutcome
     data class Failure(val error: SyncError, val retryable: Boolean) : SyncOutcome
 }

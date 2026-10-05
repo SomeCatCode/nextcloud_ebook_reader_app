@@ -25,7 +25,7 @@ interface AccountDao {
     @Query("UPDATE account SET lastSyncCursor = :cursor, lastSyncAt = :at WHERE id = :id")
     suspend fun updateSync(id: String, cursor: String?, at: Long?)
 
-    /** Cascades to all rows of the account (books, progress, shelves, downloads, pending edits). */
+    /** Cascades to all rows of the account (books, progress, shelves, downloads, pending edits, annotations). */
     @Query("DELETE FROM account WHERE id = :id")
     suspend fun delete(id: String)
 }
@@ -310,4 +310,29 @@ interface PendingEditDao {
 
     @Query("DELETE FROM pending_edit WHERE id = :id")
     suspend fun delete(id: Long)
+}
+
+@Dao
+interface AnnotationDao {
+    /** Live (not deleted) annotations of a book. */
+    @Query("SELECT * FROM annotation WHERE accountId = :accountId AND fileId = :fileId AND deleted = 0")
+    fun observeForBook(accountId: String, fileId: Long): Flow<List<AnnotationEntity>>
+
+    @Query("SELECT * FROM annotation WHERE accountId = :accountId AND fileId = :fileId")
+    suspend fun allForBook(accountId: String, fileId: Long): List<AnnotationEntity>
+
+    @Query("SELECT * FROM annotation WHERE accountId = :accountId AND uuid = :uuid")
+    suspend fun get(accountId: String, uuid: String): AnnotationEntity?
+
+    @Query("SELECT * FROM annotation WHERE accountId = :accountId AND dirty = 1 ORDER BY clientUpdatedAt")
+    suspend fun dirty(accountId: String): List<AnnotationEntity>
+
+    @Upsert
+    suspend fun upsert(annotation: AnnotationEntity)
+
+    @Query("DELETE FROM annotation WHERE accountId = :accountId AND uuid = :uuid")
+    suspend fun delete(accountId: String, uuid: String)
+
+    @Query("DELETE FROM annotation WHERE accountId = :accountId AND fileId IN (:fileIds)")
+    suspend fun deleteForBooks(accountId: String, fileIds: List<Long>)
 }
