@@ -50,6 +50,21 @@ interface EbookApi {
     /** `GET /shelves` */
     suspend fun shelves(): List<ShelfDto>
 
+    /** `POST /shelves` - manual shelf ([query] null) or smart shelf. */
+    suspend fun createShelf(name: String, query: SmartQueryDto?): ShelfDto
+
+    /** `PATCH /shelves/{id}` - only the given fields change. */
+    suspend fun updateShelf(id: Long, name: String? = null, query: SmartQueryDto? = null, sortOrder: Int? = null): ShelfDto
+
+    /** `DELETE /shelves/{id}` - the books stay in the library. */
+    suspend fun deleteShelf(id: Long)
+
+    /** `POST /shelves/{id}/books` (manual shelves, max. 500 ids). */
+    suspend fun addToShelf(id: Long, fileIds: List<Long>)
+
+    /** `DELETE /shelves/{id}/books` with body `{fileIds}`. */
+    suspend fun removeFromShelf(id: Long, fileIds: List<Long>)
+
     /** `GET /progress/recent?limit=` */
     suspend fun recentBooks(limit: Int = 10): List<BookDto>
 

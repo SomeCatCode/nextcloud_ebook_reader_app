@@ -32,6 +32,7 @@ class SettingsRepositoryImpl(private val store: DataStore<Preferences>) : Settin
             prefs[LAYOUT] = next.libraryLayout
             prefs[MERGED] = next.mergedLibrary
             prefs[EINK] = next.einkMode
+            prefs[HIDE_FINISHED] = next.hideFinished
             prefs.putOrRemove(LAST_ACCOUNT, next.lastAccountId)
             prefs.putOrRemove(READER_SETTINGS, next.readerSettingsJson)
             prefs.putOrRemove(DEVICE_NAME, next.deviceName)
@@ -59,6 +60,7 @@ class SettingsRepositoryImpl(private val store: DataStore<Preferences>) : Settin
             einkMode = this[EINK] ?: d.einkMode,
             readerSettingsJson = this[READER_SETTINGS],
             deviceName = this[DEVICE_NAME],
+            hideFinished = this[HIDE_FINISHED] ?: d.hideFinished,
         )
     }
 
@@ -74,6 +76,7 @@ class SettingsRepositoryImpl(private val store: DataStore<Preferences>) : Settin
         val EINK = booleanPreferencesKey("eink_mode")
         val READER_SETTINGS = stringPreferencesKey("reader_settings_json")
         val DEVICE_NAME = stringPreferencesKey("device_name")
+        val HIDE_FINISHED = booleanPreferencesKey("hide_finished")
     }
 }
 

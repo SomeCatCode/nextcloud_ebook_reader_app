@@ -12,23 +12,19 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.somecatcode.ebookreader.data.api.ApiClientFactory
 import com.somecatcode.ebookreader.data.api.ApiException
-import com.somecatcode.ebookreader.data.api.BookQuery
 import com.somecatcode.ebookreader.data.api.EbookApi
-import com.somecatcode.ebookreader.data.api.FilterTerm
-import com.somecatcode.ebookreader.data.api.FilterType
-import com.somecatcode.ebookreader.data.api.SortKey
 import com.somecatcode.ebookreader.data.api.SyncDto
 import com.somecatcode.ebookreader.data.db.AppDatabase
 import com.somecatcode.ebookreader.data.db.BookEntity
 import com.somecatcode.ebookreader.data.db.DownloadState
 import com.somecatcode.ebookreader.data.db.PinnedBy
 import com.somecatcode.ebookreader.data.db.ProgressEntity
-import com.somecatcode.ebookreader.data.db.ShelfBookEntity
 import com.somecatcode.ebookreader.data.download.DownloadManager
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.EditRepository
 import com.somecatcode.ebookreader.data.repo.PinnedMembers
 import com.somecatcode.ebookreader.data.repo.ProgressRepository
+import com.somecatcode.ebookreader.data.repo.ShelfSync
 import com.somecatcode.ebookreader.data.repo.tagEntities
 import com.somecatcode.ebookreader.data.repo.toEntity
 import kotlinx.coroutines.CancellationException
@@ -138,8 +134,10 @@ class SyncEngineImpl(
         } catch (e: CancellationException) {
             throw e
         } catch (e: ApiException) {
+            android.util.Log.w(TAG, "sync failed: ${e.javaClass.simpleName} ${e.message}")
             SyncOutcome.Failure(mapError(e), retryable = isRetryable(e))
         } catch (e: Exception) {
+            android.util.Log.w(TAG, "sync failed", e)
             SyncOutcome.Failure(SyncError.UNKNOWN, retryable = true)
         }
     }
@@ -260,43 +258,8 @@ class SyncEngineImpl(
 
     // ---- shelves ------------------------------------------------------------------------------------------
 
-    private suspend fun syncShelves(accountId: String, api: EbookApi) {
-        val remote = api.shelves()
-        val stored = db.shelfDao().getAll(accountId).associateBy { it.id }
-        val memberStats = db.shelfDao().allMembers(accountId).groupBy { it.shelfId }
-        val memberships = HashMap<Long, List<ShelfBookEntity>>()
-        for (shelf in remote) {
-            if (shelf.type != "manual") continue
-            val old = stored[shelf.id]
-            val have = memberStats[shelf.id]?.size ?: 0
-            if (old != null && old.updatedAt == shelf.updatedAt && old.count == shelf.count && have == shelf.count) continue
-            memberships[shelf.id] = fetchMembers(accountId, api, shelf.id)
-        }
-        db.withTransaction {
-            db.shelfDao().upsertShelves(remote.map { it.toEntity(accountId) })
-            db.shelfDao().deleteExcept(accountId, remote.map { it.id })
-            for ((shelfId, members) in memberships) db.shelfDao().replaceMembers(accountId, shelfId, members)
-        }
-    }
-
-    private suspend fun fetchMembers(accountId: String, api: EbookApi, shelfId: Long): List<ShelfBookEntity> {
-        val out = ArrayList<ShelfBookEntity>()
-        var offset = 0
-        while (true) {
-            val page = api.books(
-                BookQuery(
-                    include = listOf(FilterTerm(FilterType.SHELF, shelfId.toString())),
-                    sort = SortKey.SHELF,
-                    limit = 200,
-                    offset = offset,
-                ),
-            )
-            page.books.forEach { out += ShelfBookEntity(accountId, shelfId, it.fileId, out.size) }
-            offset += page.books.size
-            if (page.books.isEmpty() || offset >= page.total) break
-        }
-        return out
-    }
+    /** Shelf list and the membership of all manual shelves (always reloaded: membership changes do not touch the shelf row). */
+    private suspend fun syncShelves(accountId: String, api: EbookApi) = ShelfSync.refreshAll(db, api, accountId)
 
     // ---- pinned shelves / series -----------------------------------------------------------------------------
 
@@ -342,5 +305,6 @@ class SyncEngineImpl(
 
     companion object {
         const val PERIODIC_NAME = "sync-periodic"
+        private const val TAG = "SyncEngine"
     }
 }

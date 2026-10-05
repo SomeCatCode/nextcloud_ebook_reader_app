@@ -204,6 +204,9 @@ interface ShelfDao {
     @Query("DELETE FROM shelf_book WHERE accountId = :accountId AND shelfId = :shelfId")
     suspend fun clearMembers(accountId: String, shelfId: Long)
 
+    @Query("DELETE FROM shelf WHERE accountId = :accountId AND id = :shelfId")
+    suspend fun deleteOne(accountId: String, shelfId: Long)
+
     @Query("DELETE FROM shelf WHERE accountId = :accountId AND id NOT IN (:keepIds)")
     suspend fun deleteExcept(accountId: String, keepIds: List<Long>)
 

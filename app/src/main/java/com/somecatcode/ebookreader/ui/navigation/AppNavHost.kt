@@ -3,7 +3,10 @@ package com.somecatcode.ebookreader.ui.navigation
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -15,6 +18,7 @@ import com.somecatcode.ebookreader.ui.screens.BookDetailScreen
 import com.somecatcode.ebookreader.ui.screens.CollectionId
 import com.somecatcode.ebookreader.ui.screens.CollectionScreen
 import com.somecatcode.ebookreader.ui.screens.DownloadsScreen
+import com.somecatcode.ebookreader.ui.screens.LibraryCommand
 import com.somecatcode.ebookreader.ui.screens.LibraryScreen
 import com.somecatcode.ebookreader.ui.screens.ReaderScreen
 import com.somecatcode.ebookreader.ui.screens.SettingsScreen
@@ -49,7 +53,8 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 onAccountAdded = { nav.popBackStack(Routes.LIBRARY, inclusive = false) },
             )
         }
-        composable(Routes.LIBRARY) {
+        composable(Routes.LIBRARY) { entry ->
+            val command by entry.savedStateHandle.getStateFlow<String?>(LibraryCommand.KEY, null).collectAsState()
             LibraryScreen(
                 onOpenAccounts = { nav.navigate(Routes.ACCOUNTS) },
                 onOpenDownloads = { nav.navigate(Routes.DOWNLOADS) },
@@ -58,6 +63,8 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 onOpenShelf = { accountId, shelfId -> nav.navigate(Routes.shelf(accountId, shelfId)) },
                 onOpenSeries = { accountId, name -> nav.navigate(Routes.series(accountId, name)) },
                 onReadBook = { accountId, fileId -> nav.navigate(Routes.reader(accountId, fileId)) },
+                command = command,
+                onCommandHandled = { entry.savedStateHandle[LibraryCommand.KEY] = null },
             )
         }
         composable(Routes.BOOK_DETAIL, arguments = bookArgs) { entry ->
@@ -68,6 +75,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 fileId = fileId,
                 onBack = { nav.popBackStack() },
                 onRead = { nav.navigate(Routes.reader(accountId, fileId)) },
+                onFilter = { term -> nav.toLibrary(LibraryCommand.only(term)) },
             )
         }
         composable(
@@ -83,6 +91,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 id = CollectionId.Shelf(accountId, shelfId),
                 onBack = { nav.popBackStack() },
                 onOpenBook = { a, f -> nav.navigate(Routes.bookDetail(a, f)) },
+                onEditSmartShelf = { a, id -> nav.toLibrary(LibraryCommand.editSmart(a, id)) },
             )
         }
         composable(
@@ -117,4 +126,10 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             SettingsScreen(onBack = { nav.popBackStack() })
         }
     }
+}
+
+/** Back to the library (always at the bottom of the stack) and hand it a [LibraryCommand]. */
+private fun NavHostController.toLibrary(command: String) {
+    runCatching { getBackStackEntry(Routes.LIBRARY) }.getOrNull()?.savedStateHandle?.set(LibraryCommand.KEY, command)
+    popBackStack(Routes.LIBRARY, inclusive = false)
 }

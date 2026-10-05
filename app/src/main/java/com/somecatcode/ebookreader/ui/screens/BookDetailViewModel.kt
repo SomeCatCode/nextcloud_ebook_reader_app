@@ -13,6 +13,14 @@ import com.somecatcode.ebookreader.data.repo.FacetCount
 import com.somecatcode.ebookreader.data.repo.LibraryBook
 import com.somecatcode.ebookreader.data.repo.LibraryRepository
 import com.somecatcode.ebookreader.data.repo.OfflineTarget
+import com.somecatcode.ebookreader.data.repo.ShelfInfo
+import com.somecatcode.ebookreader.data.repo.ShelfKey
+import com.somecatcode.ebookreader.data.repo.ShelfRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -98,6 +106,10 @@ data class BookDetailUiState(
     val editError: EditError? = null,
     val genreSuggestions: List<FacetCount> = emptyList(),
     val tagSuggestions: List<FacetCount> = emptyList(),
+    /** Manual shelves of the book's account (books can only be added to those). */
+    val manualShelves: List<ShelfInfo> = emptyList(),
+    /** Ids of the manual shelves containing the book. */
+    val inShelves: Set<Long> = emptySet(),
 )
 
 class BookDetailViewModel(
@@ -105,16 +117,47 @@ class BookDetailViewModel(
     library: LibraryRepository,
     private val edits: EditRepository,
     private val downloads: DownloadRepository,
+    private val shelves: ShelfRepository? = null,
 ) : ViewModel() {
 
     private val editing = MutableStateFlow<BookEditForm?>(null)
     private val editError = MutableStateFlow<EditError?>(null)
 
+    private val shelfState: Flow<Pair<List<ShelfInfo>, Set<Long>>> = combine(
+        library.shelves(listOf(key.accountId)).map { list -> list.filter { !it.smart } },
+        shelves?.shelvesOf(key) ?: flowOf(emptySet()),
+    ) { list, member -> list to member }
+
     val state: StateFlow<BookDetailUiState> = combine(
         library.book(key), editing, editError, library.genres(listOf(key.accountId)), library.tags(listOf(key.accountId)),
     ) { book, form, error, genres, tags ->
         BookDetailUiState(true, book, form, error, genres, tags)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BookDetailUiState())
+    }.combine(shelfState) { st, (list, member) -> st.copy(manualShelves = list, inShelves = member) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BookDetailUiState())
+
+    private val messageChannel = Channel<Int>(Channel.BUFFERED)
+
+    /** Shelf errors (string resource ids) for a snackbar. */
+    val messages: Flow<Int> = messageChannel.receiveAsFlow()
+
+    /** Applies the shelf selection of the dialog; [newShelf] creates a manual shelf containing the book. */
+    fun saveShelves(selected: Set<Long>, newShelf: String?) {
+        val repo = shelves ?: return
+        val before = state.value.inShelves
+        viewModelScope.launch {
+            try {
+                newShelf?.trim()?.takeIf { it.isNotEmpty() }?.let { name ->
+                    repo.addBooks(repo.create(key.accountId, name), listOf(key.fileId))
+                }
+                for (id in selected - before) repo.addBooks(ShelfKey(key.accountId, id), listOf(key.fileId))
+                for (id in before - selected) repo.removeBooks(ShelfKey(key.accountId, id), listOf(key.fileId))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                messageChannel.trySend(shelfErrorMessage(e))
+            }
+        }
+    }
 
     /** Edits the server rejected for this book (shown as a snackbar). */
     val failures: Flow<EditFailure> = edits.failures.filter { it.key == key }

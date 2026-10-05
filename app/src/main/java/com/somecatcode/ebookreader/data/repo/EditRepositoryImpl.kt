@@ -6,6 +6,7 @@ import com.somecatcode.ebookreader.data.api.ApiException
 import com.somecatcode.ebookreader.data.api.ApiJson
 import com.somecatcode.ebookreader.data.api.AppDataPatch
 import com.somecatcode.ebookreader.data.api.MetadataPatch
+import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.api.wire
 import com.somecatcode.ebookreader.data.db.AppDatabase
 import com.somecatcode.ebookreader.data.db.BookEntity
@@ -74,6 +75,14 @@ class EditRepositoryImpl(
             val rating = if (patch.setRating) patch.rating?.coerceIn(0, 5) else book.rating
             val status = patch.readStatus?.wire() ?: book.readStatus
             db.bookDao().updateAppData(key.accountId, key.fileId, rating, status)
+            // Status and progress are coupled (like the server): finished = 100 %, unread = back to the start.
+            when (patch.readStatus) {
+                ReadStatus.FINISHED -> db.progressDao().get(key.accountId, key.fileId)?.let { p ->
+                    db.progressDao().upsert(p.copy(percentage = 1.0, dirty = false))
+                }
+                ReadStatus.UNREAD -> db.progressDao().deleteForBooks(key.accountId, listOf(key.fileId))
+                else -> Unit
+            }
             mergePending(key, KIND_APP_DATA, fields)
         }
         scheduler.schedule(key.accountId)

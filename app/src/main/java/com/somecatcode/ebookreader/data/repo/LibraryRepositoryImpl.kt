@@ -65,19 +65,20 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
         val progressBy = progress.associateBy { it.accountId to it.fileId }
         val downloadBy = downloads.associateBy { it.accountId to it.fileId }
         val pendingBy = pending.map { it.accountId to it.fileId }.toSet()
+        val lookup = ShelfLookup.of(shelves, members)
 
         var list = books
         filter.shelf?.let { key ->
             list = list.filter { it.accountId == key.accountId }
             val shelf = shelves.firstOrNull { it.accountId == key.accountId && it.id == key.shelfId }
-            list = if (shelf == null) emptyList() else filterByShelf(list, shelf, tagsBy, members, shelves)
+            list = if (shelf == null) emptyList() else filterByShelf(list, shelf, tagsBy, lookup)
         }
         filter.series?.let { s -> list = list.filter { it.series.equals(s, ignoreCase = true) } }
-        if (filter.genres.isNotEmpty()) {
-            list = list.filter { b -> tagNames(tagsBy[b.accountId to b.fileId], TAG_GENRE).containsAll(filter.genres) }
-        }
-        if (filter.tags.isNotEmpty()) {
-            list = list.filter { b -> tagNames(tagsBy[b.accountId to b.fileId], TAG_TAG).containsAll(filter.tags) }
+        if (filter.status == null && filter.hideFinished) list = list.filter { it.readStatus != "finished" }
+        if (filter.include.isNotEmpty() || filter.exclude.isNotEmpty()) {
+            list = list.filter {
+                SmartQueryEvaluator.matchesTerms(filter.include, filter.exclude, filter.matchAny, it, tagsBy[it.accountId to it.fileId].orEmpty(), lookup)
+            }
         }
         if (filter.onlyOffline) {
             list = list.filter { downloadBy[it.accountId to it.fileId]?.state == "DONE" }
@@ -86,30 +87,32 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
             val k = it.accountId to it.fileId
             it.toLibraryBook(tagsBy[k].orEmpty(), progressBy[k], downloadBy[k], k in pendingBy)
         }
-        return sorted(mapped, filter, progressBy)
+        val positions = filter.shelf?.let { key ->
+            members.filter { it.accountId == key.accountId && it.shelfId == key.shelfId }.associate { it.fileId to it.position }
+        }.orEmpty()
+        return sorted(mapped, filter, progressBy, positions)
     }
 
     private fun filterByShelf(
         books: List<BookEntity>,
         shelf: ShelfEntity,
         tagsBy: Map<Pair<String, Long>, List<BookTagEntity>>,
-        members: List<ShelfBookEntity>,
-        shelves: List<ShelfEntity>,
+        lookup: ShelfLookup,
     ): List<BookEntity> {
         if (!shelf.isSmart()) {
-            val ids = members.filter { it.accountId == shelf.accountId && it.shelfId == shelf.id }.map { it.fileId }.toSet()
+            val ids = lookup.members[shelf.accountId to shelf.id].orEmpty()
             return books.filter { it.fileId in ids }
         }
         val query = shelf.smartQuery() ?: return emptyList()
-        val memberMap = members.filter { it.accountId == shelf.accountId }
-            .groupBy({ it.shelfId }, { it.fileId }).mapValues { it.value.toSet() }
-        return books.filter { SmartQueryEvaluator.matches(query, it, tagsBy[it.accountId to it.fileId].orEmpty(), memberMap) }
+        return books.filter { SmartQueryEvaluator.matches(query, it, tagsBy[it.accountId to it.fileId].orEmpty(), lookup, allowShelf = false) }
     }
 
-    private fun tagNames(tags: List<BookTagEntity>?, type: String): Set<String> =
-        tags.orEmpty().filter { it.type == type }.map { it.name }.toSet()
-
-    private fun sorted(list: List<LibraryBook>, filter: LibraryFilter, progressBy: Map<Pair<String, Long>, ProgressEntity>): List<LibraryBook> {
+    private fun sorted(
+        list: List<LibraryBook>,
+        filter: LibraryFilter,
+        progressBy: Map<Pair<String, Long>, ProgressEntity>,
+        positions: Map<Long, Int>,
+    ): List<LibraryBook> {
         val ci = String.CASE_INSENSITIVE_ORDER
         val base: Comparator<LibraryBook> = when (filter.sort) {
             LibrarySort.TITLE -> compareBy(ci) { it.title }
@@ -120,6 +123,7 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
             LibrarySort.ADDED -> compareBy<LibraryBook> { it.addedAt }.thenBy(ci) { it.title }
             LibrarySort.RECENTLY_READ -> compareBy<LibraryBook> { progressBy[it.key.accountId to it.key.fileId]?.clientUpdatedAt ?: 0L }
                 .thenBy(ci) { it.title }
+            LibrarySort.SHELF -> compareBy<LibraryBook> { positions[it.key.fileId] ?: Int.MAX_VALUE }.thenBy(ci) { it.title }
         }
         return list.sortedWith(if (filter.descending) base.reversed() else base)
     }
@@ -137,7 +141,7 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
     override fun shelves(accountIds: List<String>): Flow<List<ShelfInfo>> =
         db.shelfDao().observeAll(accountIds).map { rows ->
             rows.map {
-                ShelfInfo(ShelfKey(it.accountId, it.id), it.name, it.isSmart(), it.count, decodeLongs(it.coverFileIds))
+                ShelfInfo(ShelfKey(it.accountId, it.id), it.name, it.isSmart(), it.count, decodeLongs(it.coverFileIds), it.smartQuery())
             }
         }
 
@@ -164,6 +168,29 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
 
     private fun facet(accountIds: List<String>, type: String): Flow<List<FacetCount>> =
         db.bookTagDao().observeFacet(accountIds, type).map { rows -> rows.map { FacetCount(it.name, it.count) } }
+
+    override fun facets(accountIds: List<String>): Flow<LibraryFacets> {
+        if (accountIds.isEmpty()) return kotlinx.coroutines.flow.flowOf(LibraryFacets())
+        return combine(db.bookDao().observeLibrary(accountIds, null, null), db.bookTagDao().observeAll(accountIds)) { books, tags ->
+            val active = books.map { it.accountId to it.fileId }.toSet()
+            val live = tags.filter { (it.accountId to it.fileId) in active }
+            val tagsBy = live.groupBy { it.accountId to it.fileId }
+            fun count(names: List<String>): List<FacetCount> =
+                names.filter { it.isNotBlank() }.groupBy { it.trim().lowercase() }
+                    .map { (_, group) -> FacetCount(group.groupingBy { it.trim() }.eachCount().maxBy { it.value }.key, group.size) }
+                    .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+            LibraryFacets(
+                genres = count(live.filter { it.type == TAG_GENRE }.map { it.name }),
+                tags = count(live.filter { it.type == TAG_TAG }.map { it.name }),
+                authors = count(books.flatMap { decodeStrings(it.authors) }),
+                series = count(books.mapNotNull { it.series }),
+                formats = count(books.map { it.format.lowercase() }),
+                missing = MissingFields.associateWith { field ->
+                    books.count { SmartQueryEvaluator.missing(field, it, tagsBy[it.accountId to it.fileId].orEmpty()) == true }
+                }.filterValues { it > 0 },
+            )
+        }.flowOn(Dispatchers.Default).distinctUntilChanged()
+    }
 
     override fun continueReading(accountIds: List<String>, limit: Int): Flow<List<LibraryBook>> =
         books(accountIds, LibraryFilter(sort = LibrarySort.RECENTLY_READ, descending = true)).map { list ->

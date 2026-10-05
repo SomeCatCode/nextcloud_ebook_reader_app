@@ -60,6 +60,20 @@ class ProgressRepositoryTest : DbTest() {
     }
 
     @Test
+    fun savingProgressDerivesTheReadStatus() = runBlocking {
+        db.bookDao().upsertAll(listOf(book(5)))
+        repo.saveLocal(key, loc("c1.xhtml", 0.3), 0.3)
+        assertEquals("reading", db.bookDao().get("acc1", 5)!!.readStatus)
+        repo.saveLocal(key, loc("end.xhtml", 0.99), 0.99)
+        assertEquals("finished", db.bookDao().get("acc1", 5)!!.readStatus)
+        repo.saveLocal(key, loc("c1.xhtml", 0.0), 0.0)
+        assertEquals("unread", db.bookDao().get("acc1", 5)!!.readStatus)
+        db.bookDao().updateAppData("acc1", 5, null, "reading")
+        repo.saveLocal(key, loc("c1.xhtml", 0.0), 0.0)
+        assertEquals("a book set to reading stays reading at the start", "reading", db.bookDao().get("acc1", 5)!!.readStatus)
+    }
+
+    @Test
     fun timestampNeverGoesBackwardsForTheSameBook() = runBlocking {
         repo.saveLocal(key, loc("a"), 0.1)
         now = 500 // clock jumped back
