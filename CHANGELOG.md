@@ -8,6 +8,11 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 ### Hinzugefügt
 - Zoom im Comic-Reader: mit zwei Fingern aufziehen (bis 5-fach, am Fingerpunkt verankert), vergrößerte Seite mit einem Finger verschieben, Doppeltippen wechselt zwischen eingepasst und 2,5-fach an der getippten Stelle. Vergrößert blättern weder Wischen noch Tipp-Zonen (Tippen blendet nur die Leisten ein/aus); Umblättern per Lautstärketaste, Tastatur, Inhaltsverzeichnis oder Tipp-Zone (eingepasst) setzt den Zoom zurück. Der Zoom ist rein visuell und landet nicht im gespeicherten Lesestand; im E-Ink-Modus ohne Animation.
 - Reader-Einstellungen für Comics: „Ganze Seite“ oder „Seitenbreite“ einpassen (lange Seiten lassen sich bei Seitenbreite vertikal scrollen).
+- Filter wie in der Web-App: Filterblatt mit Genres und Tags als Baum (Unterebenen mit „X/*“), Autoren, Serien, Formaten und „Braucht Pflege“ (fehlende Angaben); jeder Eintrag lässt sich einschließen oder ausschließen, aktive Filter als Chips (antippen wechselt ein/aus, × entfernt), „Alle/Eins muss passen“, Option „Gelesene ausblenden“ (Standard an, bleibt gespeichert).
+- Smarte Regale: aktuellen Filter als smartes Regal speichern, Filter eines smarten Regals bearbeiten und zurückspeichern; smarte Regale verstehen jetzt auch Fehlend-Filter und Regal-Begriffe wie der Server.
+- Regalverwaltung: Regale anlegen, umbenennen, sortieren und löschen; Bücher in den Buchdetails zu Regalen hinzufügen (auch neues Regal) und im Regal per langem Tippen entfernen; manuelle Regale zeigen die Reihenfolge des Servers.
+- Buchdetails: Autor, Serie, Genres, Tags und Regale antippen filtert die Bibliothek danach.
+- Synchronisation sichtbar: „Jetzt synchronisieren“ mit Zeitpunkt der letzten Synchronisation im Menü, Fortschrittsbalken während des Syncs.
 - Release-Workflow: Tag `vX.Y.Z` baut signiertes AAB und APK, erstellt ein GitHub-Release mit APK und lädt das AAB samt R8-Mapping und „Neuerungen“ in den internen Test von Google Play (Anleitung: `docs/RELEASING.md`).
 - Datenschicht (Phase 1/2/3): API-Client für die Nextcloud-App (OCS-Hülle, Basic-Auth mit App-Passwort, Fehlerabbildung, Fortschritts-Konflikt 409, Sync-Seiten), Login Flow v2, Versionsprüfung (Server-App fehlt oder älter als 0.5.0) und Widerruf des App-Passworts beim Abmelden.
 - Konten: App-Passwörter AES-GCM-verschlüsselt (Android Keystore) in `noBackupFilesDir`; Entfernen eines Kontos löscht Datenbankzeilen und lokale Bücher.
@@ -24,3 +29,10 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 - Reader (Phase 4, Teil W-READER): Vollbild-Reader-Seite mit der vollständigen Bridge (`open`, `goTo`, `next`, `prev`, `setSettings`, `destroy` sowie `ready`, `opened`, `relocate`, `toc`, `externalLink`, `tap`, `error`), Quellen `file`, `remote-zip` und `remote-comic` mit Rückfall auf die ganze Datei, Themes (hell, Sepia, dunkel), Schrift, Zeilenabstand, Ränder, Blättern/Scrollen, Comic-Doppelseite und Leserichtung, E-Ink-Modus (reines Schwarz/Weiß, keine Animationen), Tipp-Zonen, Wischen und Tastatur. Mindestanforderung: WebView ab Chrome 103.
 - Request-Proxy (`ReaderRequestProxyImpl`): bedient `/api/…` offline aus der lokalen Datei (Range, MIME-Typ) oder online über ein kleines `ReaderBackend`-Interface mit Server-Authentifizierung; Fehlerabbildung (Netzwerk → 504, 401 → `unauthorized`, fremde Hosts → 403, unbekannte Pfade → 404).
 - `ReaderHostImpl` und `ReaderView`: gehärtete WebView (kein Datei-/Content-Zugriff, kein Mixed Content, Navigation weg vom Reader blockiert, Safe Browsing, Content-Security-Policy), Bridge-Nachrichten mit Thread-Wechsel, Lebenszyklus, optionale Lautstärketasten zum Blättern. Debug-Build enthält eine Test-Activity für den Reader.
+
+### Geändert
+- Lesestatus und Lesefortschritt hängen zusammen: „Gelesen“ setzt den Fortschritt auf 100 %, „Ungelesen“ setzt ihn zurück; Lesen bis zum Ende markiert das Buch als gelesen, zurück an den Anfang als ungelesen.
+- Sortierung nach Bewertung, Hinzugefügt und Zuletzt gelesen beginnt wie im Web absteigend.
+
+### Behoben
+- Regale zeigten keine Bücher: die Mitglieder manueller Regale werden jetzt bei jeder Synchronisation und beim Öffnen eines Regals neu geladen (vorher wurden Änderungen übersprungen, wenn sich die Regalzeile auf dem Server nicht änderte).

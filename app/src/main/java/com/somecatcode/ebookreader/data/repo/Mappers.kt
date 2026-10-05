@@ -155,9 +155,25 @@ internal fun BookEntity.toLibraryBook(
     hasPendingEdit = hasPendingEdit,
 )
 
+/** Manual shelf memberships and smart shelf queries of the shown accounts, keyed by (accountId, shelfId). */
+internal class ShelfLookup(
+    val members: Map<Pair<String, Long>, Set<Long>> = emptyMap(),
+    val smart: Map<Pair<String, Long>, SmartQueryDto> = emptyMap(),
+) {
+    companion object {
+        fun of(shelves: List<ShelfEntity>, members: List<com.somecatcode.ebookreader.data.db.ShelfBookEntity>): ShelfLookup = ShelfLookup(
+            members = members.groupBy({ it.accountId to it.shelfId }, { it.fileId }).mapValues { it.value.toSet() },
+            smart = shelves.filter { it.isSmart() }.mapNotNull { s -> s.smartQuery()?.let { (s.accountId to s.id) to it } }.toMap(),
+        )
+    }
+}
+
 /**
- * Evaluates the stored query of a smart shelf (or any include/exclude filter) against local data.
- * Terms are `type:name`; a wildcard term (name ending in slash-star) also matches everything below that prefix.
+ * Evaluates library filters and smart shelf queries against local data, mirroring the server
+ * (`LibraryService::filterConditions`): terms are `type:name`; `genre:X/…` and `tag:X/…` (slash-star wildcard) match X and
+ * everything below `X/`; `shelf:<id>` is the membership of a manual shelf or the saved query of a smart
+ * shelf (whose own `shelf:` terms are ignored, so shelves cannot loop); `missing:<field>` matches books
+ * lacking that field. Comparisons are case-insensitive.
  */
 internal object SmartQueryEvaluator {
 
@@ -165,46 +181,85 @@ internal object SmartQueryEvaluator {
         query: SmartQueryDto,
         book: BookEntity,
         tags: List<BookTagEntity>,
-        shelfMembers: Map<Long, Set<Long>>,
+        shelves: ShelfLookup,
+        allowShelf: Boolean = true,
     ): Boolean {
-        if (query.search.isNotBlank()) {
-            val needle = query.search.trim()
-            val hay = listOfNotNull(book.title, book.authors, book.series)
-            if (hay.none { it.contains(needle, ignoreCase = true) }) return false
-        }
+        if (!matchesSearch(query.search, book)) return false
         query.status?.let { if (book.readStatus != it.wire()) return false }
-        val includeHits = query.include.map { term(it, book, tags, shelfMembers) }
-        if (includeHits.isNotEmpty()) {
-            val ok = if (query.match == "any") includeHits.any { it } else includeHits.all { it }
-            if (!ok) return false
-        }
-        if (query.exclude.any { term(it, book, tags, shelfMembers) }) return false
-        return true
+        return matchesTerms(query.include, query.exclude, query.match == "any", book, tags, shelves, allowShelf)
     }
 
-    private fun term(raw: String, book: BookEntity, tags: List<BookTagEntity>, shelfMembers: Map<Long, Set<Long>>): Boolean {
+    fun matchesSearch(search: String?, book: BookEntity): Boolean {
+        val needle = search?.trim().orEmpty()
+        if (needle.isEmpty()) return true
+        return listOfNotNull(book.title, book.authors, book.series, book.path.substringAfterLast('/'))
+            .any { it.contains(needle, ignoreCase = true) }
+    }
+
+    fun matchesTerms(
+        include: List<String>,
+        exclude: List<String>,
+        matchAny: Boolean,
+        book: BookEntity,
+        tags: List<BookTagEntity>,
+        shelves: ShelfLookup,
+        allowShelf: Boolean = true,
+    ): Boolean {
+        // null = the term has no effect (e.g. a shelf term inside a smart shelf)
+        val hits = include.mapNotNull { term(it, book, tags, shelves, allowShelf, negate = false) }
+        if (hits.isNotEmpty() && !(if (matchAny) hits.any { it } else hits.all { it })) return false
+        return exclude.none { term(it, book, tags, shelves, allowShelf, negate = true) == true }
+    }
+
+    private fun term(raw: String, book: BookEntity, tags: List<BookTagEntity>, shelves: ShelfLookup, allowShelf: Boolean, negate: Boolean): Boolean? {
         val idx = raw.indexOf(':')
-        if (idx <= 0) return false
-        val type = raw.substring(0, idx)
-        val name = raw.substring(idx + 1)
+        if (idx <= 0) return null
+        val type = raw.substring(0, idx).trim().lowercase()
+        val name = raw.substring(idx + 1).trim()
         return when (type) {
-            "genre" -> tagMatch(tags, TAG_GENRE, name)
-            "tag" -> tagMatch(tags, TAG_TAG, name)
-            "author" -> decodeStrings(book.authors).any { it.equals(name, ignoreCase = true) }
-            "series" -> book.series.equals(name, ignoreCase = true)
+            "genre" -> tags.any { it.type == TAG_GENRE && tagMatches(it.name, name) }
+            "tag" -> tags.any { it.type == TAG_TAG && tagMatches(it.name, name) }
+            "author" -> decodeStrings(book.authors).any { it.trim().equals(name, ignoreCase = true) }
+            "series" -> book.series?.trim().equals(name, ignoreCase = true)
             "format" -> book.format.equals(name, ignoreCase = true)
-            "shelf" -> name.toLongOrNull()?.let { shelfMembers[it]?.contains(book.fileId) } == true
-            else -> false
+            "missing" -> missing(name, book, tags)
+            "shelf" -> if (!allowShelf) null else shelfTerm(name, book, tags, shelves, negate)
+            else -> null
         }
     }
 
-    private fun tagMatch(tags: List<BookTagEntity>, type: String, name: String): Boolean {
-        val wildcard = name.endsWith("/*")
-        val prefix = name.removeSuffix("*")
-        return tags.any {
-            it.type == type &&
-                if (wildcard) it.name.startsWith(prefix, ignoreCase = true) || it.name.equals(prefix.trimEnd('/'), ignoreCase = true)
-                else it.name.equals(name, ignoreCase = true)
-        }
+    private fun shelfTerm(name: String, book: BookEntity, tags: List<BookTagEntity>, shelves: ShelfLookup, negate: Boolean): Boolean? {
+        val id = name.toLongOrNull()?.takeIf { it > 0 } ?: return if (negate) null else false
+        val key = book.accountId to id
+        shelves.smart[key]?.let { return matches(it, book, tags, shelves, allowShelf = false) }
+        val members = shelves.members[key] ?: return if (negate) null else false
+        return book.fileId in members
     }
+
+    /** `missing:<field>`; unknown fields have no effect. */
+    fun missing(field: String, book: BookEntity, tags: List<BookTagEntity>): Boolean? = when (field.lowercase()) {
+        "genre" -> tags.none { it.type == TAG_GENRE }
+        "tag" -> tags.none { it.type == TAG_TAG }
+        "author" -> decodeStrings(book.authors).none { it.isNotBlank() }
+        "series" -> book.series.isNullOrBlank()
+        "description" -> book.description.isNullOrBlank()
+        "language" -> book.language.isNullOrBlank()
+        "cover" -> !book.hasCover
+        else -> null
+    }
+
+    /** The wildcard "Fantasy/" + "*" matches "Fantasy" and "Fantasy/..." (not "Fantasyx"); a plain term matches the full name. */
+    fun tagMatches(tagName: String, term: String): Boolean {
+        val tag = tagName.trim().lowercase()
+        val t = term.trim()
+        if (!t.endsWith("/*")) return tag == t.lowercase()
+        val base = normalizeHierarchy(t.dropLast(2))?.lowercase() ?: return false
+        return tag == base || tag.startsWith("$base/")
+    }
+
+    fun normalizeHierarchy(name: String): String? =
+        name.split('/').map { it.trim().replace(WHITESPACE, " ") }.filter { it.isNotEmpty() }.take(5)
+            .takeIf { it.isNotEmpty() }?.joinToString("/")
+
+    private val WHITESPACE = Regex("""\s+""")
 }

@@ -20,6 +20,7 @@ import com.somecatcode.ebookreader.data.repo.EditRepositoryImpl
 import com.somecatcode.ebookreader.data.repo.LibraryRepositoryImpl
 import com.somecatcode.ebookreader.data.repo.ProgressRepositoryImpl
 import com.somecatcode.ebookreader.data.repo.SettingsRepositoryImpl
+import com.somecatcode.ebookreader.data.repo.ShelfRepositoryImpl
 import com.somecatcode.ebookreader.data.sync.LocalChangesScheduler
 import com.somecatcode.ebookreader.data.sync.SyncEngineImpl
 import com.somecatcode.ebookreader.data.sync.WorkManagerLocalChangesScheduler
@@ -42,6 +43,7 @@ import com.somecatcode.ebookreader.data.repo.EditRepository
 import com.somecatcode.ebookreader.data.repo.LibraryRepository
 import com.somecatcode.ebookreader.data.repo.ProgressRepository
 import com.somecatcode.ebookreader.data.repo.SettingsRepository
+import com.somecatcode.ebookreader.data.repo.ShelfRepository
 import com.somecatcode.ebookreader.data.sync.SyncEngine
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -66,6 +68,7 @@ interface AppContainer {
     val progressRepository: ProgressRepository
     val downloadRepository: DownloadRepository
     val editRepository: EditRepository
+    val shelfRepository: ShelfRepository
     val settingsRepository: SettingsRepository
     val syncEngine: SyncEngine
     val downloadManager: DownloadManager
@@ -130,6 +133,7 @@ class DefaultAppContainer(override val appContext: Context) : AppContainer {
     }
     override val downloadRepository: DownloadRepository by lazy { DownloadRepositoryImpl(database, downloadManager) }
     override val editRepository: EditRepository by lazy { EditRepositoryImpl(database, apiClientFactory, localChangesScheduler) }
+    override val shelfRepository: ShelfRepository by lazy { ShelfRepositoryImpl(database, apiClientFactory) }
     override val settingsRepository: SettingsRepository by lazy { SettingsRepositoryImpl(settingsStore) }
     override val syncEngine: SyncEngine by lazy {
         SyncEngineImpl(database, apiClientFactory, editRepository, progressRepository, downloadManager, { workManager }, appScope)

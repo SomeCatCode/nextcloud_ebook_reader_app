@@ -135,7 +135,7 @@ internal object PinnedMembers {
         }
         val query = shelf.smartQuery() ?: return emptyList()
         val tags = db.bookTagDao().allOf(accountId).groupBy { it.fileId }
-        val memberMap = db.shelfDao().allMembers(accountId).groupBy({ it.shelfId }, { it.fileId }).mapValues { it.value.toSet() }
-        return books.filter { SmartQueryEvaluator.matches(query, it, tags[it.fileId].orEmpty(), memberMap) }
+        val lookup = ShelfLookup.of(db.shelfDao().getAll(accountId), db.shelfDao().allMembers(accountId))
+        return books.filter { SmartQueryEvaluator.matches(query, it, tags[it.fileId].orEmpty(), lookup, allowShelf = false) }
     }
 }

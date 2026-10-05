@@ -64,6 +64,8 @@ data class ShelfInfo(
     val smart: Boolean,
     val count: Int,
     val coverFileIds: List<Long>,
+    /** Saved filter of a smart shelf, null for manual shelves. */
+    val query: com.somecatcode.ebookreader.data.api.SmartQueryDto? = null,
 )
 
 data class ShelfKey(val accountId: String, val shelfId: Long)
@@ -78,11 +80,33 @@ data class SeriesInfo(
 
 data class FacetCount(val name: String, val count: Int)
 
+/** Everything the filter UI offers, counted over the shown (non-deleted) books. */
+data class LibraryFacets(
+    val genres: List<FacetCount> = emptyList(),
+    val tags: List<FacetCount> = emptyList(),
+    val authors: List<FacetCount> = emptyList(),
+    val series: List<FacetCount> = emptyList(),
+    val formats: List<FacetCount> = emptyList(),
+    /** Books lacking a field, keyed by [MissingFields] (only fields with at least one book). */
+    val missing: Map<String, Int> = emptyMap(),
+)
+
+/** Fields a `missing:<field>` term can ask for (same as the server). */
+val MissingFields = listOf("genre", "tag", "author", "series", "description", "cover", "language")
+
+/**
+ * Library filter, same semantics as the web app and the server `GET /books`: [include] and [exclude] hold
+ * `type:name` terms (`genre`, `tag`, `author`, `series`, `format`, `shelf:<id>`, `missing:<field>`; a genre or tag term ending in slash-star
+ * also matches everything below that prefix). Includes must all match ([matchAny] = at least one), a book
+ * with any excluded term is dropped. [hideFinished] leaves out finished books unless a [status] is set.
+ */
 data class LibraryFilter(
     val search: String? = null,
     val status: ReadStatus? = null,
-    val genres: Set<String> = emptySet(),
-    val tags: Set<String> = emptySet(),
+    val include: List<String> = emptyList(),
+    val exclude: List<String> = emptyList(),
+    val matchAny: Boolean = false,
+    val hideFinished: Boolean = false,
     val shelf: ShelfKey? = null,
     val series: String? = null,
     val onlyOffline: Boolean = false,
@@ -90,7 +114,8 @@ data class LibraryFilter(
     val descending: Boolean = false,
 )
 
-enum class LibrarySort { TITLE, AUTHOR, SERIES, RATING, ADDED, RECENTLY_READ }
+/** [SHELF] = position inside a manual shelf (only meaningful together with [LibraryFilter.shelf]). */
+enum class LibrarySort { TITLE, AUTHOR, SERIES, RATING, ADDED, RECENTLY_READ, SHELF }
 
 // ---- Library --------------------------------------------------------------------------------------
 
@@ -102,8 +127,39 @@ interface LibraryRepository {
     fun series(accountIds: List<String>): Flow<List<SeriesInfo>>
     fun genres(accountIds: List<String>): Flow<List<FacetCount>>
     fun tags(accountIds: List<String>): Flow<List<FacetCount>>
+    fun facets(accountIds: List<String>): Flow<LibraryFacets>
     /** Books to "continue reading": newest local progress first. */
     fun continueReading(accountIds: List<String>, limit: Int = 10): Flow<List<LibraryBook>>
+}
+
+// ---- Shelves -------------------------------------------------------------------------------------
+
+/**
+ * Shelf management. Unlike edits of books these calls need the server (shelves are server objects with
+ * server ids); they throw [com.somecatcode.ebookreader.data.api.ApiException] and update Room on success.
+ */
+interface ShelfRepository {
+    /** Reloads the shelf list and the membership of every manual shelf of the account. */
+    suspend fun refresh(accountId: String)
+
+    /** Reloads the membership of one manual shelf (opening a shelf). */
+    suspend fun refreshMembers(key: ShelfKey)
+
+    /** Creates a manual shelf ([query] null) or a smart shelf. Returns the new shelf. */
+    suspend fun create(accountId: String, name: String, query: com.somecatcode.ebookreader.data.api.SmartQueryDto? = null): ShelfKey
+
+    suspend fun rename(key: ShelfKey, name: String)
+    suspend fun updateQuery(key: ShelfKey, query: com.somecatcode.ebookreader.data.api.SmartQueryDto)
+    suspend fun delete(key: ShelfKey)
+
+    /** Moves a shelf one place up (-1) or down (+1) in the list of its account. */
+    suspend fun move(key: ShelfKey, delta: Int)
+
+    suspend fun addBooks(key: ShelfKey, fileIds: List<Long>)
+    suspend fun removeBooks(key: ShelfKey, fileIds: List<Long>)
+
+    /** Ids of the manual shelves of the account that contain the book. */
+    fun shelvesOf(book: BookKey): Flow<Set<Long>>
 }
 
 // ---- Progress -------------------------------------------------------------------------------------
@@ -240,6 +296,8 @@ data class AppSettings(
     val readerSettingsJson: String? = null,
     /** Device name sent with the progress (default: Build.MODEL). */
     val deviceName: String? = null,
+    /** Library leaves out finished books unless a status filter is set (default on, like the web app). */
+    val hideFinished: Boolean = true,
 )
 
 interface SettingsRepository {

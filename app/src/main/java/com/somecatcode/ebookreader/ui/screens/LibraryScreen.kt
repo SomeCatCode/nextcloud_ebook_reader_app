@@ -21,11 +21,14 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.MoreVert
@@ -34,7 +37,6 @@ import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -42,6 +44,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -60,6 +64,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -72,10 +77,12 @@ import com.somecatcode.ebookreader.data.repo.LibraryBook
 import com.somecatcode.ebookreader.data.repo.LibrarySort
 import com.somecatcode.ebookreader.data.repo.SeriesInfo
 import com.somecatcode.ebookreader.data.repo.ShelfInfo
+import com.somecatcode.ebookreader.data.repo.ShelfKey
+import com.somecatcode.ebookreader.ui.components.ConfirmDialog
+import com.somecatcode.ebookreader.ui.util.formatRelativeTime
 import com.somecatcode.ebookreader.ui.components.BookCover
 import com.somecatcode.ebookreader.ui.components.EmptyState
 import com.somecatcode.ebookreader.ui.components.MessageBanner
-import com.somecatcode.ebookreader.ui.components.MultiSelectDialog
 import com.somecatcode.ebookreader.ui.components.OfflineIndicator
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 
@@ -83,21 +90,41 @@ import com.somecatcode.ebookreader.ui.util.containerViewModel
 private const val WIDE_BREAKPOINT_DP = 840
 
 class LibraryActions(
-    val onRefresh: () -> Unit,
-    val onSelectAccount: (String?) -> Unit,
-    val onToggleLayout: () -> Unit,
-    val onSelectTab: (LibraryTab) -> Unit,
-    val onSearchOpen: (Boolean) -> Unit,
-    val onSearch: (String) -> Unit,
-    val onStatus: (ReadStatus?) -> Unit,
-    val onGenres: (Set<String>) -> Unit,
-    val onTags: (Set<String>) -> Unit,
-    val onFormats: (Set<String>) -> Unit,
-    val onOnlyOffline: (Boolean) -> Unit,
-    val onSort: (LibrarySort) -> Unit,
-    val onToggleDescending: () -> Unit,
-    val onClearFilters: () -> Unit,
+    val onRefresh: () -> Unit = {},
+    val onSelectAccount: (String?) -> Unit = {},
+    val onToggleLayout: () -> Unit = {},
+    val onSelectTab: (LibraryTab) -> Unit = {},
+    val onSearchOpen: (Boolean) -> Unit = {},
+    val onSearch: (String) -> Unit = {},
+    val onStatus: (ReadStatus?) -> Unit = {},
+    val onCycleTerm: (String) -> Unit = {},
+    val onFlipTerm: (String) -> Unit = {},
+    val onRemoveTerm: (String) -> Unit = {},
+    val onMatchAny: (Boolean) -> Unit = {},
+    val onHideFinished: (Boolean) -> Unit = {},
+    val onOnlyOffline: (Boolean) -> Unit = {},
+    val onSort: (LibrarySort) -> Unit = {},
+    val onToggleDescending: () -> Unit = {},
+    val onClearFilters: () -> Unit = {},
+    val onSaveSmartShelf: (String) -> Unit = {},
+    val onUpdateEditingShelf: () -> Unit = {},
+    val onStopEditingShelf: () -> Unit = {},
+    val onCreateShelf: (String) -> Unit = {},
+    val onRenameShelf: (ShelfKey, String) -> Unit = { _, _ -> },
+    val onDeleteShelf: (ShelfKey) -> Unit = {},
+    val onMoveShelf: (ShelfKey, Int) -> Unit = { _, _ -> },
 )
+
+/** Commands handed to the library by other screens (book details, smart shelf). */
+object LibraryCommand {
+    const val KEY = "libraryCommand"
+
+    /** Show only books matching [term] (`genre:Fantasy`, `author:X`, ...). */
+    fun only(term: String) = "only:$term"
+
+    /** Load a smart shelf's filter into the library for editing. */
+    fun editSmart(accountId: String, shelfId: Long) = "smart:$shelfId:$accountId"
+}
 
 /** Library (grid/list, search, filters, shelves, series). Start destination. */
 @Composable
@@ -109,15 +136,36 @@ fun LibraryScreen(
     onOpenShelf: (accountId: String, shelfId: Long) -> Unit = { _, _ -> },
     onOpenSeries: (accountId: String, name: String) -> Unit = { _, _ -> },
     onReadBook: (accountId: String, fileId: Long) -> Unit = onOpenBook,
+    command: String? = null,
+    onCommandHandled: () -> Unit = {},
 ) {
-    val vm = containerViewModel { c -> LibraryViewModel(c.accountStore, c.libraryRepository, c.settingsRepository, c.syncEngine) }
+    val vm = containerViewModel { c -> LibraryViewModel(c.accountStore, c.libraryRepository, c.settingsRepository, c.syncEngine, c.shelfRepository) }
     val state by vm.state.collectAsState()
     val actions = remember(vm) {
         LibraryActions(
-            vm::refresh, vm::selectAccount, vm::toggleLayout, vm::selectTab, vm::setSearchOpen, vm::setSearch, vm::setStatus,
-            vm::setGenres, vm::setTags, vm::setFormats, vm::setOnlyOffline, vm::setSort, vm::toggleDescending, vm::clearFilters,
+            onRefresh = vm::refresh, onSelectAccount = vm::selectAccount, onToggleLayout = vm::toggleLayout, onSelectTab = vm::selectTab,
+            onSearchOpen = vm::setSearchOpen, onSearch = vm::setSearch, onStatus = vm::setStatus,
+            onCycleTerm = vm::cycleTerm, onFlipTerm = vm::flipTerm, onRemoveTerm = vm::removeTerm, onMatchAny = vm::setMatchAny,
+            onHideFinished = vm::setHideFinished, onOnlyOffline = vm::setOnlyOffline, onSort = vm::setSort,
+            onToggleDescending = vm::toggleDescending, onClearFilters = vm::clearFilters,
+            onSaveSmartShelf = vm::saveSmartShelf, onUpdateEditingShelf = vm::updateEditingShelf, onStopEditingShelf = vm::stopEditingShelf,
+            onCreateShelf = vm::createShelf, onRenameShelf = vm::renameShelf, onDeleteShelf = vm::deleteShelf, onMoveShelf = vm::moveShelf,
         )
     }
+    LaunchedEffect(command) {
+        val cmd = command ?: return@LaunchedEffect
+        when {
+            cmd.startsWith("only:") -> vm.onlyTerm(cmd.removePrefix("only:"))
+            cmd.startsWith("smart:") -> {
+                val rest = cmd.removePrefix("smart:")
+                rest.substringBefore(':').toLongOrNull()?.let { vm.editSmartShelf(ShelfKey(rest.substringAfter(':'), it)) }
+            }
+        }
+        onCommandHandled()
+    }
+    val snackbar = remember { SnackbarHostState() }
+    val resources = LocalResources.current
+    LaunchedEffect(vm) { vm.messages.collect { snackbar.showSnackbar(resources.getString(it)) } }
     val wide = LocalConfiguration.current.screenWidthDp >= WIDE_BREAKPOINT_DP
     var selected by rememberSaveable(stateSaver = BookKeySaver) { mutableStateOf<BookKey?>(null) }
 
@@ -132,6 +180,7 @@ fun LibraryScreen(
             onOpenBook = { key -> if (wide) selected = key else onOpenBook(key.accountId, key.fileId) },
             onOpenShelf = onOpenShelf,
             onOpenSeries = onOpenSeries,
+            snackbar = snackbar,
         )
     }
     if (wide) {
@@ -148,6 +197,7 @@ fun LibraryScreen(
                         onBack = { selected = null },
                         onRead = { onReadBook(key.accountId, key.fileId) },
                         showBack = false,
+                        onFilter = vm::onlyTerm,
                     )
                 }
             }
@@ -174,9 +224,11 @@ fun LibraryContent(
     onOpenShelf: (accountId: String, shelfId: Long) -> Unit,
     onOpenSeries: (accountId: String, name: String) -> Unit,
     modifier: Modifier = Modifier,
+    snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     Scaffold(
         modifier = modifier,
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 title = {
@@ -211,7 +263,7 @@ fun LibraryContent(
                             }
                         }
                     }
-                    OverflowMenu(onOpenAccounts, onOpenDownloads, onOpenSettings)
+                    OverflowMenu(state, actions.onRefresh, onOpenAccounts, onOpenDownloads, onOpenSettings)
                 },
             )
         },
@@ -241,7 +293,7 @@ fun LibraryContent(
                     PullToRefreshBox(isRefreshing = state.refreshing, onRefresh = actions.onRefresh, modifier = Modifier.fillMaxSize()) {
                         when (state.query.tab) {
                             LibraryTab.BOOKS -> BooksTab(state, actions, onOpenBook)
-                            LibraryTab.SHELVES -> ShelvesTab(state.shelves, onOpenShelf)
+                            LibraryTab.SHELVES -> ShelvesTab(state.shelves, actions, onOpenShelf)
                             LibraryTab.SERIES -> SeriesTab(state.series, onOpenSeries)
                         }
                     }
@@ -313,7 +365,7 @@ private fun SortMenu(state: LibraryUiState, actions: LibraryActions) {
         Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = stringResource(R.string.library_sort))
     }
     DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-        LibrarySort.entries.forEach { sort ->
+        LibrarySort.entries.filter { it != LibrarySort.SHELF }.forEach { sort ->
             DropdownMenuItem(
                 text = {
                     val prefix = if (state.query.filter.sort == sort) "✓ " else "    "
@@ -338,15 +390,37 @@ private fun sortTitle(sort: LibrarySort) = when (sort) {
     LibrarySort.RATING -> R.string.sort_rating
     LibrarySort.ADDED -> R.string.sort_added
     LibrarySort.RECENTLY_READ -> R.string.sort_recently_read
+    LibrarySort.SHELF -> R.string.sort_shelf
 }
 
 @Composable
-private fun OverflowMenu(onAccounts: () -> Unit, onDownloads: () -> Unit, onSettings: () -> Unit) {
+private fun OverflowMenu(state: LibraryUiState, onSync: () -> Unit, onAccounts: () -> Unit, onDownloads: () -> Unit, onSettings: () -> Unit) {
     var open by remember { mutableStateOf(false) }
     IconButton(onClick = { open = true }, modifier = Modifier.testTag("overflow")) {
         Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
     }
     DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+        if (state.accounts.isNotEmpty()) {
+            DropdownMenuItem(
+                text = {
+                    Column {
+                        Text(stringResource(R.string.sync_now))
+                        Text(
+                            when {
+                                state.refreshing -> stringResource(R.string.sync_running)
+                                state.lastSyncAt != null -> stringResource(R.string.sync_last, formatRelativeTime(state.lastSyncAt))
+                                else -> stringResource(R.string.sync_never)
+                            },
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
+                leadingIcon = { Icon(Icons.Filled.Sync, contentDescription = null) },
+                enabled = !state.refreshing,
+                onClick = { open = false; onSync() },
+                modifier = Modifier.testTag("sync_now"),
+            )
+        }
         DropdownMenuItem(text = { Text(stringResource(R.string.nav_accounts)) }, onClick = { open = false; onAccounts() })
         DropdownMenuItem(text = { Text(stringResource(R.string.nav_downloads)) }, onClick = { open = false; onDownloads() })
         DropdownMenuItem(text = { Text(stringResource(R.string.nav_settings)) }, onClick = { open = false; onSettings() })
@@ -358,6 +432,7 @@ private fun OverflowMenu(onAccounts: () -> Unit, onDownloads: () -> Unit, onSett
 @Composable
 private fun BooksTab(state: LibraryUiState, actions: LibraryActions, onOpenBook: (BookKey) -> Unit) {
     Column(Modifier.fillMaxSize()) {
+        if (state.refreshing) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("sync_progress"))
         FilterRow(state, actions)
         when {
             state.books.isEmpty() && state.query.hasActiveFilter -> EmptyState(
@@ -376,101 +451,6 @@ private fun BooksTab(state: LibraryUiState, actions: LibraryActions, onOpenBook:
         }
     }
 }
-
-@Composable
-private fun FilterRow(state: LibraryUiState, actions: LibraryActions) {
-    val query = state.query
-    var dialog by remember { mutableStateOf<String?>(null) }
-    var statusMenu by remember { mutableStateOf(false) }
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        item {
-            Box {
-                FilterChip(
-                    selected = query.filter.status != null,
-                    onClick = { statusMenu = true },
-                    label = { Text(query.filter.status?.let { stringResource(statusTitle(it)) } ?: stringResource(R.string.filter_status)) },
-                    modifier = Modifier.testTag("filter_status"),
-                )
-                DropdownMenu(expanded = statusMenu, onDismissRequest = { statusMenu = false }) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.filter_any)) },
-                        onClick = { statusMenu = false; actions.onStatus(null) },
-                    )
-                    ReadStatus.entries.forEach { status ->
-                        DropdownMenuItem(
-                            text = { Text(stringResource(statusTitle(status))) },
-                            onClick = { statusMenu = false; actions.onStatus(status) },
-                            modifier = Modifier.testTag("status_${status.name.lowercase()}"),
-                        )
-                    }
-                }
-            }
-        }
-        item {
-            FilterChip(
-                selected = query.filter.genres.isNotEmpty(),
-                onClick = { dialog = "genres" },
-                label = { Text(countLabel(stringResource(R.string.filter_genres), query.filter.genres.size)) },
-                modifier = Modifier.testTag("filter_genres"),
-            )
-        }
-        item {
-            FilterChip(
-                selected = query.filter.tags.isNotEmpty(),
-                onClick = { dialog = "tags" },
-                label = { Text(countLabel(stringResource(R.string.filter_tags), query.filter.tags.size)) },
-                modifier = Modifier.testTag("filter_tags"),
-            )
-        }
-        item {
-            FilterChip(
-                selected = query.formats.isNotEmpty(),
-                onClick = { dialog = "formats" },
-                label = { Text(countLabel(stringResource(R.string.filter_format), query.formats.size)) },
-                modifier = Modifier.testTag("filter_format"),
-            )
-        }
-        item {
-            FilterChip(
-                selected = query.filter.onlyOffline,
-                onClick = { actions.onOnlyOffline(!query.filter.onlyOffline) },
-                label = { Text(stringResource(R.string.filter_offline_only)) },
-                modifier = Modifier.testTag("filter_offline"),
-            )
-        }
-        if (query.hasActiveFilter) {
-            item { TextButton(onClick = actions.onClearFilters) { Text(stringResource(R.string.filter_clear_all)) } }
-        }
-    }
-    when (dialog) {
-        "genres" -> MultiSelectDialog(
-            title = stringResource(R.string.filter_genres),
-            options = state.genres.map { it.name to it.count },
-            selected = query.filter.genres,
-            onDismiss = { dialog = null },
-            onConfirm = { actions.onGenres(it); dialog = null },
-        )
-        "tags" -> MultiSelectDialog(
-            title = stringResource(R.string.filter_tags),
-            options = state.tags.map { it.name to it.count },
-            selected = query.filter.tags,
-            onDismiss = { dialog = null },
-            onConfirm = { actions.onTags(it); dialog = null },
-        )
-        "formats" -> MultiSelectDialog(
-            title = stringResource(R.string.filter_format),
-            options = KnownFormats.map { it to null },
-            selected = query.formats,
-            onDismiss = { dialog = null },
-            onConfirm = { actions.onFormats(it); dialog = null },
-        )
-    }
-}
-
-private fun countLabel(label: String, count: Int) = if (count > 0) "$label ($count)" else label
 
 internal fun statusTitle(status: ReadStatus) = when (status) {
     ReadStatus.UNREAD -> R.string.status_unread
@@ -559,21 +539,81 @@ internal fun formatIndex(value: Double): String = if (value % 1.0 == 0.0) value.
 // ---- Shelves and series --------------------------------------------------------------------------
 
 @Composable
-private fun ShelvesTab(shelves: List<ShelfInfo>, onOpenShelf: (String, Long) -> Unit) {
-    if (shelves.isEmpty()) {
-        EmptyState(stringResource(R.string.shelves_empty))
-        return
-    }
+private fun ShelvesTab(shelves: List<ShelfInfo>, actions: LibraryActions, onOpenShelf: (String, Long) -> Unit) {
+    var create by remember { mutableStateOf(false) }
+    var rename by remember { mutableStateOf<ShelfInfo?>(null) }
+    var delete by remember { mutableStateOf<ShelfInfo?>(null) }
     LazyColumn(Modifier.fillMaxSize().testTag("shelf_list"), contentPadding = PaddingValues(vertical = 8.dp)) {
-        items(shelves, key = { "${it.key.accountId}/${it.key.shelfId}" }) { shelf ->
-            CollectionRow(
-                accountId = shelf.key.accountId,
-                coverFileId = shelf.coverFileIds.firstOrNull(),
-                title = shelf.name,
-                subtitle = pluralStringResource(R.plurals.books_count, shelf.count, shelf.count) +
-                    if (shelf.smart) " · " + stringResource(R.string.shelf_smart) else "",
-                onClick = { onOpenShelf(shelf.key.accountId, shelf.key.shelfId) },
-            )
+        item {
+            TextButton(onClick = { create = true }, modifier = Modifier.padding(horizontal = 8.dp).testTag("shelf_create")) {
+                Icon(Icons.Filled.Add, contentDescription = null)
+                Text(stringResource(R.string.shelf_new), Modifier.padding(start = 8.dp))
+            }
+        }
+        if (shelves.isEmpty()) {
+            item { EmptyState(stringResource(R.string.shelves_empty)) }
+        }
+        itemsIndexed(shelves, key = { _, it -> "${it.key.accountId}/${it.key.shelfId}" }) { index, shelf ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) {
+                    CollectionRow(
+                        accountId = shelf.key.accountId,
+                        coverFileId = shelf.coverFileIds.firstOrNull(),
+                        title = shelf.name,
+                        subtitle = pluralStringResource(R.plurals.books_count, shelf.count, shelf.count) +
+                            if (shelf.smart) " · " + stringResource(R.string.shelf_smart) else "",
+                        onClick = { onOpenShelf(shelf.key.accountId, shelf.key.shelfId) },
+                    )
+                }
+                ShelfMenu(
+                    canMoveUp = index > 0 && shelves[index - 1].key.accountId == shelf.key.accountId,
+                    canMoveDown = index < shelves.lastIndex && shelves[index + 1].key.accountId == shelf.key.accountId,
+                    onRename = { rename = shelf },
+                    onDelete = { delete = shelf },
+                    onMove = { actions.onMoveShelf(shelf.key, it) },
+                    tag = "shelf_menu_${shelf.key.shelfId}",
+                )
+            }
+        }
+    }
+    if (create) {
+        NameDialog(stringResource(R.string.shelf_new), "", onDismiss = { create = false }) { create = false; actions.onCreateShelf(it) }
+    }
+    rename?.let { shelf ->
+        NameDialog(stringResource(R.string.shelf_rename), shelf.name, onDismiss = { rename = null }) { rename = null; actions.onRenameShelf(shelf.key, it) }
+    }
+    delete?.let { shelf ->
+        ConfirmDialog(
+            title = stringResource(R.string.shelf_delete),
+            text = stringResource(R.string.shelf_delete_confirm, shelf.name),
+            confirmLabel = stringResource(R.string.action_remove),
+            onConfirm = { delete = null; actions.onDeleteShelf(shelf.key) },
+            onDismiss = { delete = null },
+        )
+    }
+}
+
+@Composable
+internal fun ShelfMenu(
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onRename: () -> Unit,
+    onDelete: () -> Unit,
+    onMove: ((Int) -> Unit)?,
+    tag: String,
+) {
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }, modifier = Modifier.testTag(tag)) {
+            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(stringResource(R.string.shelf_rename)) }, onClick = { open = false; onRename() })
+            if (onMove != null) {
+                DropdownMenuItem(text = { Text(stringResource(R.string.shelf_move_up)) }, enabled = canMoveUp, onClick = { open = false; onMove(-1) })
+                DropdownMenuItem(text = { Text(stringResource(R.string.shelf_move_down)) }, enabled = canMoveDown, onClick = { open = false; onMove(1) })
+            }
+            DropdownMenuItem(text = { Text(stringResource(R.string.shelf_delete)) }, onClick = { open = false; onDelete() })
         }
     }
 }

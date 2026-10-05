@@ -54,6 +54,12 @@ class ProgressRepositoryImpl(
                     dirty = true,
                 ),
             )
+            // The server derives the status from the progress; mirror it so the library is right offline.
+            db.bookDao().get(key.accountId, key.fileId)?.let { book ->
+                // Like the server: a book set to "reading" by hand stays "reading" at its first page.
+                val status = if (percentage <= 0.0 && book.readStatus == "reading") "reading" else statusFor(percentage)
+                if (status != book.readStatus) db.bookDao().updateAppData(key.accountId, key.fileId, book.rating, status)
+            }
         }
         scheduler.schedule(key.accountId)
     }
@@ -197,3 +203,12 @@ class ProgressRepositoryImpl(
         const val NOTICEABLE = 0.01
     }
 }
+
+/** Read status implied by a reading position (server `ProgressService::FINISHED_THRESHOLD` = 0.98). */
+internal fun statusFor(percentage: Double): String = when {
+    percentage >= FINISHED_THRESHOLD -> "finished"
+    percentage > 0.0 -> "reading"
+    else -> "unread"
+}
+
+internal const val FINISHED_THRESHOLD = 0.98

@@ -86,10 +86,22 @@ class DaoAndLibraryTest : DbTest() {
         db.downloadDao().upsert(DownloadEntity("acc1", 2, "DONE", 9, 9, "/f", null, "BOOK", null, null, 0))
 
         assertEquals(listOf("alpha", "Mid", "Zeta"), repo.books(listOf("acc1")).first().map { it.title })
-        assertEquals(listOf("alpha", "Zeta"), repo.books(listOf("acc1"), LibraryFilter(genres = setOf("Fantasy"))).first().map { it.title })
+        assertEquals(listOf("alpha", "Zeta"), repo.books(listOf("acc1"), LibraryFilter(include = listOf("genre:Fantasy"))).first().map { it.title })
         assertEquals(listOf("alpha", "Zeta"), repo.books(listOf("acc1"), LibraryFilter(series = "Saga", sort = LibrarySort.SERIES)).first().map { it.title })
         assertEquals(listOf("Mid"), repo.books(listOf("acc1"), LibraryFilter(status = com.somecatcode.ebookreader.data.api.ReadStatus.FINISHED)).first().map { it.title })
         assertEquals(listOf("alpha"), repo.books(listOf("acc1"), LibraryFilter(onlyOffline = true)).first().map { it.title })
+        assertEquals(listOf("Mid"), repo.books(listOf("acc1"), LibraryFilter(exclude = listOf("genre:fantasy"))).first().map { it.title })
+        assertEquals(listOf("alpha", "Zeta"), repo.books(listOf("acc1"), LibraryFilter(hideFinished = true)).first().map { it.title })
+        assertEquals(
+            "status filter wins over hide finished",
+            listOf("Mid"),
+            repo.books(listOf("acc1"), LibraryFilter(hideFinished = true, status = com.somecatcode.ebookreader.data.api.ReadStatus.FINISHED)).first().map { it.title },
+        )
+        assertEquals(
+            listOf("alpha", "Mid", "Zeta"),
+            repo.books(listOf("acc1"), LibraryFilter(include = listOf("genre:Fantasy", "tag:x"), matchAny = true)).first().map { it.title },
+        )
+        assertEquals(listOf("Mid"), repo.books(listOf("acc1"), LibraryFilter(include = listOf("missing:series"))).first().map { it.title })
         assertEquals(listOf("Zeta"), repo.continueReading(listOf("acc1")).first().map { it.title })
 
         val series = repo.series(listOf("acc1")).first().single()
@@ -120,5 +132,31 @@ class DaoAndLibraryTest : DbTest() {
         assertEquals(listOf(1L), repo.books(listOf("acc1"), LibraryFilter(shelf = ShelfKey("acc1", 7))).first().map { it.key.fileId })
         assertEquals(setOf(2L, 3L), repo.books(listOf("acc1"), LibraryFilter(shelf = ShelfKey("acc1", 8))).first().map { it.key.fileId }.toSet())
         assertEquals(2, repo.shelves(listOf("acc1")).first().size)
+        // shelf terms in the library filter: manual membership and the smart query
+        assertEquals(listOf(1L), repo.books(listOf("acc1"), LibraryFilter(include = listOf("shelf:7"))).first().map { it.key.fileId })
+        assertEquals(listOf(1L), repo.books(listOf("acc1"), LibraryFilter(exclude = listOf("shelf:8"))).first().map { it.key.fileId })
+    }
+
+    @Test
+    fun manualShelfKeepsServerOrderWithShelfSort() = runBlocking {
+        val repo = LibraryRepositoryImpl(db)
+        db.bookDao().upsertAll(listOf(book(1, title = "A"), book(2, title = "B"), book(3, title = "C")))
+        db.shelfDao().upsertShelves(listOf(ShelfEntity("acc1", 7, "Manual", "manual", null, 3, "[]", 0, 0, 0)))
+        db.shelfDao().insertMembers(listOf(ShelfBookEntity("acc1", 7, 3, 0), ShelfBookEntity("acc1", 7, 1, 1), ShelfBookEntity("acc1", 7, 2, 2)))
+        val books = repo.books(listOf("acc1"), LibraryFilter(shelf = ShelfKey("acc1", 7), sort = LibrarySort.SHELF)).first()
+        assertEquals(listOf(3L, 1L, 2L), books.map { it.key.fileId })
+    }
+
+    @Test
+    fun facetsCountAuthorsFormatsAndMissingFields() = runBlocking {
+        val repo = LibraryRepositoryImpl(db)
+        db.bookDao().upsertAll(listOf(book(1, series = "Saga", seriesIndex = 1.0), book(2), book(3)))
+        db.bookTagDao().insertAll(listOf(BookTagEntity("acc1", 1, "genre", "Fantasy/Epic"), BookTagEntity("acc1", 2, "genre", "Fantasy")))
+        val facets = repo.facets(listOf("acc1")).first()
+        assertEquals(listOf("Fantasy", "Fantasy/Epic"), facets.genres.map { it.name })
+        assertEquals(1, facets.series.single().count)
+        assertEquals(1, facets.missing["genre"])
+        assertEquals(2, facets.missing["series"])
+        assertEquals(3, facets.formats.single().count)
     }
 }
