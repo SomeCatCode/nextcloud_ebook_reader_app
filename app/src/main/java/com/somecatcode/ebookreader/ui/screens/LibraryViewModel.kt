@@ -2,38 +2,50 @@ package com.somecatcode.ebookreader.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.somecatcode.ebookreader.R
 import com.somecatcode.ebookreader.data.account.Account
 import com.somecatcode.ebookreader.data.account.AccountStore
+import com.somecatcode.ebookreader.data.api.ApiException
 import com.somecatcode.ebookreader.data.api.ReadStatus
+import com.somecatcode.ebookreader.data.api.SmartQueryDto
 import com.somecatcode.ebookreader.data.repo.FacetCount
 import com.somecatcode.ebookreader.data.repo.LibraryBook
+import com.somecatcode.ebookreader.data.repo.LibraryFacets
 import com.somecatcode.ebookreader.data.repo.LibraryFilter
 import com.somecatcode.ebookreader.data.repo.LibraryRepository
 import com.somecatcode.ebookreader.data.repo.LibrarySort
 import com.somecatcode.ebookreader.data.repo.SeriesInfo
 import com.somecatcode.ebookreader.data.repo.SettingsRepository
 import com.somecatcode.ebookreader.data.repo.ShelfInfo
+import com.somecatcode.ebookreader.data.repo.ShelfKey
+import com.somecatcode.ebookreader.data.repo.ShelfRepository
 import com.somecatcode.ebookreader.data.sync.SyncEngine
 import com.somecatcode.ebookreader.data.sync.SyncError
 import com.somecatcode.ebookreader.data.sync.SyncState
+import com.somecatcode.ebookreader.ui.util.TermState
+import com.somecatcode.ebookreader.ui.util.cycle
+import com.somecatcode.ebookreader.ui.util.flip
+import com.somecatcode.ebookreader.ui.util.termType
+import com.somecatcode.ebookreader.ui.util.withTerm
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 enum class LibraryTab { BOOKS, SHELVES, SERIES }
-
-/** Formats offered by the server (docs/CONTRACTS.md); used for the format filter. */
-val KnownFormats = listOf("epub", "mobi", "azw3", "fb2", "fbz", "cbz", "cbr", "cb7", "cbt")
 
 sealed interface LibraryBanner {
     data object Offline : LibraryBanner
@@ -46,19 +58,60 @@ sealed interface LibraryBanner {
 data class LibraryQuery(
     val tab: LibraryTab = LibraryTab.BOOKS,
     val searchOpen: Boolean = false,
+    /** Filter without [LibraryFilter.hideFinished] (that one is a persisted view option). */
     val filter: LibraryFilter = LibraryFilter(),
-    val formats: Set<String> = emptySet(),
+    /** Smart shelf whose saved query is shown and can be updated. */
+    val editingShelf: ShelfKey? = null,
 ) {
     val activeFilterCount: Int
-        get() = listOf(
-            filter.status != null,
-            filter.genres.isNotEmpty(),
-            filter.tags.isNotEmpty(),
-            formats.isNotEmpty(),
-            filter.onlyOffline,
-        ).count { it }
+        get() = filter.include.size + filter.exclude.size + listOf(filter.status != null, filter.onlyOffline).count { it }
     val hasActiveFilter: Boolean get() = activeFilterCount > 0 || !filter.search.isNullOrBlank()
+
+    /** The current filter as a smart shelf query (shelf terms are not allowed there). */
+    fun toSmartQuery(): SmartQueryDto = SmartQueryDto(
+        include = filter.include.filterNot { termType(it) == "shelf" },
+        exclude = filter.exclude.filterNot { termType(it) == "shelf" },
+        match = if (filter.matchAny) "any" else "all",
+        search = filter.search?.trim().orEmpty(),
+        status = filter.status,
+        sort = sortWire(filter.sort),
+        order = if (filter.descending) "desc" else "asc",
+    )
 }
+
+internal fun sortWire(sort: LibrarySort) = when (sort) {
+    LibrarySort.TITLE -> "title"
+    LibrarySort.AUTHOR -> "author"
+    LibrarySort.SERIES -> "series"
+    LibrarySort.RATING -> "rating"
+    LibrarySort.ADDED -> "added"
+    LibrarySort.RECENTLY_READ -> "read"
+    LibrarySort.SHELF -> "shelf"
+}
+
+internal fun sortFromWire(value: String) = when (value) {
+    "author" -> LibrarySort.AUTHOR
+    "series" -> LibrarySort.SERIES
+    "rating" -> LibrarySort.RATING
+    "added" -> LibrarySort.ADDED
+    "read" -> LibrarySort.RECENTLY_READ
+    else -> LibrarySort.TITLE
+}
+
+/** Web defaults: newest/best first for date, recently read and rating, otherwise ascending. */
+internal fun defaultDescending(sort: LibrarySort) =
+    sort == LibrarySort.ADDED || sort == LibrarySort.RECENTLY_READ || sort == LibrarySort.RATING
+
+/** Filter that a saved smart query stands for. */
+internal fun SmartQueryDto.toFilter(): LibraryFilter = LibraryFilter(
+    search = search.ifBlank { null },
+    status = status,
+    include = include,
+    exclude = exclude,
+    matchAny = match == "any",
+    sort = sortFromWire(sort),
+    descending = order == "desc",
+)
 
 data class LibraryUiState(
     val accountsLoaded: Boolean = false,
@@ -67,17 +120,25 @@ data class LibraryUiState(
     val shownAccountIds: List<String> = emptyList(),
     val merged: Boolean = false,
     val grid: Boolean = true,
+    val hideFinished: Boolean = true,
     val query: LibraryQuery = LibraryQuery(),
     val books: List<LibraryBook> = emptyList(),
     val continueReading: List<LibraryBook> = emptyList(),
     val shelves: List<ShelfInfo> = emptyList(),
     val series: List<SeriesInfo> = emptyList(),
-    val genres: List<FacetCount> = emptyList(),
-    val tags: List<FacetCount> = emptyList(),
+    val facets: LibraryFacets = LibraryFacets(),
     val refreshing: Boolean = false,
     val banner: LibraryBanner? = null,
+    /** Oldest last successful sync of the shown accounts (null = at least one never synced). */
+    val lastSyncAt: Long? = null,
 ) {
     val accountNames: Map<String, String> get() = accounts.associate { it.id to (it.displayName?.takeIf(String::isNotBlank) ?: it.loginName) }
+    val genres: List<FacetCount> get() = facets.genres
+    val tags: List<FacetCount> get() = facets.tags
+    val editingShelf: ShelfInfo? get() = query.editingShelf?.let { k -> shelves.firstOrNull { it.key == k } }
+
+    /** The smart shelf being edited differs from the current filter. */
+    val editingShelfChanged: Boolean get() = editingShelf?.query?.let { it != query.toSmartQuery() } ?: false
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -86,11 +147,16 @@ class LibraryViewModel(
     private val library: LibraryRepository,
     private val settings: SettingsRepository,
     private val sync: SyncEngine,
+    private val shelfRepo: ShelfRepository? = null,
 ) : ViewModel() {
 
     private val query = MutableStateFlow(LibraryQuery())
 
     private val accounts = accountStore.accounts
+
+    /** One-off messages (string resource ids) for a snackbar. */
+    private val messageChannel = Channel<Int>(Channel.BUFFERED)
+    val messages: Flow<Int> = messageChannel.receiveAsFlow()
 
     /** Single account (selected, default first) or all accounts when merged. */
     private val shownIds: Flow<List<String>> = combine(accounts, settings.settings) { list, s ->
@@ -101,20 +167,20 @@ class LibraryViewModel(
         }
     }.distinctUntilChanged()
 
-    private val books: Flow<List<LibraryBook>> = combine(shownIds, query) { ids, q -> ids to q }
-        .flatMapLatest { (ids, q) ->
-            if (ids.isEmpty()) flowOf(emptyList())
-            else library.books(ids, q.filter).map { list ->
-                if (q.formats.isEmpty()) list else list.filter { it.format.lowercase() in q.formats }
-            }
+    private val hideFinished: Flow<Boolean> = settings.settings.map { it.hideFinished }.distinctUntilChanged()
+
+    private val books: Flow<List<LibraryBook>> = combine(shownIds, query, hideFinished) { ids, q, hide -> Triple(ids, q.filter, hide) }
+        .distinctUntilChanged()
+        .flatMapLatest { (ids, filter, hide) ->
+            if (ids.isEmpty()) flowOf(emptyList()) else library.books(ids, filter.copy(hideFinished = hide))
         }
 
-    private val facets: Flow<Triple<List<ShelfInfo>, List<SeriesInfo>, Pair<List<FacetCount>, List<FacetCount>>>> =
+    private data class Collections(val shelves: List<ShelfInfo>, val series: List<SeriesInfo>, val facets: LibraryFacets)
+
+    private val collections: Flow<Collections> =
         shownIds.flatMapLatest { ids ->
-            if (ids.isEmpty()) flowOf(Triple(emptyList(), emptyList(), emptyList<FacetCount>() to emptyList()))
-            else combine(library.shelves(ids), library.series(ids), library.genres(ids), library.tags(ids)) { sh, se, g, t ->
-                Triple(sh, se, g to t)
-            }
+            if (ids.isEmpty()) flowOf(Collections(emptyList(), emptyList(), LibraryFacets()))
+            else combine(library.shelves(ids), library.series(ids), library.facets(ids)) { sh, se, f -> Collections(sh, se, f) }
         }
 
     private val continueReading: Flow<List<LibraryBook>> =
@@ -133,9 +199,16 @@ class LibraryViewModel(
 
     val state: StateFlow<LibraryUiState> = combine(
         accounts, settings.settings, shownIds, query,
-    ) { list, s, ids, q -> LibraryUiState(accountsLoaded = true, accounts = list, shownAccountIds = ids, merged = s.mergedLibrary, grid = s.libraryLayout != "list", query = q) }
+    ) { list, s, ids, q ->
+        val shown = list.filter { it.id in ids }
+        LibraryUiState(
+            accountsLoaded = true, accounts = list, shownAccountIds = ids, merged = s.mergedLibrary, grid = s.libraryLayout != "list",
+            hideFinished = s.hideFinished, query = q,
+            lastSyncAt = if (shown.isEmpty() || shown.any { it.lastSyncAt == null }) null else shown.mapNotNull { it.lastSyncAt }.minOrNull(),
+        )
+    }
         .combine(books) { st, b -> st.copy(books = b) }
-        .combine(facets) { st, f -> st.copy(shelves = f.first, series = f.second, genres = f.third.first, tags = f.third.second) }
+        .combine(collections) { st, c -> st.copy(shelves = c.shelves, series = c.series, facets = c.facets) }
         .combine(continueReading) { st, c -> st.copy(continueReading = c) }
         .combine(syncInfo) { st, (refreshing, banner) -> st.copy(refreshing = refreshing, banner = banner) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LibraryUiState())
@@ -147,6 +220,16 @@ class LibraryViewModel(
 
     /** `accountId` null = merged view of all accounts. */
     fun selectAccount(accountId: String?) {
+        // Shelf ids belong to one account: drop shelf terms and the edited shelf when the account changes.
+        query.update {
+            it.copy(
+                editingShelf = null,
+                filter = it.filter.copy(
+                    include = it.filter.include.filterNot { t -> termType(t) == "shelf" },
+                    exclude = it.filter.exclude.filterNot { t -> termType(t) == "shelf" },
+                ),
+            )
+        }
         viewModelScope.launch {
             settings.update { s -> if (accountId == null) s.copy(mergedLibrary = true) else s.copy(mergedLibrary = false, lastAccountId = accountId) }
         }
@@ -154,6 +237,10 @@ class LibraryViewModel(
 
     fun toggleLayout() {
         viewModelScope.launch { settings.update { it.copy(libraryLayout = if (it.libraryLayout == "list") "grid" else "list") } }
+    }
+
+    fun setHideFinished(hide: Boolean) {
+        viewModelScope.launch { settings.update { it.copy(hideFinished = hide) } }
     }
 
     fun selectTab(tab: LibraryTab) = query.update { it.copy(tab = tab) }
@@ -166,23 +253,96 @@ class LibraryViewModel(
 
     fun setStatus(status: ReadStatus?) = query.update { it.copy(filter = it.filter.copy(status = status)) }
 
-    fun setGenres(genres: Set<String>) = query.update { it.copy(filter = it.filter.copy(genres = genres)) }
+    /** off → include → exclude → off. */
+    fun cycleTerm(term: String) = query.update { it.copy(filter = it.filter.cycle(term)) }
 
-    fun setTags(tags: Set<String>) = query.update { it.copy(filter = it.filter.copy(tags = tags)) }
+    /** include ⇄ exclude. */
+    fun flipTerm(term: String) = query.update { it.copy(filter = it.filter.flip(term)) }
 
-    fun setFormats(formats: Set<String>) = query.update { it.copy(formats = formats) }
+    fun removeTerm(term: String) = query.update { it.copy(filter = it.filter.withTerm(term, TermState.OFF)) }
+
+    /** "Only this": the term becomes the single filter (tapping a genre/author/... in the book details). */
+    fun onlyTerm(term: String) = query.update {
+        it.copy(
+            tab = LibraryTab.BOOKS, searchOpen = false, editingShelf = null,
+            filter = it.filter.copy(include = listOf(term), exclude = emptyList(), status = null, search = null, onlyOffline = false),
+        )
+    }
+
+    fun setMatchAny(any: Boolean) = query.update { it.copy(filter = it.filter.copy(matchAny = any)) }
 
     fun setOnlyOffline(only: Boolean) = query.update { it.copy(filter = it.filter.copy(onlyOffline = only)) }
 
-    fun setSort(sort: LibrarySort) = query.update { it.copy(filter = it.filter.copy(sort = sort)) }
+    fun setSort(sort: LibrarySort) = query.update { it.copy(filter = it.filter.copy(sort = sort, descending = defaultDescending(sort))) }
 
     fun toggleDescending() = query.update { it.copy(filter = it.filter.copy(descending = !it.filter.descending)) }
 
     fun clearFilters() = query.update {
         it.copy(
-            filter = it.filter.copy(search = null, status = null, genres = emptySet(), tags = emptySet(), onlyOffline = false),
-            formats = emptySet(),
+            filter = it.filter.copy(search = null, status = null, include = emptyList(), exclude = emptyList(), matchAny = false, onlyOffline = false),
             searchOpen = false,
+            editingShelf = null,
         )
     }
+
+    // ---- smart shelves ----------------------------------------------------------------------------
+
+    /** Shows a smart shelf's saved filter in the library so it can be refined and saved back. */
+    fun editSmartShelf(key: ShelfKey) {
+        viewModelScope.launch {
+            val shelf = library.shelves(listOf(key.accountId)).first().firstOrNull { it.key == key } ?: return@launch
+            val saved = shelf.query ?: return@launch
+            if (key.accountId !in state.value.shownAccountIds) selectAccount(key.accountId)
+            query.update { it.copy(tab = LibraryTab.BOOKS, searchOpen = saved.search.isNotBlank(), filter = saved.toFilter(), editingShelf = key) }
+        }
+    }
+
+    fun stopEditingShelf() = query.update { it.copy(editingShelf = null) }
+
+    fun saveSmartShelf(name: String) = shelfAction { repo ->
+        val accountId = state.value.shownAccountIds.firstOrNull() ?: return@shelfAction
+        val key = repo.create(accountId, name, query.value.toSmartQuery())
+        query.update { it.copy(editingShelf = key) }
+    }
+
+    fun updateEditingShelf() = shelfAction { repo ->
+        val key = query.value.editingShelf ?: return@shelfAction
+        repo.updateQuery(key, query.value.toSmartQuery())
+    }
+
+    // ---- shelves ----------------------------------------------------------------------------------
+
+    fun createShelf(name: String) = shelfAction { repo ->
+        val accountId = state.value.shownAccountIds.firstOrNull() ?: return@shelfAction
+        repo.create(accountId, name)
+    }
+
+    fun renameShelf(key: ShelfKey, name: String) = shelfAction { it.rename(key, name) }
+
+    fun deleteShelf(key: ShelfKey) = shelfAction { repo ->
+        repo.delete(key)
+        query.update { q -> if (q.editingShelf == key) q.copy(editingShelf = null) else q }
+    }
+
+    fun moveShelf(key: ShelfKey, delta: Int) = shelfAction { it.move(key, delta) }
+
+    private fun shelfAction(block: suspend (ShelfRepository) -> Unit) {
+        val repo = shelfRepo ?: return
+        viewModelScope.launch {
+            try {
+                block(repo)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                messageChannel.trySend(shelfErrorMessage(e))
+            }
+        }
+    }
+}
+
+/** User-facing message for a failed shelf call. */
+internal fun shelfErrorMessage(e: Exception): Int = when (e) {
+    is ApiException.Network -> R.string.shelf_error_offline
+    is ApiException.BadRequest -> R.string.shelf_error_name
+    else -> R.string.shelf_error_generic
 }

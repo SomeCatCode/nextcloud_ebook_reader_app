@@ -1,6 +1,10 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -14,10 +18,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -38,11 +44,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -53,6 +62,7 @@ import com.somecatcode.ebookreader.data.db.DownloadState
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.FacetCount
 import com.somecatcode.ebookreader.data.repo.LibraryBook
+import com.somecatcode.ebookreader.data.repo.ShelfInfo
 import com.somecatcode.ebookreader.ui.components.BackButton
 import com.somecatcode.ebookreader.ui.components.BookCover
 import com.somecatcode.ebookreader.ui.components.EmptyState
@@ -70,10 +80,11 @@ fun BookDetailScreen(
     onBack: () -> Unit,
     onRead: () -> Unit,
     showBack: Boolean = true,
+    onFilter: ((String) -> Unit)? = null,
 ) {
     val key = BookKey(accountId, fileId)
     val vm = containerViewModel(key = "book/$accountId/$fileId") { c ->
-        BookDetailViewModel(key, c.libraryRepository, c.editRepository, c.downloadRepository)
+        BookDetailViewModel(key, c.libraryRepository, c.editRepository, c.downloadRepository, c.shelfRepository)
     }
     val state by vm.state.collectAsState()
     val snackbar = remember { SnackbarHostState() }
@@ -81,6 +92,8 @@ fun BookDetailScreen(
     LaunchedEffect(vm) {
         vm.failures.collect { failure -> snackbar.showSnackbar(failureText.format(failure.message)) }
     }
+    val resources = LocalResources.current
+    LaunchedEffect(vm) { vm.messages.collect { snackbar.showSnackbar(resources.getString(it)) } }
     val gate = rememberDownloadGate()
     BookDetailContent(
         state = state,
@@ -96,6 +109,8 @@ fun BookDetailScreen(
         onFormChange = vm::updateForm,
         onSaveEdit = vm::saveEdit,
         onCancelEdit = vm::cancelEdit,
+        onFilter = onFilter,
+        onSaveShelves = vm::saveShelves,
     )
 }
 
@@ -115,8 +130,11 @@ fun BookDetailContent(
     onFormChange: ((BookEditForm) -> BookEditForm) -> Unit,
     onSaveEdit: () -> Unit,
     onCancelEdit: () -> Unit,
+    onFilter: ((String) -> Unit)? = null,
+    onSaveShelves: (Set<Long>, String?) -> Unit = { _, _ -> },
 ) {
     val book = state.book
+    var shelfDialog by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -145,12 +163,19 @@ fun BookDetailContent(
                 BookCover(book, Modifier.width(140.dp).aspectRatio(2f / 3f).clip(RoundedCornerShape(8.dp)), large = true)
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(book.title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.testTag("book_title"))
-                    if (book.authors.isNotEmpty()) Text(book.authors.joinToString(), style = MaterialTheme.typography.titleMedium)
+                    book.authors.forEach { author ->
+                        Text(
+                            author,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = if (onFilter != null) Modifier.clickable { onFilter("author:$author") }.testTag("author_link") else Modifier,
+                        )
+                    }
                     book.series?.let { series ->
                         Text(
                             book.seriesIndex?.let { "$series #${formatIndex(it)}" } ?: series,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (onFilter != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = if (onFilter != null) Modifier.clickable { onFilter("series:$series") }.testTag("series_link") else Modifier,
                         )
                     }
                     val context = LocalContext.current
@@ -211,8 +236,22 @@ fun BookDetailContent(
                 }
             }
 
-            if (book.genres.isNotEmpty()) ChipSection(stringResource(R.string.book_genres), book.genres)
-            if (book.tags.isNotEmpty()) ChipSection(stringResource(R.string.book_tags), book.tags)
+            if (book.genres.isNotEmpty()) ChipSection(stringResource(R.string.book_genres), book.genres, onFilter?.let { f -> { f("genre:$it") } })
+            if (book.tags.isNotEmpty()) ChipSection(stringResource(R.string.book_tags), book.tags, onFilter?.let { f -> { f("tag:$it") } })
+            Column {
+                Text(stringResource(R.string.book_in_shelves), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
+                    state.manualShelves.filter { it.key.shelfId in state.inShelves }.forEach { shelf ->
+                        AssistChip(onClick = { onFilter?.invoke("shelf:${shelf.key.shelfId}") }, label = { Text(shelf.name) })
+                    }
+                    AssistChip(
+                        onClick = { shelfDialog = true },
+                        label = { Text(stringResource(R.string.shelf_add_to)) },
+                        leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                        modifier = Modifier.testTag("add_to_shelf"),
+                    )
+                }
+            }
             book.descriptionHtml?.takeIf { it.isNotBlank() }?.let { html ->
                 val text = remember(html) { HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT).toString().trim() }
                 Column {
@@ -232,6 +271,15 @@ fun BookDetailContent(
                 }
             }
         }
+    }
+
+    if (shelfDialog) {
+        ShelfPickerDialog(
+            shelves = state.manualShelves,
+            initial = state.inShelves,
+            onDismiss = { shelfDialog = false },
+            onConfirm = { selected, newName -> shelfDialog = false; onSaveShelves(selected, newName) },
+        )
     }
 
     state.editing?.let { form ->
@@ -265,13 +313,62 @@ private fun OfflineRow(book: LibraryBook, onToggle: (Boolean) -> Unit, onRetry: 
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ChipSection(title: String, items: List<String>) {
+private fun ChipSection(title: String, items: List<String>, onClick: ((String) -> Unit)?) {
     Column {
         Text(title, style = MaterialTheme.typography.labelLarge)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
-            items.forEach { AssistChip(onClick = {}, label = { Text(it) }) }
+            items.forEach { item -> AssistChip(onClick = { onClick?.invoke(item) }, label = { Text(item) }) }
         }
     }
+}
+
+/** Manual shelves with checkboxes plus a field for a new shelf. */
+@Composable
+private fun ShelfPickerDialog(
+    shelves: List<ShelfInfo>,
+    initial: Set<Long>,
+    onDismiss: () -> Unit,
+    onConfirm: (Set<Long>, String?) -> Unit,
+) {
+    var selected by remember { mutableStateOf(initial) }
+    var newName by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.shelf_add_dialog_title)) },
+        text = {
+            Column {
+                if (shelves.isEmpty()) Text(stringResource(R.string.shelf_none_manual), style = MaterialTheme.typography.bodyMedium)
+                LazyColumn(Modifier.heightIn(max = 320.dp)) {
+                    items(shelves, key = { it.key.shelfId }) { shelf ->
+                        val checked = shelf.key.shelfId in selected
+                        Row(
+                            Modifier.fillMaxWidth()
+                                .clickable { selected = if (checked) selected - shelf.key.shelfId else selected + shelf.key.shelfId }
+                                .padding(vertical = 4.dp)
+                                .testTag("pick_shelf_${shelf.key.shelfId}"),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Checkbox(checked, onCheckedChange = null)
+                            Text(shelf.name, Modifier.padding(start = 12.dp))
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = newName,
+                    onValueChange = { if (it.length <= 255) newName = it },
+                    label = { Text(stringResource(R.string.shelf_new)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("new_shelf_field"),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(selected, newName.trim().ifEmpty { null }) }, modifier = Modifier.testTag("shelves_save")) {
+                Text(stringResource(R.string.action_save))
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)

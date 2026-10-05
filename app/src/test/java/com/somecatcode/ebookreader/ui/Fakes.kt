@@ -22,6 +22,7 @@ import com.somecatcode.ebookreader.data.api.LoginFlowStart
 import com.somecatcode.ebookreader.data.api.MetadataPatch
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.api.ServerCompatibility
+import com.somecatcode.ebookreader.data.api.SmartQueryDto
 import com.somecatcode.ebookreader.data.db.AppDatabase
 import com.somecatcode.ebookreader.data.db.DownloadEntity
 import com.somecatcode.ebookreader.data.download.DownloadManager
@@ -32,6 +33,7 @@ import com.somecatcode.ebookreader.data.repo.EditFailure
 import com.somecatcode.ebookreader.data.repo.EditRepository
 import com.somecatcode.ebookreader.data.repo.FacetCount
 import com.somecatcode.ebookreader.data.repo.LibraryBook
+import com.somecatcode.ebookreader.data.repo.LibraryFacets
 import com.somecatcode.ebookreader.data.repo.LibraryFilter
 import com.somecatcode.ebookreader.data.repo.LibraryRepository
 import com.somecatcode.ebookreader.data.repo.OfflineItem
@@ -42,6 +44,8 @@ import com.somecatcode.ebookreader.data.repo.ProgressRepository
 import com.somecatcode.ebookreader.data.repo.SeriesInfo
 import com.somecatcode.ebookreader.data.repo.SettingsRepository
 import com.somecatcode.ebookreader.data.repo.ShelfInfo
+import com.somecatcode.ebookreader.data.repo.ShelfKey
+import com.somecatcode.ebookreader.data.repo.ShelfRepository
 import com.somecatcode.ebookreader.data.repo.StoredProgress
 import com.somecatcode.ebookreader.data.sync.SyncEngine
 import com.somecatcode.ebookreader.data.sync.SyncOutcome
@@ -49,6 +53,7 @@ import com.somecatcode.ebookreader.data.sync.SyncState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -135,7 +140,8 @@ class FakeLibraryRepository(initial: List<LibraryBook> = emptyList()) : LibraryR
                 .filter { filter.search.isNullOrBlank() || it.title.contains(filter.search!!, ignoreCase = true) }
                 .filter { filter.status == null || it.readStatus == filter.status }
                 .filter { !filter.onlyOffline || it.offline.isAvailableOffline }
-                .filter { filter.genres.isEmpty() || it.genres.any { g -> g in filter.genres } }
+                .filter { !filter.hideFinished || filter.status != null || it.readStatus != ReadStatus.FINISHED }
+                .filter { b -> filter.include.all { t -> fakeTermMatches(t, b) } && filter.exclude.none { t -> fakeTermMatches(t, b) } }
                 .filter { filter.series == null || it.series == filter.series }
                 .sortedBy { it.title.lowercase() }
         }
@@ -146,6 +152,44 @@ class FakeLibraryRepository(initial: List<LibraryBook> = emptyList()) : LibraryR
     override fun genres(accountIds: List<String>): Flow<List<FacetCount>> = genreFacets
     override fun tags(accountIds: List<String>): Flow<List<FacetCount>> = tagFacets
     override fun continueReading(accountIds: List<String>, limit: Int): Flow<List<LibraryBook>> = MutableStateFlow(emptyList())
+    override fun facets(accountIds: List<String>): Flow<LibraryFacets> =
+        combine(genreFacets, tagFacets) { g, t -> LibraryFacets(genres = g, tags = t) }
+}
+
+/** genre/tag/format/author/series terms, enough for view model tests. */
+private fun fakeTermMatches(t: String, b: LibraryBook): Boolean {
+    val name = t.substringAfter(':')
+    return when (t.substringBefore(':')) {
+        "genre" -> b.genres.any { it.equals(name, ignoreCase = true) }
+        "tag" -> b.tags.any { it.equals(name, ignoreCase = true) }
+        "format" -> b.format.equals(name, ignoreCase = true)
+        "author" -> b.authors.any { it.equals(name, ignoreCase = true) }
+        "series" -> b.series.equals(name, ignoreCase = true)
+        else -> false
+    }
+}
+
+class FakeShelfRepository : ShelfRepository {
+    val calls = mutableListOf<String>()
+    var failWith: Exception? = null
+    val membership = MutableStateFlow<Set<Long>>(emptySet())
+    private fun record(call: String) {
+        failWith?.let { throw it }
+        calls += call
+    }
+    override suspend fun refresh(accountId: String) = record("refresh $accountId")
+    override suspend fun refreshMembers(key: ShelfKey) = record("members ${key.shelfId}")
+    override suspend fun create(accountId: String, name: String, query: SmartQueryDto?): ShelfKey {
+        record("create $name ${query?.include.orEmpty()}")
+        return ShelfKey(accountId, 99)
+    }
+    override suspend fun rename(key: ShelfKey, name: String) = record("rename ${key.shelfId} $name")
+    override suspend fun updateQuery(key: ShelfKey, query: SmartQueryDto) = record("query ${key.shelfId} ${query.include}")
+    override suspend fun delete(key: ShelfKey) = record("delete ${key.shelfId}")
+    override suspend fun move(key: ShelfKey, delta: Int) = record("move ${key.shelfId} $delta")
+    override suspend fun addBooks(key: ShelfKey, fileIds: List<Long>) = record("add ${key.shelfId} $fileIds")
+    override suspend fun removeBooks(key: ShelfKey, fileIds: List<Long>) = record("remove ${key.shelfId} $fileIds")
+    override fun shelvesOf(book: BookKey): Flow<Set<Long>> = membership
 }
 
 class FakeEditRepository : EditRepository {
@@ -240,6 +284,7 @@ class FakeContainer(
     override val syncEngine: FakeSyncEngine = FakeSyncEngine(),
     override val loginFlowClient: FakeLoginFlowClient = FakeLoginFlowClient(),
     override val apiClientFactory: FakeApiClientFactory = FakeApiClientFactory(),
+    override val shelfRepository: FakeShelfRepository = FakeShelfRepository(),
 ) : AppContainer {
     override val appContext: Context = context.applicationContext
     override val json: Json = ApiJson

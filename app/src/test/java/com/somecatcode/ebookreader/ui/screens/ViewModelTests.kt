@@ -1,8 +1,10 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import com.somecatcode.ebookreader.R
+import com.somecatcode.ebookreader.data.api.ApiException
 import com.somecatcode.ebookreader.data.api.AppDataPatch
-import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.api.Locations
+import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.api.ServerCompatibility
 import com.somecatcode.ebookreader.data.db.DownloadState
@@ -10,6 +12,7 @@ import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.LibrarySort
 import com.somecatcode.ebookreader.data.repo.OfflineState
 import com.somecatcode.ebookreader.data.repo.ProgressConflict
+import com.somecatcode.ebookreader.data.repo.ShelfKey
 import com.somecatcode.ebookreader.data.sync.SyncError
 import com.somecatcode.ebookreader.data.sync.SyncState
 import com.somecatcode.ebookreader.reader.BookSource
@@ -22,6 +25,7 @@ import com.somecatcode.ebookreader.ui.FakeLibraryRepository
 import com.somecatcode.ebookreader.ui.FakeLoginFlowClient
 import com.somecatcode.ebookreader.ui.FakeProgressRepository
 import com.somecatcode.ebookreader.ui.FakeSettingsRepository
+import com.somecatcode.ebookreader.ui.FakeShelfRepository
 import com.somecatcode.ebookreader.ui.FakeSyncEngine
 import com.somecatcode.ebookreader.ui.account
 import com.somecatcode.ebookreader.ui.book
@@ -231,7 +235,8 @@ class ViewModelTests {
         store: FakeAccountStore = FakeAccountStore(listOf(account("acc1"), account("acc2", "Bob"))),
         settings: FakeSettingsRepository = FakeSettingsRepository(),
         sync: FakeSyncEngine = FakeSyncEngine(),
-    ) = LibraryViewModel(store, library, settings, sync)
+        shelves: FakeShelfRepository = FakeShelfRepository(),
+    ) = LibraryViewModel(store, library, settings, sync, shelves)
 
     @Test
     fun library_filtersAreReflectedInStateAndQuery() = runTest(dispatcher) {
@@ -253,11 +258,18 @@ class ViewModelTests {
         vm.setStatus(ReadStatus.READING)
         assertEquals(listOf("Dune"), vm.state.value.books.map { it.title })
         vm.setStatus(null)
-        vm.setGenres(setOf("Fantasy"))
+        vm.cycleTerm("genre:Fantasy")
         assertEquals(listOf("Hobbit"), vm.state.value.books.map { it.title })
-        vm.setGenres(emptySet())
-        vm.setFormats(setOf("mobi"))
+        vm.cycleTerm("genre:Fantasy") // second tap excludes
+        assertEquals(listOf("genre:Fantasy"), vm.state.value.query.filter.exclude)
+        assertEquals(listOf("Dune", "Emma"), vm.state.value.books.map { it.title })
+        vm.cycleTerm("genre:Fantasy") // third tap: off
+        vm.cycleTerm("format:mobi")
         assertEquals(listOf("Emma"), vm.state.value.books.map { it.title })
+        vm.flipTerm("format:mobi")
+        assertEquals(listOf("Dune", "Hobbit"), vm.state.value.books.map { it.title })
+        vm.removeTerm("format:mobi")
+        vm.cycleTerm("format:mobi")
         assertEquals(1, vm.state.value.query.activeFilterCount)
         vm.setSearch("hob")
         assertEquals("hob", library.lastFilter.value.search)
@@ -266,6 +278,58 @@ class ViewModelTests {
         assertEquals(3, vm.state.value.books.size)
         vm.setSort(LibrarySort.RATING)
         assertEquals(LibrarySort.RATING, library.lastFilter.value.sort)
+        assertTrue("rating sorts best first like the web app", library.lastFilter.value.descending)
+    }
+
+    @Test
+    fun library_hideFinishedIsPersistedAndAppliedWithoutStatus() = runTest(dispatcher) {
+        val library = FakeLibraryRepository(listOf(book(1, "Done", status = ReadStatus.FINISHED), book(2, "Open")))
+        val settings = FakeSettingsRepository()
+        val vm = libraryVm(library, settings = settings)
+        backgroundScope.launch { vm.state.collect {} }
+        advanceUntilIdle()
+        assertEquals(listOf("Open"), vm.state.value.books.map { it.title })
+        vm.setStatus(ReadStatus.FINISHED)
+        assertEquals(listOf("Done"), vm.state.value.books.map { it.title })
+        vm.setStatus(null)
+        vm.setHideFinished(false)
+        advanceUntilIdle()
+        assertFalse(settings.state.value.hideFinished)
+        assertEquals(listOf("Done", "Open"), vm.state.value.books.map { it.title })
+    }
+
+    @Test
+    fun library_smartShelfFromFilterAndShelfErrors() = runTest(dispatcher) {
+        val library = FakeLibraryRepository(listOf(book(1, "Dune", genres = listOf("Sci-Fi"))))
+        val shelves = FakeShelfRepository()
+        val vm = libraryVm(library, shelves = shelves)
+        backgroundScope.launch { vm.state.collect {} }
+        advanceUntilIdle()
+        vm.cycleTerm("genre:Sci-Fi")
+        vm.saveSmartShelf("SF")
+        advanceUntilIdle()
+        assertEquals(listOf("create SF [genre:Sci-Fi]"), shelves.calls)
+        assertEquals(ShelfKey("acc1", 99), vm.state.value.query.editingShelf)
+
+        val messages = mutableListOf<Int>()
+        backgroundScope.launch { vm.messages.collect { messages += it } }
+        shelves.failWith = ApiException.Network(RuntimeException("offline"))
+        vm.createShelf("x")
+        advanceUntilIdle()
+        assertEquals(listOf(R.string.shelf_error_offline), messages)
+    }
+
+    @Test
+    fun library_onlyTermReplacesTheFilter() = runTest(dispatcher) {
+        val library = FakeLibraryRepository(listOf(book(1, "Dune", genres = listOf("Sci-Fi")), book(2, "Emma")))
+        val vm = libraryVm(library)
+        backgroundScope.launch { vm.state.collect {} }
+        advanceUntilIdle()
+        vm.setStatus(ReadStatus.READING)
+        vm.onlyTerm("genre:Sci-Fi")
+        assertEquals(listOf("genre:Sci-Fi"), vm.state.value.query.filter.include)
+        assertEquals(null, vm.state.value.query.filter.status)
+        assertEquals(listOf("Dune"), vm.state.value.books.map { it.title })
     }
 
     @Test

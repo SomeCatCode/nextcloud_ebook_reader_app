@@ -83,6 +83,16 @@ class EditRepositoryTest : DbTest() {
     }
 
     @Test
+    fun statusFinishedSetsProgressToFullAndUnreadResetsIt() = runBlocking {
+        db.progressDao().upsert(com.somecatcode.ebookreader.data.db.ProgressEntity("acc1", 1, """{"href":"c3.xhtml"}""", 0.4, "Pixel", 10, 10, false))
+        repo.editAppData(key, AppDataPatch(readStatus = ReadStatus.FINISHED))
+        assertEquals(1.0, db.progressDao().get("acc1", 1)!!.percentage, 0.0)
+        repo.editAppData(key, AppDataPatch(readStatus = ReadStatus.UNREAD))
+        assertEquals(null, db.progressDao().get("acc1", 1))
+        assertEquals("unread", db.bookDao().get("acc1", 1)!!.readStatus)
+    }
+
+    @Test
     fun flushUploadsAndClearsPendingRows() = runBlocking {
         dispatcher.on("PATCH", "/metadata") { ocs("""{"book":${bookJson(1)},"warnings":[],"writeQueued":false}""") }
         dispatcher.on("PATCH", "/app-data") { ocs(bookJson(1)) }

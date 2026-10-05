@@ -166,6 +166,39 @@ class EbookApiImpl(
 
     override suspend fun shelves(): List<ShelfDto> = getOcs("shelves", ShelvesDto.serializer()).shelves
 
+    override suspend fun createShelf(name: String, query: SmartQueryDto?): ShelfDto {
+        val fields = linkedMapOf<String, JsonElement>("name" to JsonPrimitive(name), "type" to JsonPrimitive(if (query == null) "manual" else "smart"))
+        query?.let { fields["query"] = encode(SmartQueryDto.serializer(), it) }
+        return ocs("POST", ocsUrl("shelves").build(), ShelfDto.serializer(), JsonObject(fields))
+    }
+
+    override suspend fun updateShelf(id: Long, name: String?, query: SmartQueryDto?, sortOrder: Int?): ShelfDto {
+        val fields = linkedMapOf<String, JsonElement>()
+        name?.let { fields["name"] = JsonPrimitive(it) }
+        query?.let { fields["query"] = encode(SmartQueryDto.serializer(), it) }
+        sortOrder?.let { fields["sortOrder"] = JsonPrimitive(it) }
+        return ocs("PATCH", ocsUrl("shelves/$id").build(), ShelfDto.serializer(), JsonObject(fields))
+    }
+
+    override suspend fun deleteShelf(id: Long) {
+        ocs("DELETE", ocsUrl("shelves/$id").build(), JsonElement.serializer())
+    }
+
+    override suspend fun addToShelf(id: Long, fileIds: List<Long>) {
+        for (chunk in fileIds.chunked(MAX_SHELF_IDS)) {
+            ocs("POST", ocsUrl("shelves/$id/books").build(), JsonElement.serializer(), fileIdsBody(chunk))
+        }
+    }
+
+    override suspend fun removeFromShelf(id: Long, fileIds: List<Long>) {
+        for (chunk in fileIds.chunked(MAX_SHELF_IDS)) {
+            ocs("DELETE", ocsUrl("shelves/$id/books").build(), JsonElement.serializer(), fileIdsBody(chunk))
+        }
+    }
+
+    private fun fileIdsBody(ids: List<Long>): JsonElement =
+        JsonObject(mapOf("fileIds" to kotlinx.serialization.json.JsonArray(ids.map { JsonPrimitive(it) })))
+
     override suspend fun recentBooks(limit: Int): List<BookDto> =
         getOcs("progress/recent", RecentBooksDto.serializer()) {
             addQueryParameter("limit", limit.coerceIn(1, 50).toString())
@@ -264,6 +297,7 @@ class EbookApiImpl(
 
     private companion object {
         const val MAX_BATCH = 100
+        const val MAX_SHELF_IDS = 500
         val JSON_MEDIA = "application/json".toMediaType()
     }
 }

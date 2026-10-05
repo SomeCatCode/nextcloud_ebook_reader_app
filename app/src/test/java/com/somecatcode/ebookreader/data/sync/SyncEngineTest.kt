@@ -224,10 +224,12 @@ class SyncEngineTest : DbTest() {
         assertEquals(listOf("shelf:7"), request.requestUrl!!.queryParameterValues("include[]"))
         assertEquals("shelf", request.requestUrl!!.queryParameter("sort"))
 
-        // unchanged shelf is not fetched again
+        // membership changes do not touch the shelf row, so every sync reloads manual shelves
         dispatcher.requests.clear()
+        dispatcher.on("GET", "/books") { ocs("""{"books":[${bookJson(1)}],"total":1}""") }
         engine.syncNow("acc1")
-        assertTrue(dispatcher.requests.none { it.path!!.contains("/books") })
+        assertTrue(dispatcher.requests.any { it.path!!.contains("/books") })
+        assertEquals(listOf(1L), db.shelfDao().fileIds("acc1", 7))
     }
 
     @Test
