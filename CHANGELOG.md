@@ -5,6 +5,8 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+## 0.2.0 – 2026-10-05
+
 ### Hinzugefügt
 - Zoom im Comic-Reader: mit zwei Fingern aufziehen (bis 5-fach, am Fingerpunkt verankert), vergrößerte Seite mit einem Finger verschieben, Doppeltippen wechselt zwischen eingepasst und 2,5-fach an der getippten Stelle. Vergrößert blättern weder Wischen noch Tipp-Zonen (Tippen blendet nur die Leisten ein/aus); Umblättern per Lautstärketaste, Tastatur, Inhaltsverzeichnis oder Tipp-Zone (eingepasst) setzt den Zoom zurück. Der Zoom ist rein visuell und landet nicht im gespeicherten Lesestand; im E-Ink-Modus ohne Animation.
 - Reader-Einstellungen für Comics: „Ganze Seite“ oder „Seitenbreite“ einpassen (lange Seiten lassen sich bei Seitenbreite vertikal scrollen).
