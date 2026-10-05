@@ -11,8 +11,8 @@ Schritt für Schritt durch die Checkliste der Play Console, in genau deren Reihe
 - Die App selbst bietet **kein Teilen und keinen Chat**. Teilen gibt es nur in der Web-App auf dem Server; in der App erscheinen geteilte Bücher nur. Sobald die App selbst teilen kann, müssen „Einstufung“ und „Datensicherheit“ neu geprüft werden.
 
 Material zum Kopieren:
-- Datenschutzerklärung: [`docs/privacy/datenschutz.md`](privacy/datenschutz.md) (Deutsch) und [`docs/privacy/privacy-policy.md`](privacy/privacy-policy.md) (Englisch)
-- Store-Texte: [`fastlane/metadata/android/de-DE/`](../fastlane/metadata/android/de-DE/) und [`en-US/`](../fastlane/metadata/android/en-US/)
+- Datenschutzerklärung: [Deutsch](privacy/datenschutz.md), [Englisch](privacy/privacy-policy.md), [Spanisch](privacy/politica-de-privacidad.md), [Japanisch](privacy/privacy-policy-ja.md)
+- Store-Texte: `fastlane/metadata/android/` → [`de-DE`](../fastlane/metadata/android/de-DE/), [`en-US`](../fastlane/metadata/android/en-US/), [`es-ES`](../fastlane/metadata/android/es-ES/), [`ja-JP`](../fastlane/metadata/android/ja-JP/). Die App selbst gibt es in denselben vier Sprachen.
 
 ---
 
@@ -188,7 +188,9 @@ Der Name auf dem Startbildschirm (`app_name`, heute „E-Book Reader“) kann da
 | `short_description.txt` | Kurzbeschreibung | 80 Zeichen |
 | `full_description.txt` | Vollständige Beschreibung | 4000 Zeichen |
 
-Standardsprache **Deutsch (de-DE)**. Füge Englisch (en-US) als zweite Sprache hinzu: „Übersetzungen verwalten“ → „Eigene Übersetzungen hinzufügen“.
+Standardsprache **Deutsch (de-DE)**. Über „Übersetzungen verwalten“ → „Eigene Übersetzungen hinzufügen“ kommen **Englisch (en-US), Spanisch (es-ES) und Japanisch (ja-JP)** dazu, jeweils mit den Texten aus dem passenden Ordner. Die spanischen und japanischen Texte sind maschinell übersetzt. Lass sie vor der Veröffentlichung von jemandem mit Muttersprache gegenlesen.
+
+Die Datenschutzerklärung gibt es in allen vier Sprachen. In der Console trägst du eine URL ein; am besten eine Seite mit allen Sprachen oder die deutsche Seite mit Links auf die anderen.
 
 **Grafiken, die du noch erstellen musst:**
 
@@ -220,7 +222,8 @@ Screenshots ohne private Bücher, ohne echte Cover urheberrechtlich geschützter
 
 **Noch offen, bevor du einreichst:**
 - [ ] URL der Datenschutzerklärung festlegen und in der App eintragen (siehe 1.)
-- [ ] Platzhalter `[NAME]` und `[ANSCHRIFT]` in der Datenschutzerklärung füllen
+- [ ] Platzhalter für Name und Anschrift in allen vier Fassungen der Datenschutzerklärung füllen
+- [ ] Spanische und japanische Texte gegenlesen lassen
 - [ ] Prüfer-Nutzer `playreview` mit gemeinfreien Büchern anlegen (siehe 2.)
 - [ ] App-Namen für den Store festlegen
 - [ ] Icon 512 px, Feature-Grafik und Screenshots erstellen
