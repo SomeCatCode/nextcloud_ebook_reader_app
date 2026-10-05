@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Hinzugefügt
+- Sprachen: Spanisch und Japanisch (neben Deutsch und Englisch) für alle Texte der App inklusive Benachrichtigungen; Sprachauswahl pro App ab Android 13 (Systemeinstellungen → Apps → E-Book Reader → Sprache) über `locales_config.xml`.
+
 ## 0.2.0 – 2026-10-05
 
 ### Hinzugefügt

@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">E-Book Reader</string>
+
+    <!-- Navigation / screens -->
+    <string name="nav_accounts">アカウント</string>
+    <string name="nav_library">ライブラリ</string>
+    <string name="nav_downloads">ダウンロード</string>
+    <string name="nav_settings">設定</string>
+    <string name="screen_book_detail">書籍の詳細</string>
+
+    <!-- Common actions -->
+    <string name="action_back">戻る</string>
+    <string name="action_cancel">キャンセル</string>
+    <string name="action_ok">OK</string>
+    <string name="action_save">保存</string>
+    <string name="action_apply">適用</string>
+    <string name="action_clear">クリア</string>
+    <string name="action_remove">削除</string>
+    <string name="action_retry">再試行</string>
+    <string name="action_refresh">更新</string>
+    <string name="action_more">その他のオプション</string>
+
+    <!-- Accounts -->
+    <string name="accounts_add">アカウントを追加</string>
+    <string name="accounts_empty_title">アカウントがありません</string>
+    <string name="accounts_empty_body">Nextcloud サーバーにログインすると、電子書籍ライブラリが表示されます。</string>
+    <string name="account_last_sync">最終同期: %1$s</string>
+    <string name="account_never_synced">まだ同期されていません</string>
+    <string name="account_sign_in_again">再ログイン</string>
+    <string name="account_sync_now">今すぐ同期</string>
+    <string name="account_remove">削除</string>
+    <string name="status_ok">接続済み</string>
+    <string name="status_syncing">同期中…</string>
+    <string name="status_offline">オフライン</string>
+    <string name="status_auth_expired">ログインの有効期限が切れました。もう一度ログインしてください。</string>
+    <string name="status_app_unavailable">サーバーに E-Book Reader アプリがないか、バージョン 0.5.0 より古いです。</string>
+    <string name="status_error">同期に失敗しました。サーバーがエラーを返しました。</string>
+
+    <string name="add_title">アカウントを追加</string>
+    <string name="relogin_title">再ログイン</string>
+    <string name="add_server_intro">Nextcloud サーバーのアドレスを入力してください。ログインはブラウザーで行うため、アプリがパスワードを見ることはありません。</string>
+    <string name="add_server_label">サーバーのアドレス</string>
+    <string name="add_server_hint">cloud.example.org</string>
+    <string name="add_sign_in">ログイン</string>
+    <string name="add_starting">サーバーに接続しています…</string>
+    <string name="add_waiting">ブラウザーを待っています…</string>
+    <string name="add_waiting_body">ブラウザーでログインしてアクセスを許可したら、このアプリに戻ってください。</string>
+    <string name="add_open_browser">ブラウザーをもう一度開く</string>
+    <string name="add_verifying">サーバーを確認しています…</string>
+    <string name="add_error_invalid_url">有効な HTTPS アドレスを入力してください（例: cloud.example.org）。</string>
+    <string name="add_error_network">サーバーに接続できませんでした。アドレスと接続状況を確認してください。</string>
+    <string name="add_error_timeout">時間内にログインが完了しませんでした。もう一度お試しください。</string>
+    <string name="add_error_app_missing">このサーバーには E-Book Reader アプリがインストールされていません。</string>
+    <string name="add_error_app_too_old">このサーバーの E-Book Reader アプリは古すぎます。バージョン 0.5.0 以降が必要です。</string>
+    <string name="add_error_duplicate">このアカウントはすでに追加されています。</string>
+    <string name="add_error_wrong_user">このアカウントとは別のユーザーでログインしました。</string>
+    <string name="add_error_rejected">サーバーがログインを拒否しました。</string>
+    <string name="add_error_generic">ログインに失敗しました。もう一度お試しください。</string>
+
+    <string name="remove_title">アカウントを削除しますか？</string>
+    <string name="remove_body">%1$s（%2$s）からログアウトします。アプリパスワードはサーバー上で無効化され、このアカウントの保存済みライブラリとオフラインの書籍はこの端末から削除されます。</string>
+    <string name="remove_confirm">アカウントを削除</string>
+    <string name="remove_revoke_failed_title">アカウントを削除しました</string>
+    <string name="remove_revoke_failed_body">サーバー上でアプリパスワードを無効化できませんでした（接続がない可能性があります）。Nextcloud の「設定」→「セキュリティ」→「デバイスとセッション」から手動で削除してください。</string>
+
+    <!-- Library -->
+    <string name="library_welcome_title">E-Book Reader へようこそ</string>
+    <string name="library_welcome_body">Nextcloud アカウントを追加して、電子書籍の閲覧、ダウンロード、読書ができます。これは非公式アプリであり、Nextcloud GmbH とは関係ありません。</string>
+    <string name="library_all_accounts">すべてのアカウント</string>
+    <string name="library_tab_books">書籍</string>
+    <string name="library_tab_shelves">本棚</string>
+    <string name="library_tab_series">シリーズ</string>
+    <string name="library_search">検索</string>
+    <string name="library_search_close">検索を閉じる</string>
+    <string name="library_search_hint">タイトル、著者、シリーズを検索</string>
+    <string name="library_layout_list">リスト表示</string>
+    <string name="library_layout_grid">グリッド表示</string>
+    <string name="library_sort">並べ替え</string>
+    <string name="library_continue_reading">続きを読む</string>
+    <string name="library_empty_title">書籍がありません</string>
+    <string name="library_empty_body">下に引っ張ると、サーバーからライブラリを同期します。</string>
+    <string name="library_no_results">フィルターに一致する書籍はありません</string>
+    <string name="library_select_book">書籍を選択してください</string>
+    <string name="shelves_empty">本棚がありません</string>
+    <string name="series_empty">シリーズがありません</string>
+    <string name="shelf_smart">スマート本棚</string>
+    <string name="series_read_count">%2$d 冊中 %1$d 冊読了</string>
+    <plurals name="books_count">
+        <item quantity="other">%d 冊</item>
+    </plurals>
+    <plurals name="volumes_count">
+        <item quantity="other">%d 巻</item>
+    </plurals>
+
+    <string name="filter_status">ステータス</string>
+    <string name="filter_any">すべて</string>
+    <string name="filter_offline_only">オフラインのみ</string>
+    <string name="filter_clear_all">フィルターをクリア</string>
+    <string name="filter_none_available">選択できる項目はまだありません。</string>
+
+    <string name="sort_title">タイトル</string>
+    <string name="sort_author">著者</string>
+    <string name="sort_series">シリーズ</string>
+    <string name="sort_rating">評価</string>
+    <string name="sort_added">追加日</string>
+    <string name="sort_recently_read">最近読んだ順</string>
+    <string name="sort_ascending">昇順</string>
+    <string name="sort_descending">降順</string>
+
+    <string name="status_unread">未読</string>
+    <string name="status_reading">読書中</string>
+    <string name="status_finished">読了</string>
+
+    <string name="banner_offline">オフラインです。保存済みのライブラリを表示しています。</string>
+    <string name="banner_auth_expired">ログインの有効期限が切れました。</string>
+    <string name="banner_server_error">サーバーエラーのため同期に失敗しました。</string>
+
+    <!-- Book detail / editing -->
+    <string name="book_not_found">この書籍は利用できなくなりました。</string>
+    <string name="book_read_online">読む</string>
+    <string name="book_read_offline">読む（オフライン）</string>
+    <string name="book_view_only">この書籍は閲覧のみで共有されているため、アプリでは開けません。</string>
+    <string name="book_available_offline">オフラインで利用可能</string>
+    <string name="book_progress">進捗: %1$s</string>
+    <string name="book_rating">評価</string>
+    <string name="book_status">読書ステータス</string>
+    <string name="book_genres">ジャンル</string>
+    <string name="book_tags">タグ</string>
+    <string name="book_description">説明</string>
+    <string name="book_publisher">出版社</string>
+    <string name="book_language">言語</string>
+    <string name="book_isbn">ISBN</string>
+    <string name="book_edit">書籍を編集</string>
+    <string name="rating_stars">星 %1$d つ</string>
+    <string name="edit_title">タイトル</string>
+    <string name="edit_authors">著者</string>
+    <string name="edit_series">シリーズ</string>
+    <string name="edit_series_index">巻</string>
+    <string name="edit_comma_separated">複数の項目はカンマで区切ってください</string>
+    <string name="edit_error_title_empty">タイトルを入力してください。</string>
+    <string name="edit_error_index_invalid">巻は数字で入力してください。</string>
+    <string name="edit_pending">同期待ち</string>
+    <string name="edit_failed">サーバーが変更を拒否しました: %1$s</string>
+
+    <string name="collection_empty">書籍がありません</string>
+    <string name="collection_offline_shelf">この本棚をオフラインで利用可能にする</string>
+    <string name="collection_offline_series">このシリーズをオフラインで利用可能にする</string>
+
+    <!-- Downloads -->
+    <string name="offline_available">オフラインで利用可能</string>
+    <string name="download_queued">ダウンロード待ち</string>
+    <string name="download_in_progress">ダウンロード中</string>
+    <string name="download_failed">ダウンロードに失敗しました</string>
+    <string name="download_failed_reason">ダウンロードに失敗しました: %1$s</string>
+    <string name="download_cancel">ダウンロードをキャンセル</string>
+    <string name="downloads_empty_title">オフラインの書籍はありません</string>
+    <string name="downloads_empty_body">書籍、本棚、シリーズで「オフラインで利用可能」をオンにすると、接続がなくても読めます。</string>
+    <string name="downloads_storage_used">使用中のストレージ: %1$s</string>
+    <string name="downloads_remove_all">すべて削除</string>
+    <string name="downloads_remove_all_title">すべてのダウンロードを削除しますか？</string>
+    <string name="downloads_remove_all_body">オフラインの書籍はすべてこの端末から削除されます。ライブラリはそのまま残ります。</string>
+    <string name="downloads_remove_account">すべて削除</string>
+    <string name="downloads_remove_account_title">ダウンロードを削除しますか？</string>
+    <string name="downloads_remove_account_body">%1$s のオフラインの書籍はすべてこの端末から削除されます。</string>
+
+    <!-- Settings -->
+    <string name="settings_appearance">表示</string>
+    <string name="settings_theme">テーマ</string>
+    <string name="theme_system">システム</string>
+    <string name="theme_light">ライト</string>
+    <string name="theme_dark">ダーク</string>
+    <string name="settings_dynamic_color">ダイナミックカラー</string>
+    <string name="settings_dynamic_color_hint">壁紙の色を使用します（Android 12 以降）。</string>
+    <string name="settings_eink">E Ink モード</string>
+    <string name="settings_eink_hint">高コントラストでアニメーションなし。電子ペーパーのディスプレイに適しています。</string>
+    <string name="settings_downloads">ダウンロード</string>
+    <string name="settings_wifi_only">Wi-Fi 接続時のみダウンロード</string>
+    <string name="settings_wifi_only_hint">モバイルデータを節約します。ダウンロードは Wi-Fi に接続されるまで待機します。</string>
+    <string name="settings_sync">読書の進捗</string>
+    <string name="settings_device_name">端末名</string>
+    <string name="settings_device_name_hint">ほかの端末でこの位置へのジャンプを提案するときに表示されます。</string>
+    <string name="settings_reader">リーダーの既定値</string>
+    <string name="settings_reader_font_size">文字サイズ: %1$d %%</string>
+    <string name="settings_reader_theme">リーダーのテーマ</string>
+    <string name="reader_theme_auto">自動</string>
+    <string name="reader_theme_sepia">セピア</string>
+    <string name="settings_about">このアプリについて</string>
+    <string name="settings_version">バージョン %1$s</string>
+    <string name="settings_license">ライセンス: AGPL-3.0-or-later</string>
+    <string name="settings_unofficial">非公式アプリであり、Nextcloud GmbH とは関係ありません。</string>
+    <string name="settings_source">ソースコード</string>
+    <string name="settings_privacy">プライバシーポリシー</string>
+    <string name="settings_license_link">ライセンス全文</string>
+
+    <!-- Reader -->
+    <string name="reader_toc">目次</string>
+    <string name="reader_settings">リーダーの設定</string>
+    <string name="reader_flow">レイアウト</string>
+    <string name="reader_flow_paginated">ページ</string>
+    <string name="reader_flow_scrolled">スクロール</string>
+    <string name="reader_comic_zoom">コミックのページ</string>
+    <string name="reader_comic_zoom_fit_page">ページに合わせる</string>
+    <string name="reader_comic_zoom_fit_width">幅に合わせる</string>
+    <string name="reader_comic_zoom_hint">2 本の指でピンチするかダブルタップで拡大します。ページをめくると元の倍率に戻ります。</string>
+    <string name="reader_keep_screen_on">画面をオンのままにする</string>
+    <string name="reader_conflict_title">%1$s の新しい位置</string>
+    <string name="reader_conflict_body">その位置（%1$s）にジャンプしますか？それともこの端末の位置（%2$s）のままにしますか？</string>
+    <string name="reader_conflict_unknown_device">別の端末</string>
+    <string name="reader_conflict_jump">ジャンプ</string>
+    <string name="reader_conflict_keep">このまま</string>
+    <string name="reader_link_title">リンクを開きますか？</string>
+    <string name="reader_link_body">この書籍は外部リンクを開こうとしています:\n\n%1$s</string>
+    <string name="reader_link_open">開く</string>
+    <string name="reader_error_title">書籍を開けませんでした</string>
+    <string name="reader_error_network">サーバーに接続できません。接続なしで読むには、書籍をオフラインで利用可能にしてください。</string>
+    <string name="reader_error_unsupported">この形式には対応していません。</string>
+    <string name="reader_error_open">ファイルを読み込めませんでした。</string>
+    <string name="filter_open">フィルター</string>
+    <string name="filter_sheet_title">ライブラリを絞り込む</string>
+    <string name="filter_section_genres">ジャンル</string>
+    <string name="filter_section_tags">タグ</string>
+    <string name="filter_section_authors">著者</string>
+    <string name="filter_section_series">シリーズ</string>
+    <string name="filter_section_formats">形式</string>
+    <string name="filter_section_missing">要確認</string>
+    <string name="filter_search_hint">このリスト内を検索</string>
+    <string name="filter_hint_cycle">タップ: 含める、もう一度タップ: 除外、3 回目のタップ: オフ</string>
+    <string name="filter_match_all">すべてに一致</string>
+    <string name="filter_match_any">いずれかに一致</string>
+    <string name="filter_hide_finished">読了を非表示</string>
+    <string name="filter_with_sub">%1$s（+ 下位階層）</string>
+    <string name="filter_remove_term">フィルター %1$s を削除</string>
+    <string name="filter_shelf_term">本棚: %1$s</string>
+    <string name="filter_missing_genre">ジャンルなし</string>
+    <string name="filter_missing_tag">タグなし</string>
+    <string name="filter_missing_author">著者なし</string>
+    <string name="filter_missing_series">シリーズなし</string>
+    <string name="filter_missing_description">説明なし</string>
+    <string name="filter_missing_cover">表紙なし</string>
+    <string name="filter_missing_language">言語なし</string>
+    <string name="filter_has_genre">ジャンルあり</string>
+    <string name="filter_has_tag">タグあり</string>
+    <string name="filter_has_author">著者あり</string>
+    <string name="filter_has_series">シリーズあり</string>
+    <string name="filter_has_description">説明あり</string>
+    <string name="filter_has_cover">表紙あり</string>
+    <string name="filter_has_language">言語あり</string>
+    <string name="filter_save_smart">スマート本棚として保存</string>
+    <string name="filter_editing_shelf">スマート本棚「%1$s」のフィルター</string>
+    <string name="filter_stop_editing">閉じる</string>
+    <string name="sort_shelf">本棚の順序</string>
+    <string name="shelf_new">新しい本棚</string>
+    <string name="shelf_new_smart">新しいスマート本棚</string>
+    <string name="shelf_name">名前</string>
+    <string name="shelf_rename">名前を変更</string>
+    <string name="shelf_delete">本棚を削除</string>
+    <string name="shelf_delete_confirm">本棚「%1$s」を削除しますか？書籍はライブラリに残ります。</string>
+    <string name="shelf_move_up">上へ移動</string>
+    <string name="shelf_move_down">下へ移動</string>
+    <string name="shelf_add_to">本棚に追加</string>
+    <string name="shelf_add_dialog_title">本棚</string>
+    <string name="shelf_none_manual">本棚がまだありません。下から作成してください。</string>
+    <string name="shelf_remove_book">本棚から削除</string>
+    <string name="shelf_remove_book_confirm">「%1$s」をこの本棚から削除しますか？</string>
+    <string name="shelf_open_as_filter">フィルターを編集</string>
+    <string name="shelf_error_offline">本棚はオンライン時のみ変更できます。</string>
+    <string name="shelf_error_name">この名前は無効か、すでに使われています。</string>
+    <string name="shelf_error_generic">本棚を変更できませんでした。</string>
+    <string name="shelf_refresh_failed">本棚を更新できませんでした。最後に同期した状態を表示しています。</string>
+    <string name="sync_now">今すぐ同期</string>
+    <string name="sync_last">同期: %1$s</string>
+    <string name="sync_never">まだ同期されていません</string>
+    <string name="sync_running">同期中…</string>
+    <string name="book_in_shelves">本棚</string>
+</resources>
