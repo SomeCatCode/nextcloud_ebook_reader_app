@@ -6,7 +6,7 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 ## [Unreleased]
 
 ### Hinzugefügt
-- Einstellungen: optionaler Eintrag „App unterstützen“ mit Spendenlink (nur in der APK von GitHub; im Google-Play-Build nie enthalten, da Play externe Spendenlinks von Privatentwicklern nicht erlaubt) und Seite „Lizenzen von Drittanbietern“.
+- Einstellungen: optionaler Eintrag „App unterstützen“ mit Spendenlink zu Ko-fi (https://ko-fi.com/somecatcode; nur in der APK von GitHub; im Google-Play-Build nie enthalten, da Play externe Spendenlinks von Privatentwicklern nicht erlaubt) und Seite „Lizenzen von Drittanbietern“.
 
 ### Geändert
 - Die App ist nicht mehr quelloffen: Lizenz proprietär (alle Rechte vorbehalten) statt AGPL-3.0-or-later; Quellcode- und AGPL-Links aus den Einstellungen entfernt. Komponenten Dritter behalten ihre Lizenzen.
