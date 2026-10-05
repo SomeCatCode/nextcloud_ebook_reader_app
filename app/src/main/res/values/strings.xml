@@ -204,6 +204,10 @@
     <string name="reader_flow">Layout</string>
     <string name="reader_flow_paginated">Pages</string>
     <string name="reader_flow_scrolled">Scrolling</string>
+    <string name="reader_comic_zoom">Comic pages</string>
+    <string name="reader_comic_zoom_fit_page">Fit page</string>
+    <string name="reader_comic_zoom_fit_width">Fit width</string>
+    <string name="reader_comic_zoom_hint">Pinch with two fingers or double-tap to zoom in; turning the page zooms back out.</string>
     <string name="reader_keep_screen_on">Keep screen on</string>
     <string name="reader_conflict_title">Newer position from %1$s</string>
     <string name="reader_conflict_body">Jump there (%1$s) or stay at your position on this device (%2$s)?</string>

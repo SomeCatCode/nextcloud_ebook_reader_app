@@ -235,7 +235,7 @@ fun ReaderContent(
     }
     if (state.showSettings) {
         ModalBottomSheet(onDismissRequest = onHideSettings) {
-            ReaderSettingsSheet(state.settings, state.keepScreenOn, onSettings, onKeepScreenOn)
+            ReaderSettingsSheet(state.settings, state.fixedLayout, state.keepScreenOn, onSettings, onKeepScreenOn)
         }
     }
     state.externalLink?.let { url ->
@@ -294,6 +294,7 @@ private fun TocList(items: List<TocItem>, onClick: (TocItem) -> Unit) {
 @Composable
 private fun ReaderSettingsSheet(
     settings: ReaderSettings,
+    fixedLayout: Boolean,
     keepScreenOn: Boolean,
     onChange: ((ReaderSettings) -> ReaderSettings) -> Unit,
     onKeepScreenOn: (Boolean) -> Unit,
@@ -317,6 +318,24 @@ private fun ReaderSettingsSheet(
             listOf("paginated" to R.string.reader_flow_paginated, "scrolled" to R.string.reader_flow_scrolled).forEach { (flow, label) ->
                 FilterChip(settings.flow == flow, { onChange { it.copy(flow = flow) } }, { Text(stringResource(label)) })
             }
+        }
+        if (fixedLayout) {
+            Text(stringResource(R.string.reader_comic_zoom), style = MaterialTheme.typography.bodyLarge)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("fit-page" to R.string.reader_comic_zoom_fit_page, "fit-width" to R.string.reader_comic_zoom_fit_width).forEach { (zoom, label) ->
+                    FilterChip(
+                        settings.comicZoom == zoom,
+                        { onChange { it.copy(comicZoom = zoom) } },
+                        { Text(stringResource(label)) },
+                        Modifier.testTag("comic_zoom_$zoom"),
+                    )
+                }
+            }
+            Text(
+                stringResource(R.string.reader_comic_zoom_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.reader_keep_screen_on), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)

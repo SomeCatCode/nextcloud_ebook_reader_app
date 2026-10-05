@@ -12,6 +12,7 @@ import com.somecatcode.ebookreader.data.repo.OfflineState
 import com.somecatcode.ebookreader.data.repo.ProgressConflict
 import com.somecatcode.ebookreader.data.sync.SyncError
 import com.somecatcode.ebookreader.data.sync.SyncState
+import com.somecatcode.ebookreader.reader.BookInfo
 import com.somecatcode.ebookreader.reader.BookSource
 import com.somecatcode.ebookreader.reader.ReaderToHost
 import com.somecatcode.ebookreader.ui.FakeAccountStore
@@ -26,6 +27,7 @@ import com.somecatcode.ebookreader.ui.FakeSyncEngine
 import com.somecatcode.ebookreader.ui.account
 import com.somecatcode.ebookreader.ui.book
 import com.somecatcode.ebookreader.ui.util.normalizeServerInput
+import com.somecatcode.ebookreader.ui.util.readerSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -454,6 +456,24 @@ class ViewModelTests {
         assertNull(vm.state.value.externalLink)
         vm.onEvent(ReaderToHost.ExternalLink("https://example.org"))
         assertEquals("https://example.org", vm.state.value.externalLink)
+    }
+
+    @Test
+    fun reader_comicsOfferFitModeWhichIsStored() = runTest(dispatcher) {
+        val settings = FakeSettingsRepository()
+        val vm = ReaderViewModel(
+            key, FakeLibraryRepository(listOf(book(1, "Dune"))), FakeProgressRepository(), FakeDownloadRepository(), settings,
+            remoteCheckTimeoutMs = 100, saveDebounceMs = 1000,
+        )
+        advanceUntilIdle()
+        vm.onEvent(ReaderToHost.Opened(BookInfo(isComic = false, fixedLayout = false)))
+        assertFalse(vm.state.value.fixedLayout)
+        vm.onEvent(ReaderToHost.Opened(BookInfo(isComic = true, fixedLayout = true, pageCount = 3)))
+        assertTrue(vm.state.value.fixedLayout)
+        vm.updateSettings { it.copy(comicZoom = "fit-width") }
+        advanceUntilIdle()
+        assertEquals("fit-width", vm.state.value.settings.comicZoom)
+        assertEquals("fit-width", settings.state.value.readerSettings().comicZoom)
     }
 
     @Test

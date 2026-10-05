@@ -58,6 +58,10 @@ class ReaderBridgeTest {
         val set = roundTrip(HostToReader.SetSettings(ReaderSettings(fontSize = 130, flow = "scrolled", comicRtl = true)))
         assertEquals("setSettings", set["type"]!!.jsonPrimitive.content)
         assertEquals(130, set["settings"]!!.jsonObject["fontSize"]!!.jsonPrimitive.content.toInt())
+        // comic fit mode goes to reader-core as ReaderLayout.comicZoom
+        assertEquals("fit-page", set["settings"]!!.jsonObject["comicZoom"]!!.jsonPrimitive.content)
+        val fitWidth = roundTrip(HostToReader.SetSettings(ReaderSettings(comicZoom = "fit-width")))
+        assertEquals("fit-width", fitWidth["settings"]!!.jsonObject["comicZoom"]!!.jsonPrimitive.content)
     }
 
     @Test

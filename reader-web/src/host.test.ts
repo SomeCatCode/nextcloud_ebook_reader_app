@@ -56,6 +56,8 @@ function setup(fr = fakeReader()) {
 	const sent: ReaderToHostMsg[] = []
 	const created: ReaderOptions[] = []
 	const eink: [boolean, boolean][] = []
+	const comicMode: boolean[] = []
+	const zoom = { zoomed: false, resets: 0 }
 	const fetchFn = vi.fn(async () => new Response('PK', { status: 200 })) as unknown as typeof fetch
 	const host = createHost({
 		createReader: (o) => { created.push(o); return fr.handle },
@@ -63,8 +65,16 @@ function setup(fr = fakeReader()) {
 		fetchFn,
 		pageWidth: () => 600,
 		onEink: (e, d) => eink.push([e, d]),
+		zoom: {
+			isZoomed: () => zoom.zoomed,
+			reset: () => {
+				zoom.resets++
+				zoom.zoomed = false
+			},
+		},
+		onComicMode: (e) => comicMode.push(e),
 	})
-	return { host, sent, created, eink, fr }
+	return { host, sent, created, eink, fr, zoom, comicMode }
 }
 
 const OPEN = {
@@ -214,5 +224,65 @@ describe('taps and keys', () => {
 			host.handleKey(k)
 		}
 		expect(fr.calls).toEqual(['next', 'prev', 'next', 'prev'])
+	})
+})
+
+describe('comic zoom', () => {
+	const COMIC = { ...OPEN, book: { ...OPEN.book, format: 'cbz' } }
+
+	it('enables the gesture layer for comics only and disables it on destroy', async () => {
+		const comic = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }))
+		comic.host.receive(COMIC)
+		await flush()
+		expect(comic.comicMode.at(-1)).toBe(true)
+		comic.host.receive({ type: 'destroy' })
+		expect(comic.comicMode.at(-1)).toBe(false)
+		const text = setup()
+		text.host.receive(OPEN)
+		await flush()
+		expect(text.comicMode.at(-1)).toBe(false)
+	})
+
+	it('while zoomed, taps only toggle the bars and swipes do not turn', async () => {
+		const { host, sent, fr, zoom } = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }))
+		host.receive(COMIC)
+		await flush()
+		sent.length = 0
+		zoom.zoomed = true
+		host.tap('left')
+		host.tap('right')
+		host.swipe(-100)
+		expect(fr.calls).toEqual([])
+		expect(sent).toEqual([{ type: 'tap', zone: 'center' }, { type: 'tap', zone: 'center' }])
+		expect(zoom.zoomed).toBe(true)
+	})
+
+	it('every page turn or jump resets the zoom first', async () => {
+		const { host, fr, zoom } = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }))
+		host.receive(COMIC)
+		await flush()
+		for (const turn of [
+			() => host.receive({ type: 'next' }),
+			() => host.receive({ type: 'prev' }),
+			() => host.handleKey('ArrowRight'),
+			() => host.handleKey('PageUp'),
+			() => host.receive({ type: 'goTo', href: 'p3' }),
+			() => host.receive({ type: 'setSettings', settings: { comicZoom: 'fit-width' } }),
+		]) {
+			zoom.zoomed = true
+			turn()
+			expect(zoom.zoomed).toBe(false)
+		}
+		expect(fr.calls).toEqual(['next', 'prev', 'next', 'prev'])
+		expect(fr.handle.setLayout).toHaveBeenLastCalledWith(expect.objectContaining({ comicZoom: 'fit-width' }))
+	})
+
+	it('a tap zone turns the page at fit zoom', async () => {
+		const { host, fr } = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }))
+		host.receive(COMIC)
+		await flush()
+		host.tap('right')
+		host.tap('left')
+		expect(fr.calls).toEqual(['next', 'prev'])
 	})
 })
