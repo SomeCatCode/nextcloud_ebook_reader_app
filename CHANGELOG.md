@@ -6,6 +6,8 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 ## [Unreleased]
 
 ### Hinzugefügt
+- Zoom im Comic-Reader: mit zwei Fingern aufziehen (bis 5-fach, am Fingerpunkt verankert), vergrößerte Seite mit einem Finger verschieben, Doppeltippen wechselt zwischen eingepasst und 2,5-fach an der getippten Stelle. Vergrößert blättern weder Wischen noch Tipp-Zonen (Tippen blendet nur die Leisten ein/aus); Umblättern per Lautstärketaste, Tastatur, Inhaltsverzeichnis oder Tipp-Zone (eingepasst) setzt den Zoom zurück. Der Zoom ist rein visuell und landet nicht im gespeicherten Lesestand; im E-Ink-Modus ohne Animation.
+- Reader-Einstellungen für Comics: „Ganze Seite“ oder „Seitenbreite“ einpassen (lange Seiten lassen sich bei Seitenbreite vertikal scrollen).
 - Filter wie in der Web-App: Filterblatt mit Genres und Tags als Baum (Unterebenen mit „X/*“), Autoren, Serien, Formaten und „Braucht Pflege“ (fehlende Angaben); jeder Eintrag lässt sich einschließen oder ausschließen, aktive Filter als Chips (antippen wechselt ein/aus, × entfernt), „Alle/Eins muss passen“, Option „Gelesene ausblenden“ (Standard an, bleibt gespeichert).
 - Smarte Regale: aktuellen Filter als smartes Regal speichern, Filter eines smarten Regals bearbeiten und zurückspeichern; smarte Regale verstehen jetzt auch Fehlend-Filter und Regal-Begriffe wie der Server.
 - Regalverwaltung: Regale anlegen, umbenennen, sortieren und löschen; Bücher in den Buchdetails zu Regalen hinzufügen (auch neues Regal) und im Regal per langem Tippen entfernen; manuelle Regale zeigen die Reihenfolge des Servers.

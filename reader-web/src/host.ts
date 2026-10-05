@@ -28,6 +28,10 @@ export interface HostDeps {
 	loadLibarchive?: ReaderOptions['loadLibarchive']
 	/** E-ink mode changed: `dark` = black background with white text */
 	onEink?: (enabled: boolean, dark: boolean) => void
+	/** Visual zoom of comic pages (gestures.ts); reset on every page turn. */
+	zoom?: { isZoomed: () => boolean, reset: () => void }
+	/** A comic is open (true) or closed (false): the page enables its gesture layer. */
+	onComicMode?: (enabled: boolean) => void
 }
 
 export interface ReaderHostApi {
@@ -36,6 +40,8 @@ export interface ReaderHostApi {
 	handleKey: (key: string) => void
 	/** Swipe gesture of fixed-layout pages: `dx < 0` = finger moved left. */
 	swipe: (dx: number) => void
+	/** Tap of the comic gesture layer (reader-core reports text taps itself). */
+	tap: (zone: 'left' | 'center' | 'right') => void
 }
 
 /**
@@ -104,6 +110,31 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 			// ignore
 		}
 		reader = null
+		deps.onComicMode?.(false)
+		deps.zoom?.reset()
+	}
+
+	/**
+	 * Page turns and jumps always show the new page at fit zoom.
+	 */
+	function next(): void {
+		deps.zoom?.reset()
+		void reader?.next()
+	}
+
+	/**
+	 *
+	 */
+	function prev(): void {
+		deps.zoom?.reset()
+		void reader?.prev()
+	}
+
+	/**
+	 *
+	 */
+	function isZoomed(): boolean {
+		return deps.zoom?.isZoomed() ?? false
 	}
 
 	/**
@@ -124,21 +155,30 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 	 *
 	 */
 	function goLeft(): void {
-		void (isRtl() ? reader?.next() : reader?.prev())
+		if (isRtl()) {
+			next()
+		} else {
+			prev()
+		}
 	}
 
 	/**
 	 *
 	 */
 	function goRight(): void {
-		void (isRtl() ? reader?.prev() : reader?.next())
+		if (isRtl()) {
+			prev()
+		} else {
+			next()
+		}
 	}
 
 	/**
 	 * @param zone
 	 */
 	function onTap(zone: 'left' | 'center' | 'right'): void {
-		if (zone === 'center' || isScrolledText()) {
+		// a zoomed page never turns by tap: every tap only toggles the bars
+		if (zone === 'center' || isScrolledText() || isZoomed()) {
 			deps.send({ type: 'tap', zone: 'center' })
 		} else if (zone === 'left') {
 			goLeft()
@@ -160,19 +200,19 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 			break
 		case 'PageDown':
 		case ' ':
-			void reader?.next()
+			next()
 			break
 		case 'ArrowDown':
 			if (!isScrolledText()) {
-				void reader?.next()
+				next()
 			}
 			break
 		case 'PageUp':
-			void reader?.prev()
+			prev()
 			break
 		case 'ArrowUp':
 			if (!isScrolledText()) {
-				void reader?.prev()
+				prev()
 			}
 			break
 		default:
@@ -186,7 +226,8 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 	function swipe(dx: number): void {
 		const info = reader?.getInfo()
 		// text sections: the paginator handles swipes natively
-		if (!info || !(info.isComic || info.fixedLayout)) {
+		// a zoomed page pans instead of turning
+		if (!info || !(info.isComic || info.fixedLayout) || isZoomed()) {
 			return
 		}
 		if (dx < 0) {
@@ -206,6 +247,8 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 		if (initial || !reader) {
 			return
 		}
+		// layout changes (fit-page/fit-width, spreads) move the page under the zoom
+		deps.zoom?.reset()
 		reader.setTheme(toTheme(settings))
 		reader.setTypography(toTypography(settings))
 		reader.setLayout(toLayout(settings)).catch((e) => deps.send({ type: 'error', ...toBridgeError(e) }))
@@ -269,6 +312,7 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 				},
 			})
 			deps.send({ type: 'toc', items: mapToc(r.getToc()) })
+			deps.onComicMode?.(info?.isComic ?? false)
 			opening = false
 			if (pendingRelocate) {
 				deps.send(pendingRelocate)
@@ -302,15 +346,16 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 			case 'goTo': {
 				const target = msg.locator ?? msg.href
 				if (target && reader) {
+					deps.zoom?.reset()
 					reader.goTo(target).catch((e) => deps.send({ type: 'error', ...toBridgeError(e) }))
 				}
 				break
 			}
 			case 'next':
-				void reader?.next()
+				next()
 				break
 			case 'prev':
-				void reader?.prev()
+				prev()
 				break
 			case 'setSettings':
 				applySettings(msg.settings ?? {})
@@ -326,5 +371,5 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 		}
 	}
 
-	return { receive, handleKey, swipe }
+	return { receive, handleKey, swipe, tap: onTap }
 }

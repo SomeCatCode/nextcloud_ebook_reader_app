@@ -9,10 +9,15 @@
   <style>
     html, body, #reader { margin: 0; height: 100%; width: 100%; overflow: hidden; background: transparent; }
     html.eink * { transition: none !important; animation: none !important; }
+    /* Comic zoom (src/gestures.ts): purely visual transform of the reader; the overlay receives all touches of comics */
+    #reader { transform-origin: 0 0; }
+    #gestures { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 1; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+    #gestures[hidden] { display: none; }
   </style>
 </head>
 <body>
   <div id="reader"></div>
+  <div id="gestures" hidden></div>
   <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

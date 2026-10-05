@@ -8,6 +8,7 @@
 import type { ReaderToHostMsg } from './protocol.ts'
 
 import { createReader } from '../../third_party/nextcloud_ebook_reader/packages/reader-core/index.ts'
+import { GestureController, SWIPE_MIN, tapZone, toCss } from './gestures.ts'
 import { createHost } from './host.ts'
 import { PROTOCOL_VERSION } from './protocol.ts'
 import { comicPageWidth } from './source.ts'
@@ -26,9 +27,9 @@ declare global {
 }
 
 const EINK_ID = 'ebr-eink'
-const SWIPE_MIN = 60
 
 const container = document.getElementById('reader') as HTMLElement
+const overlay = document.getElementById('gestures') as HTMLElement
 const sectionDocs = new Set<Document>()
 let einkOn = false
 let einkDark = false
@@ -94,6 +95,35 @@ function applyEink(enabled: boolean, dark: boolean): void {
 	}
 }
 
+/**
+ * Scrolls fit-width comic pages that are taller than the screen (the fixed-layout renderer is the
+ * scroll container; the overlay above it keeps native scrolling from reaching it).
+ *
+ * @param dy CSS px on screen, positive = further down the page
+ */
+function scrollPage(dy: number): void {
+	const view = container.querySelector('foliate-view') as (HTMLElement & { renderer?: HTMLElement }) | null
+	view?.renderer?.scrollBy(0, dy / gestures.transform.scale)
+}
+
+/**
+ * Comic zoom: pinch, pan and double tap on the overlay, applied as a CSS transform of the reader
+ * container (purely visual, never part of the locator).
+ */
+const gestures = new GestureController({
+	tap: (x) => host.tap(tapZone(x, overlay.clientWidth || window.innerWidth)),
+	swipe: (dx) => host.swipe(dx),
+	scroll: (dy) => scrollPage(-dy),
+	transform: (t, animate) => {
+		container.style.transition = animate && !einkOn ? 'transform 150ms ease-out' : 'none'
+		container.style.transform = toCss(t)
+	},
+}, {
+	size: () => ({ width: container.clientWidth, height: container.clientHeight }),
+	setTimer: (fn, ms) => window.setTimeout(fn, ms),
+	clearTimer: (h) => window.clearTimeout(h as number),
+})
+
 const host = createHost({
 	createReader: (options) => {
 		const handle = createReader(container, options)
@@ -117,10 +147,32 @@ const host = createHost({
 		return { workerSource: worker.default, wasmUrl: wasm.default }
 	},
 	onEink: applyEink,
+	zoom: { isZoomed: () => gestures.zoomed, reset: () => gestures.reset() },
+	onComicMode: (enabled) => {
+		overlay.hidden = !enabled
+	},
 })
 
+overlay.addEventListener('pointerdown', (e) => {
+	if (e.pointerType === 'mouse' && e.button !== 0) {
+		return
+	}
+	try {
+		overlay.setPointerCapture(e.pointerId)
+	} catch {
+		// pointer already gone
+	}
+	gestures.down(e.pointerId, e.clientX, e.clientY, e.timeStamp)
+})
+overlay.addEventListener('pointermove', (e) => gestures.move(e.pointerId, e.clientX, e.clientY))
+overlay.addEventListener('pointerup', (e) => gestures.up(e.pointerId, e.clientX, e.clientY, e.timeStamp))
+overlay.addEventListener('pointercancel', (e) => gestures.cancel(e.pointerId))
+// mouse wheel (e.g. Chromebooks): scroll fit-width pages as without the overlay
+overlay.addEventListener('wheel', (e) => scrollPage(e.deltaY), { passive: true })
+window.addEventListener('resize', () => gestures.reset())
+
 /**
- * Swipe handling for fixed-layout pages (comics); host.swipe ignores text books.
+ * Swipe handling for fixed-layout EPUB pages (comics use the gesture overlay); host.swipe ignores text books.
  *
  * @param doc
  */
@@ -141,8 +193,7 @@ function bindSwipe(doc: Document): void {
 		const t = e.changedTouches[0]
 		const dx = (t?.clientX ?? 0) - startX
 		const dy = (t?.clientY ?? 0) - startY
-		// a pinch-zoomed page scrolls instead of turning
-		if (Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy) * 2 && (window.visualViewport?.scale ?? 1) <= 1.01) {
+		if (Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy) * 2) {
 			host.swipe(dx)
 		}
 	}, { passive: true })

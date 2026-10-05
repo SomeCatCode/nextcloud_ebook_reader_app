@@ -50,6 +50,8 @@ data class ReaderUiState(
     val externalLink: String? = null,
     val keepScreenOn: Boolean = true,
     val failure: ReaderFailure? = null,
+    /** Comic or fixed-layout book: the settings offer fit page / fit width instead of text options. */
+    val fixedLayout: Boolean = false,
 )
 
 /** How the book is delivered to the page: offline file, or (online) entry-wise/page-wise where possible. */
@@ -139,7 +141,13 @@ class ReaderViewModel(
     fun onEvent(event: ReaderToHost) {
         when (event) {
             is ReaderToHost.Ready -> Unit
-            is ReaderToHost.Opened -> _state.update { it.copy(phase = ReaderPhase.READING, title = event.info.title ?: it.title) }
+            is ReaderToHost.Opened -> _state.update {
+                it.copy(
+                    phase = ReaderPhase.READING,
+                    title = event.info.title ?: it.title,
+                    fixedLayout = event.info.isComic || event.info.fixedLayout,
+                )
+            }
             is ReaderToHost.Relocate -> {
                 pendingSave = event.locator to event.percentage
                 _state.update { it.copy(percentage = event.percentage, label = event.label) }

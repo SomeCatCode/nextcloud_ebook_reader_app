@@ -201,6 +201,10 @@
     <string name="reader_flow">Layout</string>
     <string name="reader_flow_paginated">Seiten</string>
     <string name="reader_flow_scrolled">Scrollen</string>
+    <string name="reader_comic_zoom">Comic-Seiten</string>
+    <string name="reader_comic_zoom_fit_page">Ganze Seite</string>
+    <string name="reader_comic_zoom_fit_width">Seitenbreite</string>
+    <string name="reader_comic_zoom_hint">Mit zwei Fingern aufziehen oder doppelt tippen zum Vergrößern; beim Umblättern wird wieder eingepasst.</string>
     <string name="reader_keep_screen_on">Bildschirm anlassen</string>
     <string name="reader_conflict_title">Neuere Position von %1$s</string>
     <string name="reader_conflict_body">Dorthin springen (%1$s) oder an der Position auf diesem Gerät bleiben (%2$s)?</string>
