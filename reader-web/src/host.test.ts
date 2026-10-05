@@ -1,6 +1,6 @@
 /**
  * SPDX-FileCopyrightText: 2026 Felix Kurth
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 import type { ReaderHandle, ReaderOptions } from '../../third_party/nextcloud_ebook_reader/packages/reader-core/src/types.ts'
 import type { ReaderToHostMsg } from './protocol.ts'

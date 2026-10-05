@@ -1,6 +1,6 @@
 /**
  * SPDX-FileCopyrightText: 2026 Felix Kurth
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * JS side of the Android bridge (docs/CONTRACTS.md section 6): turns host messages into reader-core
  * calls and reader events into bridge messages. DOM free so it can be unit tested with a fake reader.

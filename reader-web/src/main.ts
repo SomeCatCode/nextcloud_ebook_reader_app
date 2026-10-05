@@ -1,6 +1,6 @@
 /**
  * SPDX-FileCopyrightText: 2026 Felix Kurth
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * Entry of the reader bundle: full-screen reader page for the Android WebView.
  * Protocol: docs/CONTRACTS.md section 6 (implemented in host.ts).

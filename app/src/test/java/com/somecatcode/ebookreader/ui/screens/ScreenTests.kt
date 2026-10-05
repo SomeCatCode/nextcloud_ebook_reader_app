@@ -2,8 +2,13 @@ package com.somecatcode.ebookreader.ui.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -15,8 +20,8 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.somecatcode.ebookreader.data.api.AppDataPatch
-import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.api.Locations
+import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.db.DownloadState
 import com.somecatcode.ebookreader.data.db.PinnedBy
@@ -279,6 +284,24 @@ class ScreenTests {
         compose.onNodeWithTag("eink_mode").performClick()
         compose.waitUntil(5_000) { c.settingsRepository.state.value.einkMode }
         assertEquals("dark", c.settingsRepository.state.value.themeMode)
+    }
+
+    @Test
+    fun settings_donationEntryOnlyWithUrlAndLicensesOpen() {
+        val c = container()
+        var donation by mutableStateOf("")
+        var licenses = 0
+        show(c) {
+            SettingsContent(
+                com.somecatcode.ebookreader.data.repo.AppSettings(), onBack = {}, onUpdate = {}, onUpdateReader = {},
+                onOpenLicenses = { licenses++ }, donationUrl = donation,
+            )
+        }
+        compose.onAllNodesWithTag("donate").assertCountEquals(0)
+        donation = "https://ko-fi.com/example"
+        compose.onNodeWithTag("donate").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("third_party_licenses").performScrollTo().performClick()
+        assertEquals(1, licenses)
     }
 }
 

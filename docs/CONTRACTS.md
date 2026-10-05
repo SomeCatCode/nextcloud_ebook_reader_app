@@ -15,7 +15,7 @@ Server-Quellen der Datenformate (Schwesterrepo `nextcloud_ebook_reader`, hier al
 | Konto-ID | Zufällige UUID (String), unabhängig von URL und Benutzer. Buch-Schlüssel = `BookKey(accountId, fileId)`. |
 | Sprache | UI-Texte in `res/values` (en) und `res/values-de`; keine hartkodierten Strings in Composables. |
 | Fehler | Netzwerkfehler erreichen die UI nie als Exception aus Repositories, sondern als Zustand (`SyncState`, `DownloadState`, `EditFailure`). Nur `EbookApi` wirft `ApiException`. |
-| Lizenz-Header | Kotlin-Dateien benötigen keinen Header (Repo-Lizenz AGPL-3.0-or-later); TS-Dateien in `reader-web/src` tragen den SPDX-Header. |
+| Lizenz-Header | Kotlin-Dateien benötigen keinen Header (proprietär, siehe LICENSE); TS-Dateien in `reader-web/src` tragen `SPDX-License-Identifier: LicenseRef-Proprietary`. Fremdkomponenten neu aufgenommen → Eintrag in `app/src/main/assets/third_party_licenses.txt`. |
 
 ## 2. API-Client (`data/api`)
 

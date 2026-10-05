@@ -1,6 +1,6 @@
 /**
  * SPDX-FileCopyrightText: 2026 Felix Kurth
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * Bridge protocol v1 (mirror of app/src/main/java/.../reader/ReaderBridge.kt, docs/CONTRACTS.md section 6).
  */
