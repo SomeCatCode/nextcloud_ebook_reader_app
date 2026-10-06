@@ -44,7 +44,7 @@ class EbookApiImplTest {
         assertTrue(req.getHeader("Accept")!!.contains("json"))
         val url = req.requestUrl!!
         assertEquals("/ocs/v2.php/apps/ebookreader/api/v1/books", url.encodedPath)
-        assertEquals("json", url.queryParameter("format"))
+        assertEquals("never `format=json`: /books treats `format` as a book-format filter", null, url.queryParameter("format"))
         assertEquals("dune", url.queryParameter("search"))
         assertEquals(listOf("genre:Sci-Fi"), url.queryParameterValues("include[]"))
         assertEquals("20", url.queryParameter("limit"))

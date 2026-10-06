@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Behoben
+- Regale zeigten keine Bücher: Die App hängte `format=json` an alle Anfragen an die E-Book-Reader-API an, und `GET /books` las das als Filter „nur Bücher im Format json“. Jetzt wählt nur der `Accept`-Header das Antwortformat, wie in der Web-App.
+
 ## 0.2.0 – 2026-10-05
 
 ### Hinzugefügt
