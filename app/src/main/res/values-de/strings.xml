@@ -275,4 +275,8 @@
     <string name="sync_never">Noch nicht synchronisiert</string>
     <string name="sync_running">Synchronisiere…</string>
     <string name="book_in_shelves">Regale</string>
+    <string name="account_versions">Nextcloud %1$s · E-Book Reader %2$s</string>
+    <string name="account_app_version_unknown">unbekannt (älter als %1$s)</string>
+    <string name="account_app_outdated">Die App „E-Book Reader“ auf diesem Server ist veraltet. Einige Funktionen benötigen Version %1$s oder neuer.</string>
+    <string name="banner_server_outdated">Die Server-App (E-Book Reader %1$s) ist älter als empfohlen (%2$s). Einige Funktionen sind nicht verfügbar.</string>
 </resources>

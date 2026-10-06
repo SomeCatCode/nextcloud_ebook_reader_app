@@ -48,6 +48,7 @@ import com.somecatcode.ebookreader.ui.components.EmptyState
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 import com.somecatcode.ebookreader.ui.util.formatRelativeTime
 import com.somecatcode.ebookreader.ui.util.serverLabel
+import com.somecatcode.ebookreader.data.ServerVersions
 import com.somecatcode.ebookreader.ui.util.title
 
 /** Account list, add account (Login Flow v2), remove account. */
@@ -188,6 +189,24 @@ private fun AccountCard(row: AccountRow, onRelogin: () -> Unit, onSync: () -> Un
             val sync = account.lastSyncAt?.let { stringResource(R.string.account_last_sync, formatRelativeTime(it)) }
                 ?: stringResource(R.string.account_never_synced)
             Text(sync, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                stringResource(
+                    R.string.account_versions,
+                    account.serverVersion?.takeIf { it.isNotBlank() } ?: "?",
+                    account.appVersion ?: stringResource(R.string.account_app_version_unknown, ServerVersions.REPORTS_VERSION),
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag("versions_${account.id}"),
+            )
+            if (ServerVersions.isOutdated(account.appVersion)) {
+                Text(
+                    stringResource(R.string.account_app_outdated, ServerVersions.RECOMMENDED),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 4.dp).testTag("outdated_${account.id}"),
+                )
+            }
             val problem = row.status in setOf(AccountStatus.AUTH_EXPIRED, AccountStatus.APP_UNAVAILABLE, AccountStatus.ERROR)
             Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (row.status == AccountStatus.SYNCING) {

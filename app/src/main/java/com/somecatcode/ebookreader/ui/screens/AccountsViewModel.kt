@@ -226,7 +226,7 @@ class AccountsViewModel(
                     userId = user.id,
                     displayName = user.displayName ?: user.displayname,
                     serverVersion = compatibility.serverVersion,
-                    appVersion = compatibility.capabilities.apiVersion.toString(),
+                    appVersion = compatibility.capabilities.version,
                 ),
             )
             syncEngine.requestSync(added.id)

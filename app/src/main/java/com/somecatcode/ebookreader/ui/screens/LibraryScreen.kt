@@ -71,6 +71,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.somecatcode.ebookreader.R
+import com.somecatcode.ebookreader.data.ServerVersions
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.LibraryBook
@@ -324,6 +325,14 @@ private fun LibraryBannerView(banner: LibraryBanner, onRetry: () -> Unit, onOpen
         LibraryBanner.ServerError -> MessageBanner(
             stringResource(R.string.banner_server_error), isError = true,
             actionLabel = stringResource(R.string.action_retry), onAction = onRetry,
+        )
+        is LibraryBanner.ServerOutdated -> MessageBanner(
+            stringResource(
+                R.string.banner_server_outdated,
+                banner.version ?: stringResource(R.string.account_app_version_unknown, ServerVersions.REPORTS_VERSION),
+                ServerVersions.RECOMMENDED,
+            ),
+            actionLabel = stringResource(R.string.nav_accounts), onAction = onOpenAccounts,
         )
     }
 }

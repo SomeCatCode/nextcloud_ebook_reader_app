@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Hinzugefügt
+- Server-Version: Die App liest bei jeder Synchronisation die Nextcloud-Version und die Version der Server-App „E-Book Reader“ (ab Server 0.8.0) und zeigt beide in den Konten an. Ist die Server-App älter als empfohlen (0.8.0), erscheint ein Hinweis in den Konten und in der Bibliothek; Funktionen lassen sich an Mindestversionen knüpfen (`ServerFeature`). Fehlt die Server-App ganz, bricht die Synchronisation mit „App nicht verfügbar“ ab.
+
 ## 0.2.0 – 2026-10-05
 
 ### Hinzugefügt
