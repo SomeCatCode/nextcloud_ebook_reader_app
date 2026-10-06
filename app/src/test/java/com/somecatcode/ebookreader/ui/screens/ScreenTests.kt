@@ -2,6 +2,9 @@ package com.somecatcode.ebookreader.ui.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -15,8 +18,8 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.somecatcode.ebookreader.data.api.AppDataPatch
-import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.api.Locations
+import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.db.DownloadState
 import com.somecatcode.ebookreader.data.db.PinnedBy
@@ -279,6 +282,29 @@ class ScreenTests {
         compose.onNodeWithTag("eink_mode").performClick()
         compose.waitUntil(5_000) { c.settingsRepository.state.value.einkMode }
         assertEquals("dark", c.settingsRepository.state.value.themeMode)
+    }
+
+    @Test
+    fun collection_showsReadingStateAndSwitchesBetweenGridAndList() {
+        val books = listOf(
+            book(1, "Done", status = ReadStatus.FINISHED),
+            book(2, "Halfway", status = ReadStatus.READING).copy(percentage = 0.42),
+            book(3, "New"),
+        )
+        var grid by mutableStateOf(true)
+        show(container()) {
+            CollectionContent(
+                state = CollectionUiState(loaded = true, title = "Want To Read", books = books, manualShelf = true, grid = grid),
+                isSeries = false, onBack = {}, onToggleOffline = {}, onOpenBook = {},
+                onToggleLayout = { grid = !grid },
+            )
+        }
+        compose.onNodeWithTag("collection_grid").assertIsDisplayed()
+        compose.onNodeWithText("42 %").assertIsDisplayed()
+        compose.onNodeWithText("Finished").assertIsDisplayed()
+        compose.onNodeWithTag("collection_layout_toggle").performClick()
+        compose.onNodeWithTag("collection_list").assertIsDisplayed()
+        compose.onNodeWithText("Unread").assertIsDisplayed()
     }
 }
 

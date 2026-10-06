@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Hinzugefügt
+- Regal- und Serienansicht: Umschalter zwischen Raster und Liste (gemeinsame Einstellung mit der Bibliothek) und Lesestand bei jedem Buch („Ungelesen“, Fortschritt in Prozent mit Balken, „Gelesen“ mit Häkchen).
+
 ## 0.2.0 – 2026-10-05
 
 ### Hinzugefügt

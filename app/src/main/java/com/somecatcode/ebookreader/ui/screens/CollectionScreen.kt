@@ -10,28 +10,34 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.somecatcode.ebookreader.R
+import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.DownloadRepository
 import com.somecatcode.ebookreader.data.repo.LibraryBook
@@ -55,30 +62,32 @@ import com.somecatcode.ebookreader.data.repo.LibraryFilter
 import com.somecatcode.ebookreader.data.repo.LibraryRepository
 import com.somecatcode.ebookreader.data.repo.LibrarySort
 import com.somecatcode.ebookreader.data.repo.OfflineTarget
+import com.somecatcode.ebookreader.data.repo.SettingsRepository
 import com.somecatcode.ebookreader.data.repo.ShelfInfo
 import com.somecatcode.ebookreader.data.repo.ShelfKey
 import com.somecatcode.ebookreader.data.repo.ShelfRepository
-import com.somecatcode.ebookreader.ui.components.ConfirmDialog
 import com.somecatcode.ebookreader.ui.components.BackButton
 import com.somecatcode.ebookreader.ui.components.BookCover
+import com.somecatcode.ebookreader.ui.components.ConfirmDialog
 import com.somecatcode.ebookreader.ui.components.EmptyState
 import com.somecatcode.ebookreader.ui.components.OfflineIndicator
 import com.somecatcode.ebookreader.ui.components.rememberDownloadGate
 import com.somecatcode.ebookreader.ui.util.containerViewModel
+import com.somecatcode.ebookreader.ui.util.percentText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -101,6 +110,8 @@ data class CollectionUiState(
     /** Smart shelf: its filter can be edited in the library. */
     val smartShelf: Boolean = false,
     val refreshing: Boolean = false,
+    /** Grid or list; shared with the library (setting `libraryLayout`). */
+    val grid: Boolean = true,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -109,6 +120,7 @@ class CollectionViewModel(
     library: LibraryRepository,
     private val downloads: DownloadRepository,
     private val shelves: ShelfRepository? = null,
+    private val settings: SettingsRepository? = null,
 ) : ViewModel() {
 
     private val ids = listOf(id.accountId)
@@ -131,7 +143,9 @@ class CollectionViewModel(
         is CollectionId.Series -> library.books(ids, LibraryFilter(series = id.name, sort = LibrarySort.SERIES))
     }
 
-    val state: StateFlow<CollectionUiState> = combine(booksFlow, shelfInfo, refreshing) { books, shelf, busy ->
+    private val grid: Flow<Boolean> = settings?.settings?.map { it.libraryLayout != "list" }?.distinctUntilChanged() ?: flowOf(true)
+
+    val state: StateFlow<CollectionUiState> = combine(booksFlow, shelfInfo, refreshing, grid) { books, shelf, busy, grid ->
         CollectionUiState(
             loaded = true,
             title = if (id is CollectionId.Series) id.name else shelf?.name.orEmpty(),
@@ -140,6 +154,7 @@ class CollectionViewModel(
             manualShelf = shelf != null && !shelf.smart,
             smartShelf = shelf?.smart == true,
             refreshing = busy,
+            grid = grid,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CollectionUiState())
 
@@ -168,6 +183,11 @@ class CollectionViewModel(
                 refreshing.value = false
             }
         }
+    }
+
+    fun toggleLayout() {
+        val repo = settings ?: return
+        viewModelScope.launch { repo.update { it.copy(libraryLayout = if (it.libraryLayout == "list") "grid" else "list") } }
     }
 
     fun setOffline(enabled: Boolean) {
@@ -199,7 +219,7 @@ fun CollectionScreen(
     onOpenBook: (accountId: String, fileId: Long) -> Unit,
     onEditSmartShelf: (accountId: String, shelfId: Long) -> Unit = { _, _ -> },
 ) {
-    val vm = containerViewModel(key = "collection/$id") { c -> CollectionViewModel(id, c.libraryRepository, c.downloadRepository, c.shelfRepository) }
+    val vm = containerViewModel(key = "collection/$id") { c -> CollectionViewModel(id, c.libraryRepository, c.downloadRepository, c.shelfRepository, c.settingsRepository) }
     val state by vm.state.collectAsState()
     val gate = rememberDownloadGate()
     val snackbar = remember { SnackbarHostState() }
@@ -213,6 +233,7 @@ fun CollectionScreen(
         onOpenBook = { onOpenBook(it.accountId, it.fileId) },
         onRemoveBook = vm::removeFromShelf,
         onEditSmart = { if (id is CollectionId.Shelf) onEditSmartShelf(id.accountId, id.shelfId) },
+        onToggleLayout = vm::toggleLayout,
         snackbar = snackbar,
     )
 }
@@ -227,6 +248,7 @@ fun CollectionContent(
     onOpenBook: (BookKey) -> Unit,
     onRemoveBook: (BookKey) -> Unit = {},
     onEditSmart: () -> Unit = {},
+    onToggleLayout: () -> Unit = {},
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     var removing by remember { mutableStateOf<LibraryBook?>(null) }
@@ -236,6 +258,12 @@ fun CollectionContent(
                 title = { Text(state.title.ifBlank { stringResource(if (isSeries) R.string.library_tab_series else R.string.library_tab_shelves) }) },
                 navigationIcon = { BackButton(onBack) },
                 actions = {
+                    IconButton(onClick = onToggleLayout, modifier = Modifier.testTag("collection_layout_toggle")) {
+                        Icon(
+                            if (state.grid) Icons.Filled.ViewList else Icons.Filled.GridView,
+                            contentDescription = stringResource(if (state.grid) R.string.library_layout_list else R.string.library_layout_grid),
+                        )
+                    }
                     if (state.smartShelf) {
                         IconButton(onClick = onEditSmart, modifier = Modifier.testTag("edit_smart")) {
                             Icon(Icons.Filled.FilterList, contentDescription = stringResource(R.string.shelf_open_as_filter))
@@ -260,11 +288,11 @@ fun CollectionContent(
             return@Scaffold
         }
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(120.dp),
+            columns = if (state.grid) GridCells.Adaptive(120.dp) else GridCells.Fixed(1),
             contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = padding.calculateTopPadding() + 8.dp, bottom = padding.calculateBottomPadding() + 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(if (state.grid) 12.dp else 4.dp),
+            modifier = Modifier.fillMaxSize().testTag(if (state.grid) "collection_grid" else "collection_list"),
         ) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Column {
@@ -281,29 +309,71 @@ fun CollectionContent(
                 }
             }
             items(state.books, key = { "${it.key.accountId}/${it.key.fileId}" }) { book ->
-                Column(
-                    Modifier
-                        .combinedClickable(
-                            onClick = { onOpenBook(book.key) },
-                            onLongClick = if (state.manualShelf) ({ removing = book }) else null,
-                            onLongClickLabel = if (state.manualShelf) stringResource(R.string.shelf_remove_book) else null,
-                        )
-                        .testTag("book_${book.key.fileId}"),
-                ) {
-                    Box(Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(8.dp))) {
-                        BookCover(book, Modifier.fillMaxSize())
-                        OfflineIndicator(book.offline, Modifier.align(Alignment.TopEnd).padding(4.dp))
-                        book.percentage?.takeIf { it > 0.0 && it < 1.0 }?.let {
-                            LinearProgressIndicator({ it.toFloat() }, Modifier.align(Alignment.BottomCenter).fillMaxWidth())
-                        }
-                    }
-                    Text(
-                        (if (isSeries) book.seriesIndex?.let { "#${formatIndex(it)} " }.orEmpty() else "") + book.title,
-                        style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 4.dp),
+                val title = (if (isSeries) book.seriesIndex?.let { "#${formatIndex(it)} " }.orEmpty() else "") + book.title
+                val click = Modifier
+                    .combinedClickable(
+                        onClick = { onOpenBook(book.key) },
+                        onLongClick = if (state.manualShelf) ({ removing = book }) else null,
+                        onLongClickLabel = if (state.manualShelf) stringResource(R.string.shelf_remove_book) else null,
                     )
+                    .testTag("book_${book.key.fileId}")
+                if (state.grid) {
+                    Column(click) {
+                        Box(Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(8.dp))) {
+                            BookCover(book, Modifier.fillMaxSize())
+                            OfflineIndicator(book.offline, Modifier.align(Alignment.TopEnd).padding(4.dp))
+                            book.percentage?.takeIf { it > 0.0 && it < 1.0 }?.let {
+                                LinearProgressIndicator({ it.toFloat() }, Modifier.align(Alignment.BottomCenter).fillMaxWidth())
+                            }
+                        }
+                        Text(title, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
+                        ReadingStateLabel(book, Modifier.padding(top = 2.dp))
+                    }
+                } else {
+                    Row(click.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        BookCover(book, Modifier.width(48.dp).height(72.dp).clip(RoundedCornerShape(4.dp)))
+                        Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                            Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            if (book.authors.isNotEmpty()) {
+                                Text(
+                                    book.authors.joinToString(), style = MaterialTheme.typography.bodySmall, maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            ReadingStateLabel(book, Modifier.padding(top = 2.dp))
+                            book.percentage?.takeIf { it > 0.0 && it < 1.0 }?.let {
+                                LinearProgressIndicator({ it.toFloat() }, Modifier.fillMaxWidth().padding(top = 4.dp))
+                            }
+                        }
+                        OfflineIndicator(book.offline)
+                    }
                 }
             }
         }
+    }
+}
+
+/** "Gelesen" with a check mark, the progress in percent while reading, otherwise "Ungelesen". */
+@Composable
+internal fun ReadingStateLabel(book: LibraryBook, modifier: Modifier = Modifier) {
+    val percentage = book.percentage
+    val finished = book.readStatus == ReadStatus.FINISHED
+    Row(modifier.testTag("reading_state_${book.key.fileId}"), verticalAlignment = Alignment.CenterVertically) {
+        if (finished) {
+            Icon(
+                Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(end = 4.dp).size(14.dp),
+            )
+        }
+        Text(
+            when {
+                finished -> stringResource(R.string.status_finished)
+                percentage != null && percentage > 0.0 -> percentText(percentage)
+                book.readStatus == ReadStatus.READING -> stringResource(R.string.status_reading)
+                else -> stringResource(R.string.status_unread)
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = if (finished || (percentage ?: 0.0) > 0.0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
