@@ -20,3 +20,14 @@ app/src/main/assets/reader/
 # OS
 .DS_Store
 Thumbs.db
+
+# Secrets: signing keys, Play service account, env files
+*.p12
+*.pfx
+*.pem
+*.key
+*service-account*.json
+*service_account*.json
+play-*.json
+.env
+.env.*

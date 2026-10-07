@@ -26,7 +26,7 @@ Material zum Kopieren:
 
 | Variante | URL | Aufwand |
 |---|---|---|
-| **A (empfohlen)** Seite auf deiner Website | z. B. `https://wasmitleder.de/ebook-reader/datenschutz` | Text aus `docs/privacy/datenschutz.md` als Seite anlegen, idealerweise mit Impressum daneben |
+| **A (empfohlen)** Seite auf deiner Website | z. B. `https://<deine-website>/ebook-reader/datenschutz` | Text aus `docs/privacy/datenschutz.md` als Seite anlegen, idealerweise mit Impressum daneben |
 | B: im öffentlichen Server-Repo | `https://github.com/SomeCatCode/nextcloud_ebook_reader/blob/main/docs/PRIVACY-ANDROID.md` | Datei dorthin kopieren. Das geht schnell, sieht aber weniger professionell aus. |
 | C: GitHub Pages des Server-Repos | `https://somecatcode.github.io/nextcloud_ebook_reader/privacy-android` | Pages aktivieren und die Datei unter `docs/` ablegen |
 
@@ -40,8 +40,10 @@ Material zum Kopieren:
 
 **Auswahl:** „Alle oder einige Funktionen meiner App sind eingeschränkt“ → „Anleitung hinzufügen“.
 
+> **Echte Werte nie ins Repository schreiben.** Serveradresse, Benutzername und Passwort des Prüfer-Zugangs trägst du nur in der Play Console ein; hier stehen Platzhalter.
+
 **Zuerst einen Prüfer-Nutzer auf deiner Nextcloud anlegen.** Er braucht:
-- den Benutzernamen `playreview` und ein langes, eigenes Passwort, **ohne Zwei-Faktor-Anmeldung und ohne Ablaufdatum**. Google prüft auch spätere Updates.
+- einen eigenen, nicht naheliegenden Benutzernamen (im Folgenden `<PRÜFER-NUTZER>`) und ein langes, eigenes Passwort, **ohne Zwei-Faktor-Anmeldung und ohne Ablaufdatum**. Google prüft auch spätere Updates.
 - keine Admin-Rechte, wenig Speicherplatz, keine Gruppen mit deinen Freigaben
 - die App „E-Book Reader“ ab 0.7.0 aktiviert, Bücherordner `/Books`
 - **nur gemeinfreie Inhalte**, z. B. 3–5 EPUBs von Standard Ebooks oder Project Gutenberg und einen gemeinfreien Comic. **Keine Inhalte aus deiner Bibliothek und nichts mit Altersfreigabe über 12.** Sonst droht eine falsche Einstufung oder eine Ablehnung.
@@ -50,14 +52,14 @@ Material zum Kopieren:
 **Felder in der Console:**
 
 - **Name der Anleitung:** `Anmeldung an der Test-Nextcloud`
-- **Nutzername:** `playreview`
+- **Nutzername:** `<PRÜFER-NUTZER>`
 - **Passwort:** *(das Passwort des Prüfer-Nutzers; trage es direkt in der Console ein und nirgends sonst)*
 - **Weitere Informationen** (auf Englisch, die Prüfer arbeiten international):
 
 ```
 This app is a reader for a self-hosted Nextcloud server. To test it:
 1. Open the app and tap "Add account".
-2. Enter the server address: https://cloud.wasmitleder.de
+2. Enter the server address: <SERVER-ADRESSE>
 3. A browser page of the Nextcloud server opens (Nextcloud Login Flow). Log in with the
    user name and password given above and tap "Grant access".
 4. You return to the app automatically. The library shows public-domain e-books and a comic.
@@ -224,7 +226,7 @@ Screenshots ohne private Bücher, ohne echte Cover urheberrechtlich geschützter
 - [ ] URL der Datenschutzerklärung festlegen und in der App eintragen (siehe 1.)
 - [ ] Platzhalter für Name und Anschrift in allen vier Fassungen der Datenschutzerklärung füllen
 - [ ] Spanische und japanische Texte gegenlesen lassen
-- [ ] Prüfer-Nutzer `playreview` mit gemeinfreien Büchern anlegen (siehe 2.)
+- [ ] Prüfer-Nutzer `<PRÜFER-NUTZER>` mit gemeinfreien Büchern anlegen (siehe 2.)
 - [ ] App-Namen für den Store festlegen
 - [ ] Icon 512 px, Feature-Grafik und Screenshots erstellen
 - [ ] Video für den Vordergrunddienst aufnehmen
