@@ -15,6 +15,9 @@ import com.somecatcode.ebookreader.data.api.ApiClientFactoryImpl
 import com.somecatcode.ebookreader.data.api.LoginFlowClientImpl
 import com.somecatcode.ebookreader.data.download.DownloadManagerImpl
 import com.somecatcode.ebookreader.data.download.DownloadStorage
+import com.somecatcode.ebookreader.data.db.ALL_MIGRATIONS
+import com.somecatcode.ebookreader.data.repo.AnnotationRepository
+import com.somecatcode.ebookreader.data.repo.AnnotationRepositoryImpl
 import com.somecatcode.ebookreader.data.repo.DownloadRepositoryImpl
 import com.somecatcode.ebookreader.data.repo.EditRepositoryImpl
 import com.somecatcode.ebookreader.data.repo.LibraryRepositoryImpl
@@ -66,6 +69,7 @@ interface AppContainer {
     val apiClientFactory: ApiClientFactory
     val libraryRepository: LibraryRepository
     val progressRepository: ProgressRepository
+    val annotationRepository: AnnotationRepository
     val downloadRepository: DownloadRepository
     val editRepository: EditRepository
     val shelfRepository: ShelfRepository
@@ -89,7 +93,7 @@ class DefaultAppContainer(override val appContext: Context) : AppContainer {
     }
 
     override val database: AppDatabase by lazy {
-        Room.databaseBuilder(appContext, AppDatabase::class.java, AppDatabase.FILE_NAME).build()
+        Room.databaseBuilder(appContext, AppDatabase::class.java, AppDatabase.FILE_NAME).addMigrations(*ALL_MIGRATIONS).build()
     }
 
     /** Process-wide scope for work that must outlive screens (scheduling, preference writes). */
@@ -131,12 +135,15 @@ class DefaultAppContainer(override val appContext: Context) : AppContainer {
     override val progressRepository: ProgressRepository by lazy {
         ProgressRepositoryImpl(database, apiClientFactory, settingsRepository, localChangesScheduler, { Build.MODEL ?: "Android" })
     }
+    override val annotationRepository: AnnotationRepository by lazy {
+        AnnotationRepositoryImpl(database, apiClientFactory, localChangesScheduler)
+    }
     override val downloadRepository: DownloadRepository by lazy { DownloadRepositoryImpl(database, downloadManager) }
     override val editRepository: EditRepository by lazy { EditRepositoryImpl(database, apiClientFactory, localChangesScheduler) }
     override val shelfRepository: ShelfRepository by lazy { ShelfRepositoryImpl(database, apiClientFactory) }
     override val settingsRepository: SettingsRepository by lazy { SettingsRepositoryImpl(settingsStore) }
     override val syncEngine: SyncEngine by lazy {
-        SyncEngineImpl(database, apiClientFactory, editRepository, progressRepository, downloadManager, { workManager }, appScope)
+        SyncEngineImpl(database, apiClientFactory, editRepository, progressRepository, annotationRepository, downloadManager, { workManager }, appScope)
     }
     override val downloadManager: DownloadManager by lazy {
         DownloadManagerImpl(database, apiClientFactory, settingsRepository, downloadStorage, { workManager })

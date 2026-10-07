@@ -49,6 +49,13 @@ Optionale Variablen (Settings → Variables): `PLAY_TRACK` (Standard `internal`)
 
 Ohne `PLAY_SERVICE_ACCOUNT_JSON` baut der Workflow trotzdem und legt AAB/APK als Artefakt und GitHub-Release ab.
 
+## Branches und Testbuilds
+
+- Neue Arbeit kommt per Pull Request in den Branch **`dev`**, nicht direkt nach `main`.
+- Jeder Push auf `dev` läuft durch die CI (Lint, Tests, Debug-Build). Im Actions-Lauf liegt unter *Artifacts* `ebookreader-app-dev-<commit>` mit der Debug-APK (30 Tage), installierbar per `adb install -r` neben der Play-Version (eigene Paket-ID `….debug`).
+- Für einen Test über Google Play lässt sich auf `dev` ein Vorab-Tag `vX.Y.Z-rc.N` setzen (interner Test).
+- Ist `dev` getestet: Version vorbereiten (Schritt 1 unten, `appVersionName`/`appVersionCode` in `gradle.properties` als Standard für lokale Builds), `dev` per Pull Request nach `main` mergen und auf `main` taggen.
+
 ## Release erstellen
 
 1. In `CHANGELOG.md` den Abschnitt `## [Unreleased]` in `## X.Y.Z – JJJJ-MM-TT` umbenennen und darüber einen leeren `## [Unreleased]` anlegen.

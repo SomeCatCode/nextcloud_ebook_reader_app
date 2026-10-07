@@ -5,7 +5,16 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+## 0.2.0 – 2026-10-07
+
 ### Hinzugefügt
+- Markierungen und Notizen in EPUB- und anderen Textbüchern, synchron mit der Web-App: Text auswählen, im Auswahlmenü „Markieren“ (in der zuletzt gewählten Farbe, danach Farbwahl Gelb/Grün/Blau/Pink/Lila wie im Web) oder „Notiz“ wählen; Antippen einer Markierung öffnet Farbe, Notiz und Löschen. Liste „Markierungen & Notizen“ im Reader (gruppiert nach Markierungen, Notizen und Lesezeichen, mit Kapitel und Position) zum Springen, Notiz bearbeiten und Löschen; im E-Ink-Modus als ruhige Vollbildseite ohne Animation. Comics und Fixed-Layout-Bücher haben keine Textauswahl; dort zeigt die Liste nur Lesezeichen aus der Web-App.
+- Offline zuerst: Änderungen landen sofort in der Datenbank und werden beim nächsten Upload bzw. Sync hochgeladen (Upsert per UUID, Löschen als Tombstone); der Delta-Sync übernimmt Markierungen anderer Geräte samt Löschungen, bei Konflikten gewinnt wie auf dem Server der neuere `clientUpdatedAt`. Beim Öffnen eines Buchs werden seine Markierungen zusätzlich direkt vom Server aktualisiert.
+- Datenbank Version 2 (Tabelle `annotation`) mit Migration; die Migration setzt den Sync-Cursor zurück, damit bereits vorhandene Markierungen beim ersten Sync ankommen (einmaliger Vollsync).
+- Einstellungen: optionaler Eintrag „App unterstützen“ mit Spendenlink zu Ko-fi (https://ko-fi.com/somecatcode; nur in der APK von GitHub; im Google-Play-Build nie enthalten, da Play externe Spendenlinks von Privatentwicklern nicht erlaubt) und Seite „Lizenzen von Drittanbietern“.
+- Server-Version: Die App liest bei jeder Synchronisation die Nextcloud-Version und die Version der Server-App „E-Book Reader“ (ab Server 0.8.0) und zeigt beide in den Konten an. Ist die Server-App älter als empfohlen (0.8.0), erscheint ein Hinweis in den Konten und in der Bibliothek; Funktionen lassen sich an Mindestversionen knüpfen (`ServerFeature`). Fehlt die Server-App ganz, bricht die Synchronisation mit „App nicht verfügbar“ ab.
+- Regal- und Serienansicht: Umschalter zwischen Raster und Liste (gemeinsame Einstellung mit der Bibliothek) und Lesestand bei jedem Buch („Ungelesen“, Fortschritt in Prozent mit Balken, „Gelesen“ mit Häkchen).
+- Sprachen: Spanisch und Japanisch (neben Deutsch und Englisch) für alle Texte der App inklusive Benachrichtigungen; Sprachauswahl pro App ab Android 13 (Systemeinstellungen → Apps → E-Book Reader → Sprache) über `locales_config.xml`.
 - Zoom im Comic-Reader: mit zwei Fingern aufziehen (bis 5-fach, am Fingerpunkt verankert), vergrößerte Seite mit einem Finger verschieben, Doppeltippen wechselt zwischen eingepasst und 2,5-fach an der getippten Stelle. Vergrößert blättern weder Wischen noch Tipp-Zonen (Tippen blendet nur die Leisten ein/aus); Umblättern per Lautstärketaste, Tastatur, Inhaltsverzeichnis oder Tipp-Zone (eingepasst) setzt den Zoom zurück. Der Zoom ist rein visuell und landet nicht im gespeicherten Lesestand; im E-Ink-Modus ohne Animation.
 - Reader-Einstellungen für Comics: „Ganze Seite“ oder „Seitenbreite“ einpassen (lange Seiten lassen sich bei Seitenbreite vertikal scrollen).
 - Filter wie in der Web-App: Filterblatt mit Genres und Tags als Baum (Unterebenen mit „X/*“), Autoren, Serien, Formaten und „Braucht Pflege“ (fehlende Angaben); jeder Eintrag lässt sich einschließen oder ausschließen, aktive Filter als Chips (antippen wechselt ein/aus, × entfernt), „Alle/Eins muss passen“, Option „Gelesene ausblenden“ (Standard an, bleibt gespeichert).
@@ -31,8 +40,10 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 - `ReaderHostImpl` und `ReaderView`: gehärtete WebView (kein Datei-/Content-Zugriff, kein Mixed Content, Navigation weg vom Reader blockiert, Safe Browsing, Content-Security-Policy), Bridge-Nachrichten mit Thread-Wechsel, Lebenszyklus, optionale Lautstärketasten zum Blättern. Debug-Build enthält eine Test-Activity für den Reader.
 
 ### Geändert
+- Die App ist nicht mehr quelloffen: Lizenz proprietär (alle Rechte vorbehalten) statt AGPL-3.0-or-later; Quellcode- und AGPL-Links aus den Einstellungen entfernt. Komponenten Dritter behalten ihre Lizenzen.
 - Lesestatus und Lesefortschritt hängen zusammen: „Gelesen“ setzt den Fortschritt auf 100 %, „Ungelesen“ setzt ihn zurück; Lesen bis zum Ende markiert das Buch als gelesen, zurück an den Anfang als ungelesen.
 - Sortierung nach Bewertung, Hinzugefügt und Zuletzt gelesen beginnt wie im Web absteigend.
 
 ### Behoben
+- Regale zeigten keine Bücher: Die App hängte `format=json` an alle Anfragen an die E-Book-Reader-API an, und `GET /books` las das als Filter „nur Bücher im Format json“. Jetzt wählt nur der `Accept`-Header das Antwortformat, wie in der Web-App.
 - Regale zeigten keine Bücher: die Mitglieder manueller Regale werden jetzt bei jeder Synchronisation und beim Öffnen eines Regals neu geladen (vorher wurden Änderungen übersprungen, wenn sich die Regalzeile auf dem Server nicht änderte).

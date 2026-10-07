@@ -20,11 +20,13 @@ import com.somecatcode.ebookreader.data.db.DownloadState
 import com.somecatcode.ebookreader.data.db.PinnedBy
 import com.somecatcode.ebookreader.data.db.ProgressEntity
 import com.somecatcode.ebookreader.data.download.DownloadManager
+import com.somecatcode.ebookreader.data.repo.AnnotationRepository
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.EditRepository
 import com.somecatcode.ebookreader.data.repo.PinnedMembers
 import com.somecatcode.ebookreader.data.repo.ProgressRepository
 import com.somecatcode.ebookreader.data.repo.ShelfSync
+import com.somecatcode.ebookreader.data.repo.mergeServerAnnotation
 import com.somecatcode.ebookreader.data.repo.tagEntities
 import com.somecatcode.ebookreader.data.repo.toEntity
 import kotlinx.coroutines.CancellationException
@@ -48,6 +50,7 @@ class SyncEngineImpl(
     private val apiFactory: ApiClientFactory,
     private val edits: EditRepository,
     private val progress: ProgressRepository,
+    private val annotations: AnnotationRepository,
     private val downloads: DownloadManager,
     private val workManager: () -> WorkManager,
     private val scope: CoroutineScope,
@@ -115,8 +118,22 @@ class SyncEngineImpl(
             val api = apiFactory.forAccount(accountId)
 
             setState(accountId, SyncState.Running(SyncPhase.PUSH_LOCAL))
+            // Server and server-app version (shown in the accounts, used for feature checks). A failed probe
+            // does not stop the sync; a server without the E-Book Reader app does.
+            val caps = try {
+                api.capabilities()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                null
+            }
+            if (caps != null) {
+                val app = caps.capabilities.ebookreader ?: return SyncOutcome.Failure(SyncError.APP_UNAVAILABLE, retryable = false)
+                db.accountDao().updateVersions(accountId, caps.version?.string?.takeIf { it.isNotBlank() } ?: account.serverVersion, app.version)
+            }
             edits.flushPending(accountId)
             progress.pushDirty(accountId)
+            annotations.pushDirty(accountId)
 
             setState(accountId, SyncState.Running(SyncPhase.BOOKS))
             val stats = syncBooks(accountId, api, account.lastSyncCursor.orEmpty(), account.lastSyncAt)
@@ -130,7 +147,7 @@ class SyncEngineImpl(
 
             val now = clock()
             db.accountDao().get(accountId)?.let { db.accountDao().updateSync(accountId, it.lastSyncCursor, now) }
-            SyncOutcome.Success(stats.changed, stats.deleted, stats.progressMerged)
+            SyncOutcome.Success(stats.changed, stats.deleted, stats.progressMerged, stats.annotationsMerged)
         } catch (e: CancellationException) {
             throw e
         } catch (e: ApiException) {
@@ -142,7 +159,7 @@ class SyncEngineImpl(
         }
     }
 
-    private class Stats(var changed: Int = 0, var deleted: Int = 0, var progressMerged: Int = 0)
+    private class Stats(var changed: Int = 0, var deleted: Int = 0, var progressMerged: Int = 0, var annotationsMerged: Int = 0)
 
     private suspend fun syncBooks(accountId: String, api: EbookApi, startCursor: String, lastSyncAt: Long?): Stats {
         val stats = Stats()
@@ -219,10 +236,13 @@ class SyncEngineImpl(
                 db.bookTagDao().deleteForBooks(accountId, page.deleted)
                 db.progressDao().deleteForBooks(accountId, page.deleted)
                 db.pendingEditDao().deleteForBooks(accountId, page.deleted)
+                db.annotationDao().deleteForBooks(accountId, page.deleted)
                 stats.deleted += page.deleted.size
             }
 
             stats.progressMerged += mergeProgress(accountId, page)
+            // Annotations by uuid: tombstones remove, otherwise the newer clientUpdatedAt wins (server rule).
+            for (a in page.annotations) if (mergeServerAnnotation(db.annotationDao(), accountId, a)) stats.annotationsMerged++
             db.accountDao().updateSync(accountId, page.cursor, lastSyncAt)
         }
         return stale
@@ -250,6 +270,7 @@ class SyncEngineImpl(
             db.bookTagDao().deleteForBooks(accountId, vanished)
             db.progressDao().deleteForBooks(accountId, vanished)
             db.pendingEditDao().deleteForBooks(accountId, vanished)
+            db.annotationDao().deleteForBooks(accountId, vanished)
         }
         for (id in vanished) downloads.delete(BookKey(accountId, id))
         db.bookDao().purgeDeleted(accountId)

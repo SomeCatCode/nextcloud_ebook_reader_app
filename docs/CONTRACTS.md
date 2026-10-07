@@ -15,7 +15,7 @@ Server-Quellen der Datenformate (Schwesterrepo `nextcloud_ebook_reader`, hier al
 | Konto-ID | Zufällige UUID (String), unabhängig von URL und Benutzer. Buch-Schlüssel = `BookKey(accountId, fileId)`. |
 | Sprache | UI-Texte in `res/values` (en) und `res/values-de`; keine hartkodierten Strings in Composables. |
 | Fehler | Netzwerkfehler erreichen die UI nie als Exception aus Repositories, sondern als Zustand (`SyncState`, `DownloadState`, `EditFailure`). Nur `EbookApi` wirft `ApiException`. |
-| Lizenz-Header | Kotlin-Dateien benötigen keinen Header (Repo-Lizenz AGPL-3.0-or-later); TS-Dateien in `reader-web/src` tragen den SPDX-Header. |
+| Lizenz-Header | Kotlin-Dateien benötigen keinen Header (proprietär, siehe LICENSE); TS-Dateien in `reader-web/src` tragen `SPDX-License-Identifier: LicenseRef-Proprietary`. Fremdkomponenten neu aufgenommen → Eintrag in `app/src/main/assets/third_party_licenses.txt`. |
 
 ## 2. API-Client (`data/api`)
 
@@ -62,7 +62,7 @@ Pfade in WebDAV-URLs werden segmentweise prozentkodiert. Cover-Aufrufe senden `I
 
 ## 4. Datenbank (`data/db`)
 
-Echter Code: `Entities.kt`, `Daos.kt`, `AppDatabase.kt` (Version 1, Schema-Export nach `app/schemas`, wird eingecheckt). **Eine** Datenbank für alle Konten; jede Tabelle trägt `accountId`, Fremdschlüssel mit `ON DELETE CASCADE` vom `account` aus (Konto löschen = alles weg). Tabellen laut PLAN.md Abschnitt 3: `account`, `book`, `book_tag`, `progress`, `shelf`, `shelf_book`, `download`, `pending_edit`.
+Echter Code: `Entities.kt`, `Daos.kt`, `AppDatabase.kt` (Version 2, Migrationen in `Migrations.kt`, Schema-Export nach `app/schemas`, wird eingecheckt). **Eine** Datenbank für alle Konten; jede Tabelle trägt `accountId`, Fremdschlüssel mit `ON DELETE CASCADE` vom `account` aus (Konto löschen = alles weg). Tabellen laut PLAN.md Abschnitt 3: `account`, `book`, `book_tag`, `progress`, `shelf`, `shelf_book`, `download`, `pending_edit`, ab Version 2 `annotation`.
 
 Festlegungen: JSON-Spalten (`authors`, `overrides`, `locator`, `query`, `coverFileIds`, `patch`) sind `ApiJson`-Strings. `book.deleted` ist ein Soft-Delete (Server meldet gelöschte `fileId`s); `purgeDeleted` erst nach Entfernen der Downloads. `progress.dirty` = lokale Änderung noch nicht hochgeladen. Manuelle Regale: Mitgliedschaft in `shelf_book` (Server hat keinen Mitglieder-Endpunkt; Ermittlung über `GET /books?include[]=shelf:<Name>`), smarte Regale werden über die gespeicherte Abfrage ausgewertet. Schemaänderungen brauchen Versionssprung + Migration; **kein** `fallbackToDestructiveMigration` (nach dem ersten Release).
 
@@ -90,14 +90,21 @@ Echter Code: `ReaderBridge.kt` (Nachrichten, `BridgeJson`), `ReaderRequestProxy.
 | Kotlin → JS | `goTo` | `locator` oder `href` (Inhaltsverzeichnis) |
 | Kotlin → JS | `next` / `prev` | – |
 | Kotlin → JS | `setSettings` | `ReaderSettings` (live: Theme, Schrift, Layout, E-Ink) |
+| Kotlin → JS | `setAnnotations` | `annotations[{id, cfi, color, hasNote}]` – zu zeichnende Markierungen (nur Textbücher; die Seite behält die Liste bis `destroy`, Kotlin sendet sie nach einem Neuaufbau der WebView erneut). Notiztexte gehen nie an die Seite. |
+| Kotlin → JS | `clearSelection` | Textauswahl im Buch aufheben |
 | Kotlin → JS | `destroy` | Reader abbauen |
 | JS → Kotlin | `ready` | `protocol: 1` – `EbookReaderHost` ist verfügbar |
-| JS → Kotlin | `opened` | `info` (`title`, `authors`, `language`, `isComic`, `fixedLayout`, `rtl`, `pageCount`) |
+| JS → Kotlin | `opened` | `info` (`title`, `authors`, `language`, `isComic`, `fixedLayout`, `rtl`, `pageCount`, `supportsAnnotations`) |
 | JS → Kotlin | `relocate` | `locator` (Server-Format), `percentage` 0..1, optional `label`, `page{current,total}` |
 | JS → Kotlin | `toc` | `items[{label, href, subitems}]` |
 | JS → Kotlin | `externalLink` | `url` – Kotlin fragt nach und startet `ACTION_VIEW` (nur http/https/mailto) |
 | JS → Kotlin | `tap` | `zone` = `left|center|right` |
+| JS → Kotlin | `selection` | `text`, `cfi` (Bereichs-CFI), `locator` (mit `locations.cfi`), `rect{left,top,right,bottom}` in CSS-px (= dp) |
+| JS → Kotlin | `selectionClear` | Auswahl weg |
+| JS → Kotlin | `annotationClick` | `id` (UUID), `rect` – Antippen einer Markierung (blättert nicht) |
 | JS → Kotlin | `error` | `code` (`open-failed`, `unsupported-format`, `network`, `unauthorized`, `reader`), `message` |
+
+**Markierungen & Notizen:** Die WebView (`ReaderWebView`) ergänzt ihr eigenes Textauswahl-Menü (Kopieren, Teilen …) um „Markieren“ und „Notiz“, solange `supportsAnnotations` gilt; ein Tipp geht als `ReaderHost.selectionActions` an den Reader-Screen, der die zuletzt gemeldete `selection` verwendet. Daten: `AnnotationRepository` (Room-Tabelle `annotation`, Schlüssel `accountId`+`uuid`, `dirty`/`deleted` wie beim Fortschritt), Upload im `PUSH_LOCAL`-Schritt per `POST /books/{id}/annotations` (Upsert) bzw. `DELETE /annotations/{uuid}`, Zusammenführung aus `/sync` nach Server-Regel (neuerer `clientUpdatedAt` gewinnt, Tombstones löschen).
 
 **Gesten bei Comics** (rein im Bundle, kein Protokollanteil): Eine transparente Ebene über dem Reader (`reader-web/src/gestures.ts`) nimmt alle Berührungen auf – Tippen (Zonen links/Mitte/rechts, um 250 ms verzögert wegen Doppeltippen), Wischen, Pinch-Zoom (1–5×), Verschieben und Doppeltippen (eingepasst ↔ 2,5×). Der Zoom ist eine CSS-Transformation des Reader-Containers und damit nie Teil des Locators; jedes Blättern/Springen und jede Layout-Änderung setzt ihn zurück. Die WebView selbst bleibt unzoombar (`user-scalable=no`, `builtInZoomControls=false`). Text-Bücher behalten die Gesten von foliate.
 

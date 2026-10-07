@@ -11,6 +11,7 @@ object Routes {
     const val LIBRARY = "library"
     const val DOWNLOADS = "downloads"
     const val SETTINGS = "settings"
+    const val LICENSES = "licenses"
 
     const val ARG_ACCOUNT_ID = "accountId"
     const val ARG_FILE_ID = "fileId"

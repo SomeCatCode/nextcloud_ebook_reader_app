@@ -24,6 +24,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -46,9 +47,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-const val SOURCE_REPO_URL = "https://github.com/SomeCatCode/nextcloud_ebook_reader_app"
 const val PRIVACY_POLICY_URL = "https://github.com/SomeCatCode/nextcloud_ebook_reader_app/blob/main/PRIVACY.md"
-const val LICENSE_URL = "https://www.gnu.org/licenses/agpl-3.0.html"
+
+/** Donation link; empty in the Google Play build (see app/build.gradle.kts), then the entry is hidden. */
+val DONATION_URL: String get() = BuildConfig.DONATION_URL
 
 class SettingsViewModel(private val repository: SettingsRepository) : ViewModel() {
     val state: StateFlow<AppSettings> = repository.settings.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())
@@ -62,10 +64,10 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
 
 /** App settings (theme, e-ink, downloads, device name, reader defaults, about). */
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(onBack: () -> Unit, onOpenLicenses: () -> Unit = {}) {
     val vm = containerViewModel { c -> SettingsViewModel(c.settingsRepository) }
     val settings by vm.state.collectAsState()
-    SettingsContent(settings, onBack, vm::update, vm::updateReader)
+    SettingsContent(settings, onBack, vm::update, vm::updateReader, onOpenLicenses)
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -75,6 +77,8 @@ fun SettingsContent(
     onBack: () -> Unit,
     onUpdate: ((AppSettings) -> AppSettings) -> Unit,
     onUpdateReader: ((ReaderSettings) -> ReaderSettings) -> Unit,
+    onOpenLicenses: () -> Unit = {},
+    donationUrl: String = DONATION_URL,
 ) {
     val reader = settings.readerSettings()
     val uriHandler = LocalUriHandler.current
@@ -143,12 +147,20 @@ fun SettingsContent(
             SectionTitle(R.string.settings_about)
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.settings_version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag("version"))
-                Text(stringResource(R.string.settings_license), style = MaterialTheme.typography.bodyMedium)
                 Text(stringResource(R.string.settings_unofficial), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            LinkRow(R.string.settings_source, SOURCE_REPO_URL) { uriHandler.openUri(SOURCE_REPO_URL) }
+            if (donationUrl.isNotBlank()) {
+                Column(
+                    Modifier.fillMaxWidth().clickable { uriHandler.openUri(donationUrl) }.padding(horizontal = 16.dp, vertical = 8.dp).testTag("donate"),
+                ) {
+                    Text(stringResource(R.string.settings_donate), style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.settings_donate_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             LinkRow(R.string.settings_privacy, PRIVACY_POLICY_URL) { uriHandler.openUri(PRIVACY_POLICY_URL) }
-            LinkRow(R.string.settings_license_link, LICENSE_URL) { uriHandler.openUri(LICENSE_URL) }
+            Column(Modifier.fillMaxWidth().clickable(onClick = onOpenLicenses).padding(horizontal = 16.dp, vertical = 12.dp).testTag("third_party_licenses")) {
+                Text(stringResource(R.string.settings_third_party_licenses), style = MaterialTheme.typography.bodyLarge)
+            }
         }
     }
 }
@@ -180,5 +192,24 @@ private fun LinkRow(title: Int, url: String, onClick: () -> Unit) {
     Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text(stringResource(title), style = MaterialTheme.typography.bodyLarge)
         Text(url, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+    }
+}
+
+/** Notices of the bundled third-party components (assets/third_party_licenses.txt). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LicensesScreen(onBack: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val text = remember {
+        runCatching { context.assets.open("third_party_licenses.txt").bufferedReader().use { it.readText() } }.getOrDefault("")
+    }
+    Scaffold(
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.settings_third_party_licenses)) }, navigationIcon = { BackButton(onBack) }) },
+    ) { padding ->
+        Text(
+            text,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(16.dp).testTag("licenses_text"),
+        )
     }
 }

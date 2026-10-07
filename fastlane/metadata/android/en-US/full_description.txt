@@ -1,0 +1,35 @@
+Read your e-books and comics straight from your own Nextcloud, on the go and offline.
+
+The app connects to your Nextcloud server running the "E-Book Reader" app. Your library, shelves, series and reading position stay in sync across your devices and the browser.
+
+LIBRARY
+• EPUB, MOBI, AZW3, FB2 and comics as CBZ, CBR, CB7 and CBT
+• Grid and list view, search, sorting, "Continue reading"
+• Filters like on the web: genres and tags as a tree, authors, series, formats, missing metadata; include or exclude terms
+• Hide finished books, reading status and ratings
+• Create and manage shelves and smart shelves, series in volume order
+
+READING
+• Comfortable reader with light, sepia and dark themes, font size, line spacing and margins
+• Paginated or scrolling, table of contents, tap zones, volume keys to turn pages
+• Comics with zoom (pinch, double tap), two-page spreads and right-to-left reading for manga
+• Highlights and notes, synced with the web app
+• Reading position syncs automatically; if another device is further ahead, the app asks
+• E-ink mode with high contrast and no animations
+
+OFFLINE
+• Make books, whole shelves or series available offline
+• New volumes of pinned series and shelves are downloaded automatically
+• Downloads on Wi-Fi only if you like
+
+MULTIPLE ACCOUNTS
+• Several Nextcloud accounts, separate or as one combined library
+• Secure login through the browser (Nextcloud Login Flow); the app never sees your password
+
+PRIVACY
+No ads, no tracking, no analytics. Your data travels only between your device and your own Nextcloud server.
+
+REQUIREMENT
+A Nextcloud server with the "E-Book Reader" app version 0.7.0 or later (Nextcloud App Store or GitHub). The app does not work without this server app.
+
+Unofficial app, not affiliated with Nextcloud GmbH. Nextcloud is a trademark of Nextcloud GmbH.

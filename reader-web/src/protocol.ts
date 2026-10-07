@@ -1,10 +1,10 @@
 /**
  * SPDX-FileCopyrightText: 2026 Felix Kurth
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * Bridge protocol v1 (mirror of app/src/main/java/.../reader/ReaderBridge.kt, docs/CONTRACTS.md section 6).
  */
-import type { ReaderLocator } from '../../third_party/nextcloud_ebook_reader/packages/reader-core/src/types.ts'
+import type { ReaderAnnotation, ReaderLocator } from '../../third_party/nextcloud_ebook_reader/packages/reader-core/src/types.ts'
 
 export const PROTOCOL_VERSION = 1
 
@@ -54,6 +54,9 @@ export type HostToReaderMsg =
 	| { type: 'next' }
 	| { type: 'prev' }
 	| { type: 'setSettings', settings: Partial<ReaderSettings> }
+	/** Highlights to draw (reflowable books); kept across re-opens until `destroy` */
+	| { type: 'setAnnotations', annotations: ReaderAnnotation[] }
+	| { type: 'clearSelection' }
 	| { type: 'destroy' }
 
 export type ErrorCode = 'open-failed' | 'unsupported-format' | 'network' | 'unauthorized' | 'reader'
@@ -64,11 +67,22 @@ export interface TocItemMsg {
 	subitems: TocItemMsg[]
 }
 
+/** Rectangle in CSS px relative to the reader page */
+export interface RectMsg {
+	left: number
+	top: number
+	right: number
+	bottom: number
+}
+
 export type ReaderToHostMsg =
 	| { type: 'ready', protocol: number }
-	| { type: 'opened', info: { title?: string, authors: string[], language?: string, isComic: boolean, fixedLayout: boolean, rtl: boolean, pageCount: number } }
+	| { type: 'opened', info: { title?: string, authors: string[], language?: string, isComic: boolean, fixedLayout: boolean, rtl: boolean, pageCount: number, supportsAnnotations: boolean } }
 	| { type: 'relocate', locator: ReaderLocator, percentage: number, label?: string, page?: { current: number, total: number } }
 	| { type: 'toc', items: TocItemMsg[] }
 	| { type: 'externalLink', url: string }
 	| { type: 'tap', zone: 'left' | 'center' | 'right' }
+	| { type: 'selection', text: string, cfi: string, locator: ReaderLocator, rect: RectMsg }
+	| { type: 'selectionClear' }
+	| { type: 'annotationClick', id: string, rect: RectMsg }
 	| { type: 'error', code: ErrorCode, message: string }

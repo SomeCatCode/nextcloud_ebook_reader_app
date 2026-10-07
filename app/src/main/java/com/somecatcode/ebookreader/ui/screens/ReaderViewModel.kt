@@ -3,6 +3,9 @@ package com.somecatcode.ebookreader.ui.screens
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.somecatcode.ebookreader.data.api.Locator
+import com.somecatcode.ebookreader.data.repo.AnnotationColor
+import com.somecatcode.ebookreader.data.repo.AnnotationRepository
+import com.somecatcode.ebookreader.data.repo.BookAnnotation
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.DownloadRepository
 import com.somecatcode.ebookreader.data.repo.LibraryBook
@@ -12,10 +15,13 @@ import com.somecatcode.ebookreader.data.repo.ProgressRepository
 import com.somecatcode.ebookreader.data.repo.SettingsRepository
 import com.somecatcode.ebookreader.reader.BookRef
 import com.somecatcode.ebookreader.reader.BookSource
+import com.somecatcode.ebookreader.reader.DrawnAnnotation
 import com.somecatcode.ebookreader.reader.ErrorCode
 import com.somecatcode.ebookreader.reader.HostToReader
 import com.somecatcode.ebookreader.reader.ReaderSettings
 import com.somecatcode.ebookreader.reader.ReaderToHost
+import com.somecatcode.ebookreader.reader.SelectionAction
+import com.somecatcode.ebookreader.reader.SelectionRect
 import com.somecatcode.ebookreader.reader.TocItem
 import com.somecatcode.ebookreader.ui.util.readerSettings
 import com.somecatcode.ebookreader.ui.util.withReaderSettings
@@ -52,7 +58,28 @@ data class ReaderUiState(
     val failure: ReaderFailure? = null,
     /** Comic or fixed-layout book: the settings offer fit page / fit width instead of text options. */
     val fixedLayout: Boolean = false,
-)
+    /** Highlights, notes and bookmarks of the book in reading order. */
+    val annotations: List<BookAnnotation> = emptyList(),
+    /** Text selection and highlights work with the open book (reflowable text). */
+    val supportsAnnotations: Boolean = false,
+    /** Current text selection of the page (source of "Highlight" / "Note"). */
+    val selection: ReaderToHost.Selection? = null,
+    /** Color/note/delete popup of a highlight, anchored at [AnnotationPopup.rect]. */
+    val popup: AnnotationPopup? = null,
+    /** Note dialog (new note from the selection or editing an existing annotation). */
+    val noteEditor: NoteEditor? = null,
+    val showAnnotations: Boolean = false,
+) {
+    /** What the page draws: highlights and notes with a CFI. */
+    val drawnAnnotations: List<DrawnAnnotation>
+        get() = annotations.mapNotNull { a -> a.cfi?.let { DrawnAnnotation(a.uuid, it, a.color?.wire, !a.note.isNullOrBlank()) } }
+}
+
+/** Popup of an existing highlight. [rect] in dp relative to the reader page. */
+data class AnnotationPopup(val uuid: String, val rect: SelectionRect)
+
+/** [uuid] null = a new note for [selection]. */
+data class NoteEditor(val uuid: String?, val quote: String?, val initial: String, val selection: ReaderToHost.Selection? = null)
 
 /** How the book is delivered to the page: offline file, or (online) entry-wise/page-wise where possible. */
 internal fun buildBookSource(format: String, fileName: String, offline: Boolean): BookSource = when {
@@ -73,6 +100,7 @@ class ReaderViewModel(
     private val progress: ProgressRepository,
     private val downloads: DownloadRepository,
     private val settingsRepository: SettingsRepository,
+    private val annotationRepository: AnnotationRepository,
     keepScreenOn: Boolean = true,
     private val onKeepScreenOnChanged: (Boolean) -> Unit = {},
     private val remoteCheckTimeoutMs: Long = 6_000,
@@ -86,9 +114,25 @@ class ReaderViewModel(
     private var offline = false
     private var pendingSave: Pair<Locator, Double>? = null
     private var saveJob: Job? = null
+    /** Color of the next highlight: the last one the user picked (web: yellow by default). */
+    private var lastColor = AnnotationColor.YELLOW
 
     init {
         viewModelScope.launch { load() }
+        viewModelScope.launch {
+            annotationRepository.annotations(key).collect { list ->
+                _state.update { s ->
+                    s.copy(
+                        annotations = list,
+                        // the popup/editor of an annotation deleted elsewhere (sync) closes
+                        popup = s.popup?.takeIf { p -> list.any { it.uuid == p.uuid } },
+                        noteEditor = s.noteEditor?.takeIf { e -> e.uuid == null || list.any { it.uuid == e.uuid } },
+                    )
+                }
+            }
+        }
+        // highlights made in the web app since the last sync (offline or failing: the local state stays)
+        viewModelScope.launch { annotationRepository.refresh(key) }
     }
 
     private suspend fun load() {
@@ -146,11 +190,18 @@ class ReaderViewModel(
                     phase = ReaderPhase.READING,
                     title = event.info.title ?: it.title,
                     fixedLayout = event.info.isComic || event.info.fixedLayout,
+                    supportsAnnotations = event.info.supportsAnnotations,
                 )
+            }
+            is ReaderToHost.Selection -> _state.update { it.copy(selection = event, popup = null) }
+            ReaderToHost.SelectionClear -> _state.update { it.copy(selection = null) }
+            is ReaderToHost.AnnotationClick -> _state.update { s ->
+                if (s.annotations.any { it.uuid == event.id }) s.copy(popup = AnnotationPopup(event.id, event.rect), barsVisible = false) else s
             }
             is ReaderToHost.Relocate -> {
                 pendingSave = event.locator to event.percentage
-                _state.update { it.copy(percentage = event.percentage, label = event.label) }
+                // a page turn closes the popup of a highlight
+                _state.update { it.copy(percentage = event.percentage, label = event.label, popup = null) }
                 saveJob?.cancel()
                 saveJob = viewModelScope.launch {
                     delay(saveDebounceMs)
@@ -159,7 +210,10 @@ class ReaderViewModel(
             }
             is ReaderToHost.Toc -> _state.update { it.copy(toc = event.items) }
             is ReaderToHost.ExternalLink -> if (isSafeExternalUrl(event.url)) _state.update { it.copy(externalLink = event.url) }
-            is ReaderToHost.Tap -> if (event.zone == "center") toggleBars()
+            is ReaderToHost.Tap -> when {
+                _state.value.popup != null -> dismissPopup() // a tap next to the popup only closes it
+                event.zone == "center" -> toggleBars()
+            }
             is ReaderToHost.Error -> fail(
                 when (event.code) {
                     ErrorCode.NETWORK -> ReaderFailure.NETWORK
@@ -195,6 +249,60 @@ class ReaderViewModel(
             settingsRepository.update { s -> s.withReaderSettings(updated.copy(einkMode = false)) }
         }
     }
+
+    // ---- annotations -------------------------------------------------------------------------
+
+    /**
+     * "Highlight" or "Note" in the selection menu. A highlight is stored at once in the last used color and
+     * its popup opens (other color, note, delete); a note opens the note dialog first.
+     * Returns true when the selection was used (the screen clears it in the page).
+     */
+    fun onSelectionAction(action: SelectionAction): Boolean {
+        val sel = _state.value.selection ?: return false
+        when (action) {
+            SelectionAction.HIGHLIGHT -> viewModelScope.launch {
+                val uuid = annotationRepository.create(key, sel.locator, sel.text, lastColor)
+                _state.update { it.copy(selection = null, popup = AnnotationPopup(uuid, sel.rect)) }
+            }
+            SelectionAction.NOTE -> _state.update { it.copy(selection = null, noteEditor = NoteEditor(null, sel.text, "", sel)) }
+        }
+        return true
+    }
+
+    fun setColor(uuid: String, color: AnnotationColor) {
+        lastColor = color
+        viewModelScope.launch { annotationRepository.setColor(key, uuid, color) }
+    }
+
+    fun deleteAnnotation(uuid: String) {
+        _state.update { it.copy(popup = null) }
+        viewModelScope.launch { annotationRepository.delete(key, uuid) }
+    }
+
+    fun editNote(uuid: String) {
+        val a = _state.value.annotations.firstOrNull { it.uuid == uuid } ?: return
+        _state.update { it.copy(popup = null, noteEditor = NoteEditor(uuid, a.text, a.note.orEmpty())) }
+    }
+
+    /** Saves the note dialog; a blank text removes the note of an existing highlight (a new note is dropped). */
+    fun saveNote(text: String) {
+        val editor = _state.value.noteEditor ?: return
+        _state.update { it.copy(noteEditor = null) }
+        viewModelScope.launch {
+            when {
+                editor.uuid != null -> annotationRepository.setNote(key, editor.uuid, text)
+                editor.selection != null && text.isNotBlank() ->
+                    annotationRepository.create(key, editor.selection.locator, editor.selection.text, lastColor, text)
+            }
+        }
+    }
+
+    fun dismissNoteEditor() = _state.update { it.copy(noteEditor = null) }
+
+    fun dismissPopup() = _state.update { it.copy(popup = null) }
+
+    fun showAnnotations(show: Boolean) =
+        _state.update { it.copy(showAnnotations = show, popup = null, barsVisible = if (show) it.barsVisible else false) }
 
     fun setKeepScreenOn(keep: Boolean) {
         _state.update { it.copy(keepScreenOn = keep) }
