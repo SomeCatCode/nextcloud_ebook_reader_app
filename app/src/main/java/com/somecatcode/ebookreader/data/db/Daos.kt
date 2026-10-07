@@ -25,6 +25,10 @@ interface AccountDao {
     @Query("UPDATE account SET lastSyncCursor = :cursor, lastSyncAt = :at WHERE id = :id")
     suspend fun updateSync(id: String, cursor: String?, at: Long?)
 
+    /** Nextcloud version and E-Book Reader app version as last reported by the server (null = unknown). */
+    @Query("UPDATE account SET serverVersion = :serverVersion, appVersion = :appVersion WHERE id = :id")
+    suspend fun updateVersions(id: String, serverVersion: String?, appVersion: String?)
+
     /** Cascades to all rows of the account (books, progress, shelves, downloads, pending edits, annotations). */
     @Query("DELETE FROM account WHERE id = :id")
     suspend fun delete(id: String)

@@ -3,6 +3,7 @@ package com.somecatcode.ebookreader.ui.screens
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.somecatcode.ebookreader.R
+import com.somecatcode.ebookreader.data.ServerVersions
 import com.somecatcode.ebookreader.data.account.Account
 import com.somecatcode.ebookreader.data.account.AccountStore
 import com.somecatcode.ebookreader.data.api.ApiException
@@ -52,6 +53,8 @@ sealed interface LibraryBanner {
     data class AuthExpired(val accountId: String) : LibraryBanner
     data object AppUnavailable : LibraryBanner
     data object ServerError : LibraryBanner
+    /** The server app is older than [com.somecatcode.ebookreader.data.ServerVersions.RECOMMENDED] (null = unknown version). */
+    data class ServerOutdated(val version: String?) : LibraryBanner
 }
 
 /** What the user selected; separate from the data so the query flows can react to it. */
@@ -210,7 +213,11 @@ class LibraryViewModel(
         .combine(books) { st, b -> st.copy(books = b) }
         .combine(collections) { st, c -> st.copy(shelves = c.shelves, series = c.series, facets = c.facets) }
         .combine(continueReading) { st, c -> st.copy(continueReading = c) }
-        .combine(syncInfo) { st, (refreshing, banner) -> st.copy(refreshing = refreshing, banner = banner) }
+        .combine(syncInfo) { st, (refreshing, banner) ->
+            // An outdated server app is only a hint; real problems (offline, auth, errors) take precedence.
+            val outdated = st.accounts.firstOrNull { it.id in st.shownAccountIds && ServerVersions.isOutdated(it.appVersion) }
+            st.copy(refreshing = refreshing, banner = banner ?: outdated?.let { LibraryBanner.ServerOutdated(it.appVersion) })
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LibraryUiState())
 
     fun refresh() {

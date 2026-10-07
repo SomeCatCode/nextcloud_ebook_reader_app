@@ -327,6 +327,21 @@ class SyncEngineTest : DbTest() {
     }
 
     @Test
+    fun syncStoresServerAndAppVersionAndStopsWithoutTheApp() = runBlocking {
+        dispatcher.on("GET", "/sync") { syncPage(cursor = "c1") }
+        dispatcher.on("GET", "/cloud/capabilities") {
+            ocs("""{"version":{"major":34,"minor":0,"micro":1,"string":"34.0.1"},"capabilities":{"ebookreader":{"version":"0.8.0","apiVersion":1}}}""")
+        }
+        assertTrue(engine.syncNow("acc1") is SyncOutcome.Success)
+        val account = db.accountDao().get("acc1")!!
+        assertEquals("34.0.1", account.serverVersion)
+        assertEquals("0.8.0", account.appVersion)
+
+        dispatcher.on("GET", "/cloud/capabilities") { ocs("""{"version":{"string":"34.0.1"},"capabilities":{}}""") }
+        assertEquals(SyncOutcome.Failure(SyncError.APP_UNAVAILABLE, retryable = false), engine.syncNow("acc1"))
+    }
+
+    @Test
     fun unknownAccountFails() = runBlocking {
         assertEquals(SyncOutcome.Failure(SyncError.UNKNOWN, retryable = false), engine.syncNow("nope"))
     }

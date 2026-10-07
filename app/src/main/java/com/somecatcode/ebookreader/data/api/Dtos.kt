@@ -86,6 +86,8 @@ data class CapabilitiesBlock(
 /** Server `lib/Capabilities.php`: `{apiVersion, apiStable, formats, editor}`. */
 @Serializable
 data class EbookReaderCapabilities(
+    /** Installed server app version (`0.8.0`); null on servers before 0.8.0. */
+    val version: String? = null,
     val apiVersion: Int = 0,
     val apiStable: Boolean = false,
     val formats: List<String> = emptyList(),

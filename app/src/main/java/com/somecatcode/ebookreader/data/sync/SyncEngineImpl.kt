@@ -118,6 +118,19 @@ class SyncEngineImpl(
             val api = apiFactory.forAccount(accountId)
 
             setState(accountId, SyncState.Running(SyncPhase.PUSH_LOCAL))
+            // Server and server-app version (shown in the accounts, used for feature checks). A failed probe
+            // does not stop the sync; a server without the E-Book Reader app does.
+            val caps = try {
+                api.capabilities()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                null
+            }
+            if (caps != null) {
+                val app = caps.capabilities.ebookreader ?: return SyncOutcome.Failure(SyncError.APP_UNAVAILABLE, retryable = false)
+                db.accountDao().updateVersions(accountId, caps.version?.string?.takeIf { it.isNotBlank() } ?: account.serverVersion, app.version)
+            }
             edits.flushPending(accountId)
             progress.pushDirty(accountId)
             annotations.pushDirty(accountId)
