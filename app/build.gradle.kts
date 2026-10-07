@@ -8,6 +8,11 @@ plugins {
 val appVersionCode = (project.findProperty("appVersionCode") as String?)?.toInt() ?: 1
 val appVersionName = (project.findProperty("appVersionName") as String?) ?: "0.1.0"
 
+// Donation link (Ko-fi/Buy Me a Coffee). Google Play does not allow donation links to external payment
+// services for individual developers, so the Play build (-PplayBuild=true, used for the AAB) never has one.
+val playBuild = (project.findProperty("playBuild") as String?)?.toBoolean() ?: false
+val donationUrl = if (playBuild) "" else (project.findProperty("donationUrl") as String?).orEmpty().trim()
+
 android {
     namespace = "com.somecatcode.ebookreader"
     compileSdk = 36
@@ -19,6 +24,7 @@ android {
         versionCode = appVersionCode
         versionName = appVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "DONATION_URL", "\"" + donationUrl.replace("\"", "") + "\"")
     }
 
     buildFeatures {

@@ -6,9 +6,13 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 ## [Unreleased]
 
 ### Hinzugefügt
+### Geändert
+- Die App ist nicht mehr quelloffen: Lizenz proprietär (alle Rechte vorbehalten) statt AGPL-3.0-or-later; Quellcode- und AGPL-Links aus den Einstellungen entfernt. Komponenten Dritter behalten ihre Lizenzen.
+
 - Markierungen und Notizen in EPUB- und anderen Textbüchern, synchron mit der Web-App: Text auswählen, im Auswahlmenü „Markieren“ (in der zuletzt gewählten Farbe, danach Farbwahl Gelb/Grün/Blau/Pink/Lila wie im Web) oder „Notiz“ wählen; Antippen einer Markierung öffnet Farbe, Notiz und Löschen. Liste „Markierungen & Notizen“ im Reader (gruppiert nach Markierungen, Notizen und Lesezeichen, mit Kapitel und Position) zum Springen, Notiz bearbeiten und Löschen; im E-Ink-Modus als ruhige Vollbildseite ohne Animation. Comics und Fixed-Layout-Bücher haben keine Textauswahl; dort zeigt die Liste nur Lesezeichen aus der Web-App.
 - Offline zuerst: Änderungen landen sofort in der Datenbank und werden beim nächsten Upload bzw. Sync hochgeladen (Upsert per UUID, Löschen als Tombstone); der Delta-Sync übernimmt Markierungen anderer Geräte samt Löschungen, bei Konflikten gewinnt wie auf dem Server der neuere `clientUpdatedAt`. Beim Öffnen eines Buchs werden seine Markierungen zusätzlich direkt vom Server aktualisiert.
 - Datenbank Version 2 (Tabelle `annotation`) mit Migration; die Migration setzt den Sync-Cursor zurück, damit bereits vorhandene Markierungen beim ersten Sync ankommen (einmaliger Vollsync).
+- Einstellungen: optionaler Eintrag „App unterstützen“ mit Spendenlink zu Ko-fi (https://ko-fi.com/somecatcode; nur in der APK von GitHub; im Google-Play-Build nie enthalten, da Play externe Spendenlinks von Privatentwicklern nicht erlaubt) und Seite „Lizenzen von Drittanbietern“.
 
 ## 0.2.0 – 2026-10-05
 

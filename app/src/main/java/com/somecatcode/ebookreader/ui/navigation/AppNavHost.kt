@@ -123,7 +123,10 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             DownloadsScreen(onBack = { nav.popBackStack() })
         }
         composable(Routes.SETTINGS) {
-            SettingsScreen(onBack = { nav.popBackStack() })
+            SettingsScreen(onBack = { nav.popBackStack() }, onOpenLicenses = { nav.navigate(Routes.LICENSES) })
+        }
+        composable(Routes.LICENSES) {
+            com.somecatcode.ebookreader.ui.screens.LicensesScreen(onBack = { nav.popBackStack() })
         }
     }
 }

@@ -189,11 +189,11 @@
     <string name="reader_theme_sepia">Sepia</string>
     <string name="settings_about">About</string>
     <string name="settings_version">Version %1$s</string>
-    <string name="settings_license">License: AGPL-3.0-or-later</string>
     <string name="settings_unofficial">Unofficial app, not affiliated with Nextcloud GmbH.</string>
-    <string name="settings_source">Source code</string>
+    <string name="settings_donate">Support the app</string>
+    <string name="settings_donate_hint">Opens the donation page in the browser. The app has no ads and no tracking.</string>
+    <string name="settings_third_party_licenses">Third-party licenses</string>
     <string name="settings_privacy">Privacy policy</string>
-    <string name="settings_license_link">License text</string>
 
     <!-- Reader -->
     <string name="reader_toc">Table of contents</string>
