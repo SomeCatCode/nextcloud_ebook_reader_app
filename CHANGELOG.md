@@ -5,6 +5,8 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+## 0.2.1 – 2026-10-07
+
 ### Hinzugefügt
 - Store-Grafiken für Google Play: App-Symbol (512 × 512) und Vorstellungsgrafik (1024 × 500) unter `fastlane/metadata/android/de-DE/images/`, erzeugt mit `scripts/store_graphics.py`.
 
