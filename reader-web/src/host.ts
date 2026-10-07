@@ -1,11 +1,12 @@
 /**
  * SPDX-FileCopyrightText: 2026 Felix Kurth
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * JS side of the Android bridge (docs/CONTRACTS.md section 6): turns host messages into reader-core
  * calls and reader events into bridge messages. DOM free so it can be unit tested with a fake reader.
  */
 import type {
+	ReaderAnnotation,
 	ReaderHandle,
 	ReaderLayout,
 	ReaderLocator,
@@ -84,6 +85,15 @@ function mapToc(items: { label: string, href: string, subitems?: unknown[] }[]):
 	}))
 }
 
+const COLORS = ['yellow', 'green', 'blue', 'pink', 'purple']
+
+/**
+ * @param value
+ */
+function isColor(value: unknown): value is ReaderAnnotation['color'] {
+	return typeof value === 'string' && COLORS.includes(value)
+}
+
 /**
  * @param deps
  */
@@ -94,6 +104,8 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 	let opening = false
 	let pendingRelocate: ReaderToHostMsg | null = null
 	let unsubs: (() => void)[] = []
+	/** Latest highlights from Kotlin; survive re-opens (the page is per book) */
+	let annotations: ReaderAnnotation[] = []
 
 	/**
 	 *
@@ -255,6 +267,33 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 	}
 
 	/**
+	 * Draws the highlights into the open book (no-op while opening, for comics and fixed layouts).
+	 */
+	function applyAnnotations(): void {
+		if (!reader || opening) {
+			return
+		}
+		try {
+			reader.setAnnotations(annotations)
+		} catch (e) {
+			deps.send({ type: 'error', ...toBridgeError(e) })
+		}
+	}
+
+	/**
+	 * Only well-formed entries reach reader-core (the list comes from the database, but stay strict).
+	 *
+	 * @param list
+	 */
+	function sanitizeAnnotations(list: unknown): ReaderAnnotation[] {
+		if (!Array.isArray(list)) {
+			return []
+		}
+		return list.filter((a): a is ReaderAnnotation => typeof a?.id === 'string' && typeof a?.cfi === 'string' && a.cfi.startsWith('epubcfi('))
+			.map((a) => ({ id: a.id, cfi: a.cfi, color: isColor(a.color) ? a.color : null, hasNote: a.hasNote === true }))
+	}
+
+	/**
 	 * @param msg
 	 */
 	async function open(msg: Extract<HostToReaderMsg, { type: 'open' }>): Promise<void> {
@@ -287,6 +326,10 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 				r.on('key', ({ key }) => handleKey(key)),
 				// foliate's own window.open is always cancelled by reader-core: the URL goes to Kotlin
 				r.on('external-link', ({ url }) => deps.send({ type: 'externalLink', url })),
+				// text selection and taps on highlights (reflowable books): Kotlin shows the menu / popup
+				r.on('selection', ({ text, cfi, locator, rect }) => deps.send({ type: 'selection', text, cfi, locator, rect })),
+				r.on('selection-clear', () => deps.send({ type: 'selectionClear' })),
+				r.on('annotation-click', ({ id, rect }) => deps.send({ type: 'annotationClick', id, rect })),
 				// errors while opening are reported once, through the rejected open()
 				r.on('error', (err) => {
 					if (!opening) {
@@ -309,11 +352,13 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 					fixedLayout: info?.fixedLayout ?? false,
 					rtl: info?.rtl ?? false,
 					pageCount: info?.pageCount ?? 0,
+					supportsAnnotations: r.supportsAnnotations(),
 				},
 			})
 			deps.send({ type: 'toc', items: mapToc(r.getToc()) })
 			deps.onComicMode?.(info?.isComic ?? false)
 			opening = false
+			applyAnnotations()
 			if (pendingRelocate) {
 				deps.send(pendingRelocate)
 				pendingRelocate = null
@@ -360,7 +405,15 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 			case 'setSettings':
 				applySettings(msg.settings ?? {})
 				break
+			case 'setAnnotations':
+				annotations = sanitizeAnnotations(msg.annotations)
+				applyAnnotations()
+				break
+			case 'clearSelection':
+				reader?.clearSelection()
+				break
 			case 'destroy':
+				annotations = []
 				teardown()
 				break
 			default:

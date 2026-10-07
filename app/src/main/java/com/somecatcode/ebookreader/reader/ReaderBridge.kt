@@ -72,6 +72,20 @@ sealed interface HostToReader {
     @SerialName("setSettings")
     data class SetSettings(val settings: ReaderSettings) : HostToReader
 
+    /**
+     * Replaces the highlights drawn into the book (reflowable books only; ignored for comics and fixed
+     * layouts). Sent whenever the annotations of the book change; the page keeps the list across re-opens.
+     * Only the CFI, color and "has a note" flag reach the page, never the text of a note.
+     */
+    @Serializable
+    @SerialName("setAnnotations")
+    data class SetAnnotations(val annotations: List<DrawnAnnotation>) : HostToReader
+
+    /** Removes the text selection in the book (after a highlight was made from it). */
+    @Serializable
+    @SerialName("clearSelection")
+    data object ClearSelection : HostToReader
+
     /** Tears the reader down (the page releases workers and object URLs). */
     @Serializable
     @SerialName("destroy")
@@ -119,10 +133,45 @@ sealed interface ReaderToHost {
     @SerialName("tap")
     data class Tap(val zone: String) : ReaderToHost
 
+    /**
+     * The user selected text (reflowable books, debounced by reader-core). [locator] is the locator of the
+     * selection with the range CFI in `locations.cfi`; [rect] is in CSS px relative to the page (= dp).
+     */
+    @Serializable
+    @SerialName("selection")
+    data class Selection(val text: String, val cfi: String, val locator: Locator, val rect: SelectionRect) : ReaderToHost
+
+    /** The selection is gone (collapsed, tapped elsewhere, page turned). */
+    @Serializable
+    @SerialName("selectionClear")
+    data object SelectionClear : ReaderToHost
+
+    /** The user tapped a drawn highlight ([id] = annotation uuid); the tap turned no page. */
+    @Serializable
+    @SerialName("annotationClick")
+    data class AnnotationClick(val id: String, val rect: SelectionRect) : ReaderToHost
+
     @Serializable
     @SerialName("error")
     data class Error(val code: ErrorCode, val message: String) : ReaderToHost
 }
+
+/** A highlight for the page: reader-core `ReaderAnnotation`. */
+@Serializable
+data class DrawnAnnotation(
+    /** Annotation uuid, returned with [ReaderToHost.AnnotationClick]. */
+    val id: String,
+    /** Range CFI of the text. */
+    val cfi: String,
+    /** `yellow|green|blue|pink|purple`, null = yellow. */
+    val color: String? = null,
+    /** Drawn with an additional underline. */
+    val hasNote: Boolean = false,
+)
+
+/** Rectangle in CSS px relative to the reader page (the WebView fills the screen, so CSS px = dp). */
+@Serializable
+data class SelectionRect(val left: Double, val top: Double, val right: Double, val bottom: Double)
 
 @Serializable
 data class BookRef(
@@ -174,6 +223,8 @@ data class BookInfo(
     val fixedLayout: Boolean = false,
     val rtl: Boolean = false,
     val pageCount: Int = 0,
+    /** Text selection and highlights work with this book (reflowable text, not comics or fixed layouts). */
+    val supportsAnnotations: Boolean = false,
 )
 
 @Serializable

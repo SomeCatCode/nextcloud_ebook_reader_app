@@ -2,7 +2,12 @@ package com.somecatcode.ebookreader.reader
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Rect
+import android.view.ActionMode
 import android.view.KeyEvent
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceRequest
@@ -21,6 +26,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewAssetLoader.AssetsPathHandler
+import com.somecatcode.ebookreader.R
 import java.io.ByteArrayInputStream
 
 /** URL of the bundled reader page. */
@@ -117,7 +123,7 @@ internal fun createReaderWebView(
         .addPathHandler("/reader/", ReaderAssetsHandler(context))
         .build()
 
-    val webView = WebView(context)
+    val webView = ReaderWebView(context, host)
     webView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
     webView.setBackgroundColor(backgroundColor)
     webView.overScrollMode = android.view.View.OVER_SCROLL_NEVER
@@ -173,6 +179,75 @@ internal fun createReaderWebView(
     if (volumeKeysTurnPages) webView.setOnKeyListener(volumeKeyListener(host))
     webView.loadUrl(READER_PAGE_URL)
     return webView
+}
+
+/**
+ * The reader WebView. Its text selection menu (Copy, Share, ...) gets the app's entries "Highlight" and
+ * "Note" in front while the open book supports annotations; they are reported through
+ * [ReaderHostImpl.onSelectionAction] (the selection itself arrives from the page as [ReaderToHost.Selection]).
+ */
+@SuppressLint("ViewConstructor")
+private class ReaderWebView(context: Context, private val host: ReaderHostImpl) : WebView(context) {
+    override fun startActionMode(callback: ActionMode.Callback?): ActionMode? = super.startActionMode(wrap(callback))
+
+    override fun startActionMode(callback: ActionMode.Callback?, type: Int): ActionMode? = super.startActionMode(wrap(callback), type)
+
+    private fun wrap(callback: ActionMode.Callback?): ActionMode.Callback? =
+        if (callback == null || !host.supportsAnnotations) callback else SelectionMenuCallback(callback, host, context)
+}
+
+/** Wraps the WebView's own selection menu callback (a [ActionMode.Callback2] for the floating toolbar). */
+private class SelectionMenuCallback(
+    private val inner: ActionMode.Callback,
+    private val host: ReaderHostImpl,
+    private val context: Context,
+) : ActionMode.Callback2() {
+
+    override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+        val shown = inner.onCreateActionMode(mode, menu)
+        addItems(menu)
+        return shown
+    }
+
+    override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
+        val changed = inner.onPrepareActionMode(mode, menu)
+        addItems(menu)
+        return changed
+    }
+
+    private fun addItems(menu: Menu) {
+        if (menu.findItem(ID_HIGHLIGHT) == null) {
+            menu.add(GROUP_ID, ID_HIGHLIGHT, 0, context.getString(R.string.reader_annotation_highlight))
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        }
+        if (menu.findItem(ID_NOTE) == null) {
+            menu.add(GROUP_ID, ID_NOTE, 1, context.getString(R.string.reader_annotation_note))
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        }
+    }
+
+    override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+        val action = when (item.itemId) {
+            ID_HIGHLIGHT -> SelectionAction.HIGHLIGHT
+            ID_NOTE -> SelectionAction.NOTE
+            else -> return inner.onActionItemClicked(mode, item)
+        }
+        host.onSelectionAction(action)
+        mode.finish()
+        return true
+    }
+
+    override fun onDestroyActionMode(mode: ActionMode) = inner.onDestroyActionMode(mode)
+
+    override fun onGetContentRect(mode: ActionMode, view: View, outRect: Rect) {
+        if (inner is ActionMode.Callback2) inner.onGetContentRect(mode, view, outRect) else super.onGetContentRect(mode, view, outRect)
+    }
+
+    private companion object {
+        const val GROUP_ID = 0x7e_b0
+        const val ID_HIGHLIGHT = 0x7e_b1
+        const val ID_NOTE = 0x7e_b2
+    }
 }
 
 private fun notFound() = WebResourceResponse("text/plain", "utf-8", 404, "Not Found", mapOf("Cache-Control" to "no-store"), ByteArrayInputStream(ByteArray(0)))

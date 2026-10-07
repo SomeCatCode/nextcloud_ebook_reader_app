@@ -275,4 +275,25 @@
     <string name="sync_never">Noch nicht synchronisiert</string>
     <string name="sync_running">Synchronisiere…</string>
     <string name="book_in_shelves">Regale</string>
+    <string name="reader_annotations">Markierungen &amp; Notizen</string>
+    <string name="reader_annotation_highlight">Markieren</string>
+    <string name="reader_annotation_note">Notiz</string>
+    <string name="annotations_empty">Noch keine Markierungen oder Notizen. Text im Buch auswählen, um ihn zu markieren oder eine Notiz anzulegen.</string>
+    <string name="annotations_empty_fixed">Markierungen und Notizen gibt es nur in Textbüchern. Lesezeichen aus der Web-App erscheinen hier.</string>
+    <string name="annotations_group_highlights">Markierungen</string>
+    <string name="annotations_group_notes">Notizen</string>
+    <string name="annotations_group_bookmarks">Lesezeichen</string>
+    <string name="annotation_add_note">Notiz hinzufügen</string>
+    <string name="annotation_edit_note">Notiz bearbeiten</string>
+    <string name="annotation_delete">Löschen</string>
+    <string name="annotation_note_label">Notiz</string>
+    <string name="annotation_note_title_new">Neue Notiz</string>
+    <string name="annotation_pending">Noch nicht synchronisiert</string>
+    <string name="annotation_bookmark">Lesezeichen</string>
+    <string name="annotation_color_yellow">Gelb</string>
+    <string name="annotation_color_green">Grün</string>
+    <string name="annotation_color_blue">Blau</string>
+    <string name="annotation_color_pink">Pink</string>
+    <string name="annotation_color_purple">Lila</string>
+    <string name="annotation_color_selected">%1$s (ausgewählt)</string>
 </resources>

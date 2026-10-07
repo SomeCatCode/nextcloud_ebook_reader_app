@@ -17,8 +17,13 @@ import com.somecatcode.ebookreader.data.sync.SyncError
 import com.somecatcode.ebookreader.data.sync.SyncState
 import com.somecatcode.ebookreader.reader.BookInfo
 import com.somecatcode.ebookreader.reader.BookSource
+import com.somecatcode.ebookreader.reader.DrawnAnnotation
+import com.somecatcode.ebookreader.reader.SelectionAction
+import com.somecatcode.ebookreader.reader.SelectionRect
+import com.somecatcode.ebookreader.data.repo.AnnotationColor
 import com.somecatcode.ebookreader.reader.ReaderToHost
 import com.somecatcode.ebookreader.ui.FakeAccountStore
+import com.somecatcode.ebookreader.ui.FakeAnnotationRepository
 import com.somecatcode.ebookreader.ui.FakeApiClientFactory
 import com.somecatcode.ebookreader.ui.FakeDownloadRepository
 import com.somecatcode.ebookreader.ui.FakeEditRepository
@@ -445,9 +450,14 @@ class ViewModelTests {
 
     private fun conflict() = ProgressConflict(key, localLocator, 0.2, remoteLocator, 0.6, "Pixel", 1000)
 
-    private fun readerVm(progress: FakeProgressRepository, downloads: FakeDownloadRepository = FakeDownloadRepository(), debounce: Long = 1000) =
+    private fun readerVm(
+        progress: FakeProgressRepository,
+        downloads: FakeDownloadRepository = FakeDownloadRepository(),
+        debounce: Long = 1000,
+        annotations: FakeAnnotationRepository = FakeAnnotationRepository(),
+    ) =
         ReaderViewModel(
-            key, FakeLibraryRepository(listOf(book(1, "Dune"))), progress, downloads, FakeSettingsRepository(),
+            key, FakeLibraryRepository(listOf(book(1, "Dune"))), progress, downloads, FakeSettingsRepository(), annotations,
             remoteCheckTimeoutMs = 100, saveDebounceMs = debounce,
         )
 
@@ -527,7 +537,7 @@ class ViewModelTests {
         val settings = FakeSettingsRepository()
         val vm = ReaderViewModel(
             key, FakeLibraryRepository(listOf(book(1, "Dune"))), FakeProgressRepository(), FakeDownloadRepository(), settings,
-            remoteCheckTimeoutMs = 100, saveDebounceMs = 1000,
+            FakeAnnotationRepository(), remoteCheckTimeoutMs = 100, saveDebounceMs = 1000,
         )
         advanceUntilIdle()
         vm.onEvent(ReaderToHost.Opened(BookInfo(isComic = false, fixedLayout = false)))
@@ -538,6 +548,85 @@ class ViewModelTests {
         advanceUntilIdle()
         assertEquals("fit-width", vm.state.value.settings.comicZoom)
         assertEquals("fit-width", settings.state.value.readerSettings().comicZoom)
+    }
+
+    // ---- reader annotations ----------------------------------------------------------------------
+
+    private val selCfi = "epubcfi(/6/4!/4/2,/1:0,/1:5)"
+    private val selection = ReaderToHost.Selection(
+        "Hello", selCfi, Locator("c1.xhtml", locations = Locations(cfi = selCfi, totalProgression = 0.2)), SelectionRect(10.0, 100.0, 200.0, 120.0),
+    )
+
+    @Test
+    fun reader_highlightFromTheSelectionMenuIsStoredAndOpensItsPopup() = runTest(dispatcher) {
+        val annotations = FakeAnnotationRepository()
+        val vm = readerVm(FakeProgressRepository(), annotations = annotations)
+        advanceUntilIdle()
+        assertEquals(1, annotations.refreshed) // highlights from the web since the last sync
+        assertFalse(vm.onSelectionAction(SelectionAction.HIGHLIGHT)) // nothing selected
+        vm.onEvent(ReaderToHost.Opened(BookInfo(supportsAnnotations = true)))
+        assertTrue(vm.state.value.supportsAnnotations)
+        vm.onEvent(selection)
+        assertTrue(vm.onSelectionAction(SelectionAction.HIGHLIGHT))
+        advanceUntilIdle()
+        val created = annotations.state.value.single()
+        assertEquals(AnnotationColor.YELLOW, created.color)
+        assertEquals("Hello", created.text)
+        assertEquals(created.uuid, vm.state.value.popup?.uuid)
+        assertEquals(listOf(DrawnAnnotation(created.uuid, selCfi, "yellow", false)), vm.state.value.drawnAnnotations)
+
+        // another color is remembered for the next highlight
+        vm.setColor(created.uuid, AnnotationColor.BLUE)
+        advanceUntilIdle()
+        assertEquals("blue", vm.state.value.drawnAnnotations.single().color)
+        vm.onEvent(ReaderToHost.Relocate(Locator("c2.xhtml"), 0.3)) // page turn closes the popup
+        assertNull(vm.state.value.popup)
+        vm.onEvent(selection)
+        vm.onSelectionAction(SelectionAction.HIGHLIGHT)
+        advanceUntilIdle()
+        assertEquals(AnnotationColor.BLUE, annotations.state.value.last().color)
+    }
+
+    @Test
+    fun reader_noteFromTheSelectionNeedsTextAndEditingANoteCanClearIt() = runTest(dispatcher) {
+        val annotations = FakeAnnotationRepository()
+        val vm = readerVm(FakeProgressRepository(), annotations = annotations)
+        advanceUntilIdle()
+        vm.onEvent(selection)
+        vm.onSelectionAction(SelectionAction.NOTE)
+        val editor = vm.state.value.noteEditor!!
+        assertNull(editor.uuid)
+        assertEquals("Hello", editor.quote)
+        vm.saveNote("  ")
+        advanceUntilIdle()
+        assertTrue(annotations.state.value.isEmpty()) // an empty new note is not stored
+
+        vm.onEvent(selection)
+        vm.onSelectionAction(SelectionAction.NOTE)
+        vm.saveNote("Remember this")
+        advanceUntilIdle()
+        val note = annotations.state.value.single()
+        assertEquals("Remember this", note.note)
+        assertTrue(vm.state.value.drawnAnnotations.single().hasNote)
+
+        vm.onEvent(ReaderToHost.AnnotationClick(note.uuid, selection.rect))
+        assertEquals(note.uuid, vm.state.value.popup?.uuid)
+        vm.editNote(note.uuid)
+        assertNull(vm.state.value.popup)
+        assertEquals("Remember this", vm.state.value.noteEditor?.initial)
+        vm.saveNote("")
+        advanceUntilIdle()
+        assertNull(annotations.state.value.single().note)
+
+        vm.onEvent(ReaderToHost.AnnotationClick(note.uuid, selection.rect))
+        vm.onEvent(ReaderToHost.Tap("center")) // a tap next to the popup only closes it
+        assertNull(vm.state.value.popup)
+        assertFalse(vm.state.value.barsVisible)
+        vm.deleteAnnotation(note.uuid)
+        advanceUntilIdle()
+        assertTrue(vm.state.value.annotations.isEmpty())
+        vm.onEvent(ReaderToHost.AnnotationClick("unknown", selection.rect))
+        assertNull(vm.state.value.popup)
     }
 
     @Test

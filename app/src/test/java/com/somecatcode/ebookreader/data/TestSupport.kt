@@ -144,3 +144,23 @@ suspend fun AppDatabase.addAccount(id: String = "acc1", userId: String = "alice"
     accountDao().upsert(entity)
     return entity
 }
+
+const val UUID_A = "6f9619ff-8b86-4011-b42d-00c04fc964ff"
+const val UUID_B = "1b4e28ba-2fa1-41d2-883f-0016d3cca427"
+
+fun annotationJson(
+    uuid: String = UUID_A,
+    fileId: Long = 1,
+    type: String = "highlight",
+    cfi: String = "epubcfi(/6/4!/4/2,/1:0,/1:5)",
+    text: String? = "Hello",
+    note: String? = null,
+    color: String? = "yellow",
+    clientUpdatedAt: Long = 100,
+    updatedAt: Long = 101,
+    deleted: Boolean = false,
+): String {
+    fun str(v: String?) = if (v == null) "null" else "\"$v\""
+    return """{"uuid":"$uuid","fileId":$fileId,"type":"$type","locator":{"href":"c1.xhtml","locations":{"cfi":"$cfi","totalProgression":0.2}},
+        "text":${str(text)},"note":${str(note)},"color":${str(color)},"createdAt":50,"updatedAt":$updatedAt,"clientUpdatedAt":$clientUpdatedAt,"deleted":$deleted}"""
+}
