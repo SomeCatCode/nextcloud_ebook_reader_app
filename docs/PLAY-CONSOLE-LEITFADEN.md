@@ -198,8 +198,8 @@ Die Datenschutzerklärung gibt es in allen vier Sprachen. In der Console trägst
 
 | Grafik | Format | Hinweise |
 |---|---|---|
-| App-Symbol | 512 × 512 px, PNG, 32 Bit, max. 1 MB | das Launcher-Icon in groß, ohne Nextcloud-Logo, ohne Rand und Schatten (Google rundet selbst) |
-| Feature-Grafik | 1024 × 500 px, JPG oder 24-Bit-PNG, ohne Transparenz | Pflicht. Wichtiges mittig platzieren, wenig Text. |
+| App-Symbol (fertig: `fastlane/metadata/android/de-DE/images/icon.png`) | 512 × 512 px, PNG, 32 Bit, max. 1 MB | das Launcher-Icon in groß, ohne Nextcloud-Logo, ohne Rand und Schatten (Google rundet selbst) |
+| Feature-Grafik (fertig: `…/images/featureGraphic.png`, neu erzeugen mit `python scripts/store_graphics.py`) | 1024 × 500 px, JPG oder 24-Bit-PNG, ohne Transparenz | Pflicht. Wichtiges mittig platzieren, wenig Text. |
 | Smartphone-Screenshots | 2 bis 8 Stück, Seitenverhältnis 9:16, mind. 1080 px Kantenlänge | Vorschläge unten |
 | 7"- und 10"-Tablet-Screenshots | optional | nur wenn die App auf Tablets beworben werden soll (sie hat ein Zwei-Spalten-Layout) |
 
