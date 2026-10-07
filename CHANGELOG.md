@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Geändert
+- Play-Console-Leitfaden nennt keine echte Serveradresse und keinen echten Prüfer-Benutzer mehr (Platzhalter); `.gitignore` schließt Signaturschlüssel, Play-Service-Account-Dateien und `.env` aus.
+
 ## 0.2.0 – 2026-10-07
 
 ### Hinzugefügt
