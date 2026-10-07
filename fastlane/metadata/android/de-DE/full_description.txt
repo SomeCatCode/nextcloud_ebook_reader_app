@@ -1,0 +1,35 @@
+Lies deine E-Books und Comics direkt aus deiner eigenen Nextcloud, unterwegs und offline.
+
+Die App verbindet sich mit deinem Nextcloud-Server, auf dem die App „E-Book Reader“ läuft. Deine Bibliothek, Regale, Serien und dein Lesefortschritt sind auf allen Geräten und im Browser synchron.
+
+BIBLIOTHEK
+• EPUB, MOBI, AZW3, FB2 sowie Comics als CBZ, CBR, CB7 und CBT
+• Raster- und Listenansicht, Suche, Sortierung, „Weiterlesen“
+• Filter wie im Web: Genres und Tags als Baum, Autoren, Serien, Formate, fehlende Angaben; Begriffe einschließen oder ausschließen
+• Gelesene ausblenden, Lesestatus und Bewertung
+• Regale und smarte Regale anlegen und verwalten, Serien mit Bandreihenfolge
+
+LESEN
+• Angenehmer Reader mit hellem, Sepia- und dunklem Design, Schriftgröße, Zeilenabstand und Rändern
+• Blättern oder Scrollen, Inhaltsverzeichnis, Tipp-Zonen, Lautstärketasten zum Blättern
+• Comics mit Zoom (zwei Finger, Doppeltippen), Doppelseiten und Leserichtung für Manga
+• Markierungen und Notizen, synchron mit der Web-App
+• Lesefortschritt wird automatisch synchronisiert; bei neuerer Position auf einem anderen Gerät fragt die App nach
+• E-Ink-Modus mit hohem Kontrast und ohne Animationen
+
+OFFLINE
+• Bücher, ganze Regale oder Serien offline verfügbar machen
+• Neue Bände angepinnter Serien und Regale werden automatisch nachgeladen
+• Downloads auf Wunsch nur im WLAN
+
+MEHRERE KONTEN
+• Mehrere Nextcloud-Konten, getrennt oder als gemeinsame Bibliothek
+• Sichere Anmeldung über den Browser (Nextcloud Login Flow); dein Passwort sieht die App nie
+
+DATENSCHUTZ
+Keine Werbung, kein Tracking, keine Analyse. Deine Daten fließen ausschließlich zwischen deinem Gerät und deinem eigenen Nextcloud-Server.
+
+VORAUSSETZUNG
+Ein Nextcloud-Server mit der App „E-Book Reader“ ab Version 0.7.0 (im Nextcloud-App-Store bzw. auf GitHub). Ohne diese Server-App funktioniert die App nicht.
+
+Inoffizielle App, nicht mit der Nextcloud GmbH verbunden. Nextcloud ist eine Marke der Nextcloud GmbH.

@@ -1,6 +1,6 @@
 /**
  * SPDX-FileCopyrightText: 2026 Felix Kurth
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LicenseRef-Proprietary
  *
  * Builds the reader-core `ReaderSource` from the `open.source` message. All URLs are same-origin
  * https://appassets.androidplatform.net/api/... and answered by the Kotlin request proxy, which

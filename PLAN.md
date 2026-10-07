@@ -6,7 +6,7 @@ Begleit-App zur Nextcloud-App **E-Book Reader** (`ebookreader`, Repo `SomeCatCod
 |---|---|
 | Paket-ID | `com.somecatcode.ebookreader` (nicht änderbar nach Play-Store-Veröffentlichung) |
 | Herausgeber | SomeCatCode |
-| Lizenz | AGPL-3.0-or-later (wie der Server; ermöglicht die Übernahme des Reader-Kerns) |
+| Lizenz | Proprietär, nicht quelloffen (seit 2026-10-05; der Reader-Kern stammt aus dem Server-Repo desselben Rechteinhabers). Kein Werbe-/Tracking-SDK, nur ein optionaler Spendenlink außerhalb von Google Play |
 | minSdk / targetSdk | 26 (Android 8.0) / 36 |
 | Sprachen | Deutsch, Englisch |
 

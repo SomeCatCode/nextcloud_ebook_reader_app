@@ -1,5 +1,7 @@
 # Play Store: was du angeben musst
 
+> **Zum Ausfüllen der Console:** [PLAY-CONSOLE-LEITFADEN.md](PLAY-CONSOLE-LEITFADEN.md) folgt Punkt für Punkt der Checkliste der Play Console und enthält fertige Texte. Diese Datei hier bleibt der Hintergrund. Seit 0.2.0 ist die App proprietär und das Repo privat. Für die Datenschutzerklärung siehe den Leitfaden, Punkt 1.
+
 Leitfaden für die Google Play Console, zugeschnitten auf diese App: ein **Client für den eigenen bzw. einen frei gewählten Nextcloud-Server**, ohne eigene Server des Entwicklers, ohne Werbung und ohne Tracking.
 
 > Stand: Oktober 2026. Google ändert Formulare und Richtlinien regelmäßig. Wo die Console etwas anderes fragt, gilt die Console. Rechtsberatung ersetzt diese Datei nicht.

@@ -1,0 +1,35 @@
+Lee tus libros electrónicos y cómics directamente desde tu propio Nextcloud, estés donde estés y sin conexión.
+
+La app se conecta a tu servidor Nextcloud con la app «E-Book Reader». Tu biblioteca, tus estanterías, tus series y tu progreso de lectura se mantienen sincronizados en todos tus dispositivos y en el navegador.
+
+BIBLIOTECA
+• EPUB, MOBI, AZW3, FB2 y cómics en CBZ, CBR, CB7 y CBT
+• Vista de cuadrícula y de lista, búsqueda, orden, «Seguir leyendo»
+• Filtros como en la web: géneros y etiquetas en árbol, autores, series, formatos y datos que faltan; incluye o excluye términos
+• Ocultar libros leídos, estado de lectura y valoración
+• Crea y gestiona estanterías y estanterías inteligentes, series en orden de volumen
+
+LECTURA
+• Lector cómodo con temas claro, sepia y oscuro, tamaño de letra, interlineado y márgenes
+• Paginado o desplazamiento, índice, zonas táctiles y botones de volumen para pasar página
+• Cómics con zoom (dos dedos, doble toque), páginas dobles y lectura de derecha a izquierda para manga
+• Resaltados y notas, sincronizados con la app web
+• El progreso de lectura se sincroniza automáticamente; si otro dispositivo va más adelantado, la app te pregunta
+• Modo e-ink con alto contraste y sin animaciones
+
+SIN CONEXIÓN
+• Guarda libros, estanterías completas o series para leerlos sin conexión
+• Los nuevos volúmenes de series y estanterías fijadas se descargan automáticamente
+• Descargas solo con wifi, si lo prefieres
+
+VARIAS CUENTAS
+• Varias cuentas de Nextcloud, por separado o como una sola biblioteca
+• Inicio de sesión seguro en el navegador (Nextcloud Login Flow); la app nunca ve tu contraseña
+
+PRIVACIDAD
+Sin anuncios, sin seguimiento, sin analíticas. Tus datos solo viajan entre tu dispositivo y tu propio servidor Nextcloud.
+
+REQUISITO
+Un servidor Nextcloud con la app «E-Book Reader» en la versión 0.7.0 o posterior (Nextcloud App Store o GitHub). Sin esta app de servidor, la app no funciona.
+
+App no oficial, sin relación con Nextcloud GmbH. Nextcloud es una marca de Nextcloud GmbH.

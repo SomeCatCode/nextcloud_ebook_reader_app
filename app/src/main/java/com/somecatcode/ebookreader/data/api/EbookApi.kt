@@ -82,6 +82,23 @@ interface EbookApi {
     /** `POST /progress/batch` (max 100 items per call - the implementation chunks). */
     suspend fun putProgressBatch(items: List<ProgressBatchItem>): List<ProgressBatchResultItem>
 
+    // ---- Annotations ------------------------------------------------------------------------------
+
+    /** `GET /books/{fileId}/annotations` - live annotations of a book (no tombstones), oldest first. */
+    suspend fun annotations(fileId: Long): List<AnnotationDto>
+
+    /**
+     * `POST /books/{fileId}/annotations` - create or update by uuid (last write wins on `clientUpdatedAt`,
+     * a newer write revives a tombstone). HTTP 409 is returned as [AnnotationWriteResult.Conflict].
+     */
+    suspend fun upsertAnnotation(fileId: Long, body: AnnotationUpsertRequest): AnnotationWriteResult
+
+    /** `PATCH /annotations/{uuid}` - only the given fields; 404 for unknown or deleted annotations. */
+    suspend fun patchAnnotation(uuid: String, patch: AnnotationPatchRequest): AnnotationWriteResult
+
+    /** `DELETE /annotations/{uuid}?clientUpdatedAt=` - sets the tombstone (idempotent) and returns it. */
+    suspend fun deleteAnnotation(uuid: String, clientUpdatedAt: Long): AnnotationWriteResult
+
     // ---- Editing ----------------------------------------------------------------------------------
 
     /** `PATCH /books/{fileId}/app-data` - rating and read status (stored in the database only). */
@@ -137,6 +154,13 @@ sealed interface ProgressPutResult {
     data class Stored(val progress: ProgressDto) : ProgressPutResult
     /** Server has a newer position (HTTP 409). */
     data class Conflict(val current: ProgressDto) : ProgressPutResult
+}
+
+/** Result of an annotation write (POST/PATCH/DELETE). */
+sealed interface AnnotationWriteResult {
+    data class Stored(val annotation: AnnotationDto) : AnnotationWriteResult
+    /** The server holds a newer version (HTTP 409, `clientUpdatedAt` of the request was older). */
+    data class Conflict(val current: AnnotationDto) : AnnotationWriteResult
 }
 
 /** Outcome of [EbookApi.checkCompatibility]. */

@@ -2,8 +2,13 @@ package com.somecatcode.ebookreader.ui.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -12,19 +17,24 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.somecatcode.ebookreader.data.api.AppDataPatch
-import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.api.Locations
+import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.db.DownloadState
 import com.somecatcode.ebookreader.data.db.PinnedBy
+import com.somecatcode.ebookreader.data.repo.AnnotationColor
+import com.somecatcode.ebookreader.data.repo.AnnotationType
+import com.somecatcode.ebookreader.data.repo.BookAnnotation
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.EditFailure
 import com.somecatcode.ebookreader.data.repo.OfflineItem
 import com.somecatcode.ebookreader.data.repo.OfflineState
 import com.somecatcode.ebookreader.data.repo.ProgressConflict
+import com.somecatcode.ebookreader.reader.SelectionRect
 import com.somecatcode.ebookreader.ui.FakeAccountStore
 import com.somecatcode.ebookreader.ui.FakeContainer
 import com.somecatcode.ebookreader.ui.FakeDownloadRepository
@@ -250,6 +260,86 @@ class ScreenTests {
         compose.waitUntil(5_000) { progress.kept != null }
     }
 
+    // ---- reader annotations -------------------------------------------------------------------
+
+    private fun annotation(uuid: String, text: String?, note: String?, type: AnnotationType = AnnotationType.HIGHLIGHT, total: Double = 0.25) = BookAnnotation(
+        BookKey("acc1", 1), uuid, type, Locator("c1.xhtml", title = "Chapter 1", locations = Locations(cfi = "epubcfi(/6/4!/4/2,/1:0,/1:5)", totalProgression = total)),
+        text, note, AnnotationColor.GREEN, 1, 1, pending = false,
+    )
+
+    private fun showReader(state: ReaderUiState, actions: AnnotationActions, eink: Boolean = false) {
+        compose.setContent {
+            EbookReaderTheme(dynamicColor = false, einkMode = eink) {
+                ReaderContent(
+                    state = state, surface = {}, onBack = {}, onJumpRemote = {}, onKeepLocal = {}, onShowToc = {}, onHideToc = {},
+                    onTocClick = {}, onShowSettings = {}, onHideSettings = {}, onSettings = {}, onKeepScreenOn = {}, onConfirmLink = {},
+                    onDismissLink = {}, annotationActions = actions,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun reader_annotationListGroupsJumpsAndDeletes() {
+        val jumped = mutableListOf<String>()
+        val deleted = mutableListOf<String>()
+        val state = ReaderUiState(
+            phase = ReaderPhase.READING, supportsAnnotations = true, showAnnotations = true,
+            annotations = listOf(
+                annotation("h1", "Hello world", null),
+                annotation("n1", "Quoted", "My thought", type = AnnotationType.NOTE),
+                annotation("b1", "Page 3", null, type = AnnotationType.BOOKMARK),
+            ),
+        )
+        showReader(state, AnnotationActions(onJump = { jumped += it.uuid }, onDelete = { deleted += it }), eink = true)
+        compose.onNodeWithTag("annotations_page").assertIsDisplayed() // e-ink: plain page, no sheet animation
+        compose.onNodeWithText("Highlights").assertIsDisplayed()
+        compose.onNodeWithText("Notes").assertIsDisplayed()
+        compose.onNodeWithText("Bookmarks").assertIsDisplayed()
+        compose.onNodeWithText("My thought").assertIsDisplayed()
+        compose.onAllNodesWithText("Chapter 1, 25 %").fetchSemanticsNodes().let { assertEquals(3, it.size) }
+        compose.onNodeWithTag("annotation_h1").performClick()
+        compose.onNodeWithTag("annotation_delete_n1").performClick()
+        assertEquals(listOf("h1"), jumped)
+        assertEquals(listOf("n1"), deleted)
+    }
+
+    @Test
+    fun reader_emptyAnnotationListExplainsHowToStart() {
+        showReader(ReaderUiState(phase = ReaderPhase.READING, supportsAnnotations = true, showAnnotations = true), AnnotationActions(), eink = true)
+        compose.onNodeWithTag("annotations_empty").assertIsDisplayed()
+    }
+
+    @Test
+    fun reader_highlightPopupChangesColorAndOpensTheNoteDialog() {
+        val colors = mutableListOf<AnnotationColor>()
+        val saved = mutableListOf<String>()
+        val a = annotation("h1", "Hello world", null)
+        val state = ReaderUiState(
+            phase = ReaderPhase.READING, supportsAnnotations = true, annotations = listOf(a),
+            popup = AnnotationPopup("h1", SelectionRect(20.0, 300.0, 200.0, 320.0)),
+            noteEditor = NoteEditor("h1", "Hello world", ""),
+        )
+        showReader(state, AnnotationActions(onColor = { _, c -> colors += c }, onSaveNote = { saved += it }))
+        compose.onNodeWithTag("annotation_popup").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Green (selected)").assertExists()
+        compose.onNodeWithTag("annotation_color_purple").performClick()
+        assertEquals(listOf(AnnotationColor.PURPLE), colors)
+        compose.onNodeWithTag("annotation_note_field").performTextInput("A note")
+        compose.onNodeWithTag("annotation_note_save").performClick()
+        assertEquals(listOf("A note"), saved)
+    }
+
+    @Test
+    fun popupStaysInsideThePage() {
+        val (x, y) = popupOffset(AnnotationPopup("a", SelectionRect(0.0, 10.0, 20.0, 30.0)), 360.dp, 640.dp)
+        assertEquals(8f, x.value, 0.01f) // clamped to the left edge
+        assertEquals(38f, y.value, 0.01f) // no room above: below the selection
+        val (x2, y2) = popupOffset(AnnotationPopup("a", SelectionRect(300.0, 400.0, 350.0, 420.0)), 360.dp, 640.dp)
+        assertEquals(32f, x2.value, 0.01f) // 360 - 320 - 8
+        assertEquals(336f, y2.value, 0.01f) // above: 400 - 56 - 8
+    }
+
     // ---- downloads / settings ---------------------------------------------------------------------
 
     @Test
@@ -279,6 +369,47 @@ class ScreenTests {
         compose.onNodeWithTag("eink_mode").performClick()
         compose.waitUntil(5_000) { c.settingsRepository.state.value.einkMode }
         assertEquals("dark", c.settingsRepository.state.value.themeMode)
+    }
+
+    @Test
+    fun settings_donationEntryOnlyWithUrlAndLicensesOpen() {
+        val c = container()
+        var donation by mutableStateOf("")
+        var licenses = 0
+        show(c) {
+            SettingsContent(
+                com.somecatcode.ebookreader.data.repo.AppSettings(), onBack = {}, onUpdate = {}, onUpdateReader = {},
+                onOpenLicenses = { licenses++ }, donationUrl = donation,
+            )
+        }
+        compose.onAllNodesWithTag("donate").assertCountEquals(0)
+        donation = "https://ko-fi.com/example"
+        compose.onNodeWithTag("donate").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("third_party_licenses").performScrollTo().performClick()
+        assertEquals(1, licenses)
+    }
+
+    @Test
+    fun collection_showsReadingStateAndSwitchesBetweenGridAndList() {
+        val books = listOf(
+            book(1, "Done", status = ReadStatus.FINISHED),
+            book(2, "Halfway", status = ReadStatus.READING).copy(percentage = 0.42),
+            book(3, "New"),
+        )
+        var grid by mutableStateOf(true)
+        show(container()) {
+            CollectionContent(
+                state = CollectionUiState(loaded = true, title = "Want To Read", books = books, manualShelf = true, grid = grid),
+                isSeries = false, onBack = {}, onToggleOffline = {}, onOpenBook = {},
+                onToggleLayout = { grid = !grid },
+            )
+        }
+        compose.onNodeWithTag("collection_grid").assertIsDisplayed()
+        compose.onNodeWithText("42 %").assertIsDisplayed()
+        compose.onNodeWithText("Finished").assertIsDisplayed()
+        compose.onNodeWithTag("collection_layout_toggle").performClick()
+        compose.onNodeWithTag("collection_list").assertIsDisplayed()
+        compose.onNodeWithText("Unread").assertIsDisplayed()
     }
 }
 

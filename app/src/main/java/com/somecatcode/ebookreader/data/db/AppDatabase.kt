@@ -6,7 +6,7 @@ import androidx.room.RoomDatabase
 /**
  * The single Room database (all accounts share it, `accountId` is part of every key and removing
  * an account cascades). Schema JSON is exported to `app/schemas` and checked in; any schema change
- * needs a version bump plus a migration (no destructive fallback once released).
+ * needs a version bump plus a migration in `Migrations.kt` (no destructive fallback once released).
  */
 @Database(
     entities = [
@@ -18,8 +18,9 @@ import androidx.room.RoomDatabase
         ShelfBookEntity::class,
         DownloadEntity::class,
         PendingEditEntity::class,
+        AnnotationEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,6 +31,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun shelfDao(): ShelfDao
     abstract fun downloadDao(): DownloadDao
     abstract fun pendingEditDao(): PendingEditDao
+    abstract fun annotationDao(): AnnotationDao
 
     companion object {
         const val FILE_NAME = "ebookreader.db"

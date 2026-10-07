@@ -26,7 +26,11 @@ import com.somecatcode.ebookreader.data.api.SmartQueryDto
 import com.somecatcode.ebookreader.data.db.AppDatabase
 import com.somecatcode.ebookreader.data.db.DownloadEntity
 import com.somecatcode.ebookreader.data.download.DownloadManager
+import com.somecatcode.ebookreader.data.repo.AnnotationColor
+import com.somecatcode.ebookreader.data.repo.AnnotationRepository
+import com.somecatcode.ebookreader.data.repo.AnnotationType
 import com.somecatcode.ebookreader.data.repo.AppSettings
+import com.somecatcode.ebookreader.data.repo.BookAnnotation
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.DownloadRepository
 import com.somecatcode.ebookreader.data.repo.EditFailure
@@ -218,6 +222,29 @@ class FakeProgressRepository(
     override suspend fun pushDirty(accountId: String) = Unit
 }
 
+class FakeAnnotationRepository(initial: List<BookAnnotation> = emptyList()) : AnnotationRepository {
+    val state = MutableStateFlow(initial)
+    var refreshed = 0
+    private var next = 0
+    override fun annotations(key: BookKey): Flow<List<BookAnnotation>> = state.map { list -> list.filter { it.key == key } }
+    override suspend fun create(key: BookKey, locator: Locator, text: String?, color: AnnotationColor, note: String?): String {
+        val uuid = "00000000-0000-4000-8000-%012d".format(++next)
+        val type = if (note.isNullOrBlank()) AnnotationType.HIGHLIGHT else AnnotationType.NOTE
+        state.value = state.value + BookAnnotation(key, uuid, type, locator, text, note, color, next.toLong(), next.toLong(), true)
+        return uuid
+    }
+    override suspend fun setNote(key: BookKey, uuid: String, note: String?) = change(uuid) { it.copy(note = note?.takeIf { n -> n.isNotBlank() }) }
+    override suspend fun setColor(key: BookKey, uuid: String, color: AnnotationColor) = change(uuid) { it.copy(color = color) }
+    override suspend fun delete(key: BookKey, uuid: String) {
+        state.value = state.value.filterNot { it.uuid == uuid }
+    }
+    override suspend fun refresh(key: BookKey) { refreshed++ }
+    override suspend fun pushDirty(accountId: String) = Unit
+    private fun change(uuid: String, f: (BookAnnotation) -> BookAnnotation) {
+        state.value = state.value.map { if (it.uuid == uuid) f(it) else it }
+    }
+}
+
 class FakeDownloadRepository(private val localFile: File? = null) : DownloadRepository {
     val itemsState = MutableStateFlow<List<OfflineItem>>(emptyList())
     val used = MutableStateFlow(0L)
@@ -285,6 +312,7 @@ class FakeContainer(
     override val loginFlowClient: FakeLoginFlowClient = FakeLoginFlowClient(),
     override val apiClientFactory: FakeApiClientFactory = FakeApiClientFactory(),
     override val shelfRepository: FakeShelfRepository = FakeShelfRepository(),
+    override val annotationRepository: FakeAnnotationRepository = FakeAnnotationRepository(),
 ) : AppContainer {
     override val appContext: Context = context.applicationContext
     override val json: Json = ApiJson

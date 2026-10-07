@@ -6,7 +6,11 @@ import com.somecatcode.ebookreader.data.RecordingDownloadManager
 import com.somecatcode.ebookreader.data.RecordingScheduler
 import com.somecatcode.ebookreader.data.RoutingDispatcher
 import com.somecatcode.ebookreader.data.StaticApiFactory
+import com.somecatcode.ebookreader.data.UUID_A
+import com.somecatcode.ebookreader.data.UUID_B
+import com.somecatcode.ebookreader.data.annotationJson
 import com.somecatcode.ebookreader.data.bookJson
+import com.somecatcode.ebookreader.data.db.AnnotationEntity
 import com.somecatcode.ebookreader.data.db.DownloadEntity
 import com.somecatcode.ebookreader.data.db.PinnedBy
 import com.somecatcode.ebookreader.data.db.ProgressEntity
@@ -14,6 +18,7 @@ import com.somecatcode.ebookreader.data.ebookApi
 import com.somecatcode.ebookreader.data.ocs
 import com.somecatcode.ebookreader.data.ocsError
 import com.somecatcode.ebookreader.data.progressJson
+import com.somecatcode.ebookreader.data.repo.AnnotationRepositoryImpl
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.EditRepositoryImpl
 import com.somecatcode.ebookreader.data.repo.ProgressRepositoryImpl
@@ -45,7 +50,7 @@ class SyncEngineTest : DbTest() {
         val edits = EditRepositoryImpl(db, factory, scheduler)
         val progress = ProgressRepositoryImpl(db, factory, FakeSettings(), scheduler, { "Pixel" })
         engine = SyncEngineImpl(
-            db, factory, edits, progress, downloads,
+            db, factory, edits, progress, AnnotationRepositoryImpl(db, factory, scheduler), downloads,
             workManager = { error("WorkManager is not used in these tests") },
             scope = CoroutineScope(Dispatchers.Unconfined),
             clock = { 5_000 },
@@ -243,6 +248,7 @@ class SyncEngineTest : DbTest() {
             val e = SyncEngineImpl(
                 db, factory, EditRepositoryImpl(db, factory, RecordingScheduler()),
                 ProgressRepositoryImpl(db, factory, FakeSettings(), RecordingScheduler(), { "x" }),
+                AnnotationRepositoryImpl(db, factory, RecordingScheduler()),
                 downloads, { error("unused") }, CoroutineScope(Dispatchers.Unconfined),
             )
             assertEquals(SyncOutcome.Failure(SyncError.APP_UNAVAILABLE, retryable = false), e.syncNow("acc1"))
@@ -251,6 +257,88 @@ class SyncEngineTest : DbTest() {
 
         server.shutdown()
         assertEquals(SyncOutcome.Failure(SyncError.OFFLINE, retryable = true), engine.syncNow("acc1"))
+    }
+
+    // ---- annotations ----------------------------------------------------------------------------
+
+    private fun annotationPage(annotations: String, cursor: String = "c2", deleted: String = "") =
+        ocs("""{"books":[],"deleted":[$deleted],"progress":[],"annotations":[$annotations],"cursor":"$cursor","hasMore":false}""")
+
+    private fun localAnnotation(uuid: String, fileId: Long = 1, clientUpdatedAt: Long, dirty: Boolean, color: String = "yellow") =
+        AnnotationEntity("acc1", uuid, fileId, "highlight", """{"href":"c1.xhtml","locations":{"cfi":"epubcfi(/6/4!/4/2,/1:0,/1:5)"}}""",
+            "Hello", null, color, 1, if (dirty) 0 else 1, clientUpdatedAt, deleted = false, dirty = dirty)
+
+    @Test
+    fun syncMergesAnnotationsByUuidWithTombstonesAndTheClientClock() = runBlocking {
+        db.accountDao().updateSync("acc1", "c1", null)
+        val dao = db.annotationDao()
+        dao.upsert(localAnnotation(UUID_A, clientUpdatedAt = 10, dirty = false)) // replaced by the server
+        dao.upsert(localAnnotation(UUID_B, clientUpdatedAt = 9_000, dirty = true, color = "green")) // newer local change wins
+        dao.upsert(localAnnotation(THIRD, clientUpdatedAt = 10, dirty = false)) // deleted on the server
+        dispatcher.on("POST", "/annotations") { ocs("""{"current":${annotationJson(uuid = UUID_B, color = "pink", clientUpdatedAt = 9_500)}}""", 409) }
+        dispatcher.on("GET", "/sync") {
+            annotationPage(
+                listOf(
+                    annotationJson(uuid = UUID_A, color = "blue", clientUpdatedAt = 20),
+                    annotationJson(uuid = UUID_B, color = "pink", clientUpdatedAt = 500),
+                    annotationJson(uuid = THIRD, deleted = true, clientUpdatedAt = 30),
+                    annotationJson(uuid = FOURTH, fileId = 2, note = "from the web"),
+                ).joinToString(","),
+            )
+        }
+        // the push of the dirty row runs first (PUSH_LOCAL) and loses against a still newer web change
+        val outcome = engine.syncNow("acc1") as SyncOutcome.Success
+        assertEquals("blue", dao.get("acc1", UUID_A)!!.color)
+        assertEquals("pink", dao.get("acc1", UUID_B)!!.color)
+        assertFalse(dao.get("acc1", UUID_B)!!.dirty)
+        assertNull(dao.get("acc1", THIRD))
+        assertEquals("from the web", dao.get("acc1", FOURTH)!!.note) // the book row may come later
+        assertEquals(4, outcome.annotationsMerged)
+        assertTrue(dispatcher.requests.indexOfFirst { it.method == "POST" } < dispatcher.requests.indexOfFirst { it.path!!.contains("/sync") })
+    }
+
+    @Test
+    fun aDirtyLocalAnnotationNewerThanTheSyncRowIsKept() = runBlocking {
+        db.accountDao().updateSync("acc1", "c1", null)
+        db.annotationDao().upsert(localAnnotation(UUID_A, clientUpdatedAt = 9_000, dirty = true, color = "green"))
+        dispatcher.on("POST", "/annotations") { MockResponse().setResponseCode(503).setBody("{}") } // upload fails this time
+        dispatcher.on("GET", "/sync") { annotationPage(annotationJson(uuid = UUID_A, color = "pink", clientUpdatedAt = 500)) }
+        engine.syncNow("acc1")
+        val row = db.annotationDao().get("acc1", UUID_A)!!
+        assertEquals("green", row.color)
+        assertTrue(row.dirty)
+    }
+
+    @Test
+    fun deletedBooksTakeTheirAnnotationsWithThem() = runBlocking {
+        db.accountDao().updateSync("acc1", "c1", null)
+        db.bookDao().upsertAll(listOf(book(1), book(2)))
+        db.annotationDao().upsert(localAnnotation(UUID_A, fileId = 2, clientUpdatedAt = 1, dirty = false))
+        db.annotationDao().upsert(localAnnotation(UUID_B, fileId = 1, clientUpdatedAt = 1, dirty = false))
+        dispatcher.on("GET", "/sync") { annotationPage("", deleted = "2") }
+        engine.syncNow("acc1")
+        assertNull(db.annotationDao().get("acc1", UUID_A))
+        assertNotNull(db.annotationDao().get("acc1", UUID_B))
+    }
+
+    private companion object {
+        const val THIRD = "00000000-0000-4000-8000-000000000003"
+        const val FOURTH = "00000000-0000-4000-8000-000000000004"
+    }
+
+    @Test
+    fun syncStoresServerAndAppVersionAndStopsWithoutTheApp() = runBlocking {
+        dispatcher.on("GET", "/sync") { syncPage(cursor = "c1") }
+        dispatcher.on("GET", "/cloud/capabilities") {
+            ocs("""{"version":{"major":34,"minor":0,"micro":1,"string":"34.0.1"},"capabilities":{"ebookreader":{"version":"0.8.0","apiVersion":1}}}""")
+        }
+        assertTrue(engine.syncNow("acc1") is SyncOutcome.Success)
+        val account = db.accountDao().get("acc1")!!
+        assertEquals("34.0.1", account.serverVersion)
+        assertEquals("0.8.0", account.appVersion)
+
+        dispatcher.on("GET", "/cloud/capabilities") { ocs("""{"version":{"string":"34.0.1"},"capabilities":{}}""") }
+        assertEquals(SyncOutcome.Failure(SyncError.APP_UNAVAILABLE, retryable = false), engine.syncNow("acc1"))
     }
 
     @Test

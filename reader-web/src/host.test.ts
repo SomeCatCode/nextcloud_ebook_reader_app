@@ -1,6 +1,6 @@
 /**
  * SPDX-FileCopyrightText: 2026 Felix Kurth
- * SPDX-License-Identifier: AGPL-3.0-or-later
+ * SPDX-License-Identifier: LicenseRef-Proprietary
  */
 import type { ReaderHandle, ReaderOptions } from '../../third_party/nextcloud_ebook_reader/packages/reader-core/src/types.ts'
 import type { ReaderToHostMsg } from './protocol.ts'
@@ -38,6 +38,9 @@ function fakeReader(opts: { info?: object, failOpen?: Error } = {}) {
 			return () => {}
 		}),
 		destroy: vi.fn(),
+		setAnnotations: vi.fn(),
+		supportsAnnotations: vi.fn(() => !(opts.info as { isComic?: boolean } | undefined)?.isComic),
+		clearSelection: vi.fn(),
 	}
 	/**
 	 * @param name
@@ -284,5 +287,78 @@ describe('comic zoom', () => {
 		host.tap('right')
 		host.tap('left')
 		expect(fr.calls).toEqual(['next', 'prev'])
+	})
+})
+
+describe('annotations', () => {
+	const HL = { id: '6f9619ff-8b86-4011-b42d-00c04fc964ff', cfi: 'epubcfi(/6/4!/4/2,/1:0,/1:9)', color: 'green', hasNote: true }
+
+	it('reports whether the book supports annotations', async () => {
+		const text = setup()
+		text.host.receive(OPEN)
+		await flush()
+		expect(text.sent[0]).toMatchObject({ type: 'opened', info: { supportsAnnotations: true } })
+		const comic = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }))
+		comic.host.receive({ ...OPEN, book: { ...OPEN.book, format: 'cbz' } })
+		await flush()
+		expect(comic.sent[0]).toMatchObject({ type: 'opened', info: { supportsAnnotations: false } })
+	})
+
+	it('keeps highlights sent before the book is open and draws them once it is', async () => {
+		const { host, fr } = setup()
+		host.receive({ type: 'setAnnotations', annotations: [HL] })
+		host.receive(OPEN)
+		expect(fr.handle.setAnnotations).not.toHaveBeenCalled()
+		await flush()
+		expect(fr.handle.setAnnotations).toHaveBeenLastCalledWith([HL])
+	})
+
+	it('updates highlights live and drops malformed entries', async () => {
+		const { host, fr } = setup()
+		host.receive(OPEN)
+		await flush()
+		host.receive({
+			type: 'setAnnotations',
+			annotations: [
+				{ ...HL, color: 'red' },
+				{ id: 'x', cfi: 'javascript:alert(1)' },
+				{ id: 1, cfi: 'epubcfi(/6/2!/4)' },
+				{ id: 'b', cfi: 'epubcfi(/6/2!/4)', hasNote: 'yes' },
+			],
+		})
+		expect(fr.handle.setAnnotations).toHaveBeenLastCalledWith([
+			{ ...HL, color: null },
+			{ id: 'b', cfi: 'epubcfi(/6/2!/4)', color: null, hasNote: false },
+		])
+		host.receive({ type: 'setAnnotations', annotations: [] })
+		expect(fr.handle.setAnnotations).toHaveBeenLastCalledWith([])
+	})
+
+	it('forwards selections and taps on highlights, clears the selection on request', async () => {
+		const { host, sent, fr } = setup()
+		host.receive(OPEN)
+		await flush()
+		sent.length = 0
+		const rect = { left: 1, top: 2, right: 3, bottom: 4 }
+		const locator = { href: 'c1.xhtml', locations: { cfi: HL.cfi, totalProgression: 0.2 } }
+		fr.emit('selection', { text: 'Hello', cfi: HL.cfi, locator, rect })
+		fr.emit('selection-clear', {})
+		fr.emit('annotation-click', { id: HL.id, rect })
+		expect(sent).toEqual([
+			{ type: 'selection', text: 'Hello', cfi: HL.cfi, locator, rect },
+			{ type: 'selectionClear' },
+			{ type: 'annotationClick', id: HL.id, rect },
+		])
+		host.receive({ type: 'clearSelection' })
+		expect(fr.handle.clearSelection).toHaveBeenCalled()
+	})
+
+	it('destroy forgets the highlights', async () => {
+		const { host, fr } = setup()
+		host.receive({ type: 'setAnnotations', annotations: [HL] })
+		host.receive({ type: 'destroy' })
+		host.receive(OPEN)
+		await flush()
+		expect(fr.handle.setAnnotations).toHaveBeenLastCalledWith([])
 	})
 })

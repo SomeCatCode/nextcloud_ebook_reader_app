@@ -15,7 +15,7 @@ import com.somecatcode.ebookreader.App
 import com.somecatcode.ebookreader.data.DataNotifications
 import java.util.concurrent.TimeUnit
 
-/** Schedules the upload of local changes (edits and reading progress) once connectivity is there. */
+/** Schedules the upload of local changes (edits, reading progress, annotations) once connectivity is there. */
 interface LocalChangesScheduler {
     fun schedule(accountId: String)
 }
@@ -37,13 +37,14 @@ class WorkManagerLocalChangesScheduler(private val workManager: () -> WorkManage
     }
 }
 
-/** Uploads pending edits and dirty progress of one account. */
+/** Uploads pending edits, dirty progress and annotations of one account. */
 class PushWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
         val accountId = inputData.getString(SyncWorker.KEY_ACCOUNT) ?: return Result.failure()
         val container = (applicationContext as App).container
         container.editRepository.flushPending(accountId)
         container.progressRepository.pushDirty(accountId)
+        container.annotationRepository.pushDirty(accountId)
         return Result.success()
     }
 }

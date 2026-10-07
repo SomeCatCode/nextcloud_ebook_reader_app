@@ -39,4 +39,4 @@ Keine Analyse, kein Tracking, keine Drittanbieter-SDKs mit Datenerhebung. App-Pa
 
 ## Lizenz
 
-[AGPL-3.0-or-later](LICENSE), wie die Nextcloud-App.
+Proprietär, alle Rechte vorbehalten (siehe [LICENSE](LICENSE)). Die App ist nicht quelloffen; Komponenten Dritter behalten ihre eigenen Lizenzen (Hinweise in `app/src/main/assets/third_party_licenses.txt`).

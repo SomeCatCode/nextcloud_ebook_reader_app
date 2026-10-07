@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Toc
+import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -79,7 +80,7 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
     val vm = containerViewModel(key = "reader/$accountId/$fileId") { c ->
         val prefs = UiPrefs(c.appContext)
         ReaderViewModel(
-            key, c.libraryRepository, c.progressRepository, c.downloadRepository, c.settingsRepository,
+            key, c.libraryRepository, c.progressRepository, c.downloadRepository, c.settingsRepository, c.annotationRepository,
             keepScreenOn = prefs.readerKeepScreenOn,
             onKeepScreenOnChanged = { prefs.readerKeepScreenOn = it },
         )
@@ -93,6 +94,9 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
         }
     }
     LaunchedEffect(host) { host.events.collect(vm::onEvent) }
+    LaunchedEffect(host) {
+        host.selectionActions.collect { action -> if (vm.onSelectionAction(action)) host.send(HostToReader.ClearSelection) }
+    }
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { vm.flushProgress() }
 
     val state by vm.state.collectAsState()
@@ -100,11 +104,16 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
     LaunchedEffect(state.settings, state.phase) {
         if (state.phase == ReaderPhase.READING) host.send(HostToReader.SetSettings(state.settings))
     }
+    // highlights follow every change (local or synced); the page keeps the list across (re)opens
+    val drawn = state.drawnAnnotations
+    LaunchedEffect(drawn) { host.send(HostToReader.SetAnnotations(drawn)) }
 
     ReaderSystemBars(hidden = true)
     KeepScreenOn(state.keepScreenOn)
-    BackHandler(enabled = state.showToc || state.showSettings || state.barsVisible) {
+    BackHandler(enabled = state.showToc || state.showSettings || state.barsVisible || state.popup != null || state.showAnnotations) {
         when {
+            state.popup != null -> vm.dismissPopup()
+            state.showAnnotations -> vm.showAnnotations(false)
             state.showToc -> vm.showToc(false)
             state.showSettings -> vm.showSettings(false)
             else -> vm.toggleBars()
@@ -132,6 +141,20 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
             openExternal(context, url)
         },
         onDismissLink = vm::dismissExternalLink,
+        annotationActions = AnnotationActions(
+            onColor = vm::setColor,
+            onEditNote = vm::editNote,
+            onDelete = vm::deleteAnnotation,
+            onDismissPopup = vm::dismissPopup,
+            onSaveNote = vm::saveNote,
+            onDismissNote = vm::dismissNoteEditor,
+            onShowList = { vm.showAnnotations(true) },
+            onHideList = { vm.showAnnotations(false) },
+            onJump = { a ->
+                host.send(HostToReader.GoTo(locator = a.locator))
+                vm.showAnnotations(false)
+            },
+        ),
     )
 }
 
@@ -184,6 +207,7 @@ fun ReaderContent(
     onKeepScreenOn: (Boolean) -> Unit,
     onConfirmLink: (String) -> Unit,
     onDismissLink: () -> Unit,
+    annotationActions: AnnotationActions = AnnotationActions(),
 ) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
         Box(Modifier.fillMaxSize()) {
@@ -203,11 +227,18 @@ fun ReaderContent(
                 else -> Unit
             }
 
+            if (state.phase == ReaderPhase.READING) AnnotationPopupOverlay(state, annotationActions)
+
             if (state.barsVisible && state.phase != ReaderPhase.ERROR) {
                 Surface(Modifier.align(Alignment.TopCenter).fillMaxWidth(), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f), tonalElevation = 2.dp) {
                     Row(Modifier.statusBarsPadding().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                         BackButton(onBack)
                         Text(state.title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        if (state.supportsAnnotations || state.annotations.isNotEmpty()) {
+                            IconButton(onClick = annotationActions.onShowList, modifier = Modifier.testTag("reader_annotations")) {
+                                Icon(Icons.Filled.Bookmarks, contentDescription = stringResource(R.string.reader_annotations))
+                            }
+                        }
                         IconButton(onClick = onShowToc, enabled = state.toc.isNotEmpty(), modifier = Modifier.testTag("reader_toc")) {
                             Icon(Icons.AutoMirrored.Filled.Toc, contentDescription = stringResource(R.string.reader_toc))
                         }
@@ -226,10 +257,13 @@ fun ReaderContent(
                     }
                 }
             }
+            AnnotationsPage(state, annotationActions)
         }
     }
 
     state.conflict?.let { ConflictDialog(it, onJumpRemote, onKeepLocal) }
+    AnnotationsSheet(state, annotationActions)
+    state.noteEditor?.let { NoteEditorDialog(it, annotationActions) }
     if (state.showToc) {
         ModalBottomSheet(onDismissRequest = onHideToc) { TocList(state.toc, onTocClick) }
     }

@@ -49,7 +49,10 @@ class EbookApiImpl(
     }
 
     private fun ocsUrl(path: String): HttpUrl.Builder =
-        base("ocs/v2.php/apps/ebookreader/api/v1", path).addQueryParameter("format", "json")
+        // No `format=json` here: GET /books has its own `format` filter (epub, cbz, ...), so `format=json`
+        // filtered for books in the format "json" and every book list came back empty. The OCS response
+        // format is chosen by the `Accept: application/json` header instead (as the web app does).
+        base("ocs/v2.php/apps/ebookreader/api/v1", path)
 
     private fun contentUrl(path: String): HttpUrl.Builder = base("index.php/apps/ebookreader", path)
 
@@ -230,6 +233,41 @@ class EbookApiImpl(
         return out
     }
 
+    // ---- annotations ----------------------------------------------------------------------------------
+
+    override suspend fun annotations(fileId: Long): List<AnnotationDto> =
+        getOcs("books/$fileId/annotations", AnnotationListDto.serializer()).annotations
+
+    override suspend fun upsertAnnotation(fileId: Long, body: AnnotationUpsertRequest): AnnotationWriteResult =
+        annotationWrite("POST", ocsUrl("books/$fileId/annotations").build(), encode(AnnotationUpsertRequest.serializer(), body))
+
+    override suspend fun patchAnnotation(uuid: String, patch: AnnotationPatchRequest): AnnotationWriteResult =
+        annotationWrite("PATCH", ocsUrl("annotations/${annotationId(uuid)}").build(), encode(AnnotationPatchRequest.serializer(), patch))
+
+    override suspend fun deleteAnnotation(uuid: String, clientUpdatedAt: Long): AnnotationWriteResult =
+        annotationWrite(
+            "DELETE",
+            ocsUrl("annotations/${annotationId(uuid)}").addQueryParameter("clientUpdatedAt", clientUpdatedAt.toString()).build(),
+            null,
+        )
+
+    /** Only UUIDs go into the path (the server route accepts nothing else). */
+    private fun annotationId(uuid: String): String {
+        if (!UUID_PATTERN.matches(uuid)) throw ApiException.BadRequest("Invalid annotation id")
+        return uuid.lowercase()
+    }
+
+    private suspend fun annotationWrite(method: String, url: HttpUrl, body: JsonElement?): AnnotationWriteResult {
+        execute(jsonRequest(method, url, body)).use { r ->
+            val text = readBody(r)
+            if (r.code == 409) {
+                return AnnotationWriteResult.Conflict(decodeEnvelope(r.code, text, AnnotationConflictDto.serializer()).current)
+            }
+            if (!r.isSuccessful) throw mapHttpError(r.code, r.header("Retry-After"), text)
+            return AnnotationWriteResult.Stored(decodeEnvelope(r.code, text, AnnotationDto.serializer()))
+        }
+    }
+
     // ---- editing --------------------------------------------------------------------------------------
 
     override suspend fun patchAppData(fileId: Long, patch: AppDataPatch): BookDto {
@@ -298,6 +336,7 @@ class EbookApiImpl(
     private companion object {
         const val MAX_BATCH = 100
         const val MAX_SHELF_IDS = 500
+        val UUID_PATTERN = Regex("^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$")
         val JSON_MEDIA = "application/json".toMediaType()
     }
 }

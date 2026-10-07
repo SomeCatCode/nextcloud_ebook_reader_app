@@ -50,11 +50,14 @@ class ReaderHostImpl(
     private val queue = ArrayDeque<HostToReader>()
     private var lastOpen: HostToReader.Open? = null
     private var settings: ReaderSettings? = null
+    private var annotations: HostToReader.SetAnnotations? = null
+    private val _selectionActions = MutableSharedFlow<SelectionAction>(extraBufferCapacity = 8, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private var attachments = 0
     private var destroyed = false
 
     override val events: Flow<ReaderToHost> = _events.asSharedFlow()
     override val ready: Flow<Boolean> = _ready.asStateFlow()
+    override val selectionActions: Flow<SelectionAction> = _selectionActions.asSharedFlow()
 
     /** Latest [ReaderToHost.Opened] info (null until the book is open). Survives late collectors. */
     val bookInfo: StateFlow<BookInfo?> = _bookInfo.asStateFlow()
@@ -107,6 +110,14 @@ class ReaderHostImpl(
         }
     }
 
+    /** One of the app's entries of the text selection menu was tapped (main thread). */
+    fun onSelectionAction(action: SelectionAction) {
+        _selectionActions.tryEmit(action)
+    }
+
+    /** True while the open book supports highlights (the selection menu offers the app's entries). */
+    val supportsAnnotations: Boolean get() = _bookInfo.value?.supportsAnnotations == true
+
     fun onRenderProcessGone() {
         detach()
         _events.tryEmit(ReaderToHost.Error(ErrorCode.READER, "The reader process stopped"))
@@ -144,6 +155,8 @@ class ReaderHostImpl(
                 val reopen = lastOpen
                 if (attachments > 1 && reopen != null && queue.none { it is HostToReader.Open }) {
                     add(reopen.copy(initialLocator = _lastRelocate.value?.locator ?: reopen.initialLocator, settings = settings ?: reopen.settings))
+                    // a new page knows no highlights yet
+                    annotations?.takeIf { queue.none { it is HostToReader.SetAnnotations } }?.let(::add)
                 }
                 addAll(queue)
                 queue.clear()
@@ -166,11 +179,16 @@ class ReaderHostImpl(
                     _lastRelocate.value = null
                 }
                 is HostToReader.SetSettings -> settings = message.settings
-                HostToReader.Destroy -> lastOpen = null
+                is HostToReader.SetAnnotations -> annotations = message
+                HostToReader.Destroy -> {
+                    lastOpen = null
+                    annotations = null
+                }
                 else -> Unit
             }
             if (!_ready.value) {
                 if (message is HostToReader.Open) queue.removeAll { it is HostToReader.Open }
+                if (message is HostToReader.SetAnnotations) queue.removeAll { it is HostToReader.SetAnnotations }
                 queue.addLast(message)
                 return
             }

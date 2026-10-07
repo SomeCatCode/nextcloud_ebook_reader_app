@@ -90,10 +90,10 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: >
-          ./gradlew lint test bundleRelease assembleRelease --stacktrace
-          -PappVersionCode=${{ steps.version.outputs.code }}
-          -PappVersionName=${{ steps.version.outputs.name }}
+        # Two runs: the APK (GitHub release) may show the donation link, the AAB for Google Play never does.
+        run: |
+          ./gradlew lint test assembleRelease --stacktrace             -PappVersionCode=${{ steps.version.outputs.code }}             -PappVersionName=${{ steps.version.outputs.name }}
+          ./gradlew bundleRelease --stacktrace -PplayBuild=true             -PappVersionCode=${{ steps.version.outputs.code }}             -PappVersionName=${{ steps.version.outputs.name }}
 
       - name: Collect artifacts
         id: files
