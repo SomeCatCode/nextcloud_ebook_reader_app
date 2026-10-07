@@ -187,11 +187,8 @@
     <string name="reader_theme_sepia">セピア</string>
     <string name="settings_about">このアプリについて</string>
     <string name="settings_version">バージョン %1$s</string>
-    <string name="settings_license">ライセンス: AGPL-3.0-or-later</string>
     <string name="settings_unofficial">非公式アプリであり、Nextcloud GmbH とは関係ありません。</string>
-    <string name="settings_source">ソースコード</string>
     <string name="settings_privacy">プライバシーポリシー</string>
-    <string name="settings_license_link">ライセンス全文</string>
 
     <!-- Reader -->
     <string name="reader_toc">目次</string>
@@ -273,4 +270,32 @@
     <string name="sync_never">まだ同期されていません</string>
     <string name="sync_running">同期中…</string>
     <string name="book_in_shelves">本棚</string>
+    <string name="account_app_outdated">このサーバーの E-Book Reader アプリは古くなっています。一部の機能にはバージョン %1$s 以降が必要です。</string>
+    <string name="account_app_version_unknown">不明（%1$s より前）</string>
+    <string name="account_versions">Nextcloud %1$s · E-Book Reader %2$s</string>
+    <string name="annotation_add_note">メモを追加</string>
+    <string name="annotation_bookmark">ブックマーク</string>
+    <string name="annotation_color_blue">青</string>
+    <string name="annotation_color_green">緑</string>
+    <string name="annotation_color_pink">ピンク</string>
+    <string name="annotation_color_purple">紫</string>
+    <string name="annotation_color_selected">%1$s（選択中）</string>
+    <string name="annotation_color_yellow">黄</string>
+    <string name="annotation_delete">削除</string>
+    <string name="annotation_edit_note">メモを編集</string>
+    <string name="annotation_note_label">メモ</string>
+    <string name="annotation_note_title_new">新しいメモ</string>
+    <string name="annotation_pending">未同期</string>
+    <string name="annotations_empty">ハイライトやメモはまだありません。本文のテキストを選択して、ハイライトやメモを追加できます。</string>
+    <string name="annotations_empty_fixed">ハイライトとメモはテキストの書籍でのみ利用できます。Web 版で作成したブックマークはここに表示されます。</string>
+    <string name="annotations_group_bookmarks">ブックマーク</string>
+    <string name="annotations_group_highlights">ハイライト</string>
+    <string name="annotations_group_notes">メモ</string>
+    <string name="banner_server_outdated">サーバーアプリ（E-Book Reader %1$s）が推奨バージョン（%2$s）より古いため、一部の機能を利用できません。</string>
+    <string name="reader_annotation_highlight">ハイライト</string>
+    <string name="reader_annotation_note">メモ</string>
+    <string name="reader_annotations">ハイライトとメモ</string>
+    <string name="settings_donate">アプリを応援する</string>
+    <string name="settings_donate_hint">ブラウザーで寄付ページを開きます。このアプリには広告もトラッキングもありません。</string>
+    <string name="settings_third_party_licenses">サードパーティのライセンス</string>
 </resources>

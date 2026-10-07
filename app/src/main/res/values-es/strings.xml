@@ -191,11 +191,8 @@
     <string name="reader_theme_sepia">Sepia</string>
     <string name="settings_about">Acerca de</string>
     <string name="settings_version">Versión %1$s</string>
-    <string name="settings_license">Licencia: AGPL-3.0-or-later</string>
     <string name="settings_unofficial">App no oficial, sin relación con Nextcloud GmbH.</string>
-    <string name="settings_source">Código fuente</string>
     <string name="settings_privacy">Política de privacidad</string>
-    <string name="settings_license_link">Texto de la licencia</string>
 
     <!-- Reader -->
     <string name="reader_toc">Índice</string>
@@ -277,4 +274,32 @@
     <string name="sync_never">Aún no sincronizado</string>
     <string name="sync_running">Sincronizando…</string>
     <string name="book_in_shelves">Estanterías</string>
+    <string name="account_app_outdated">La app E-Book Reader de este servidor está desactualizada. Algunas funciones requieren la versión %1$s o posterior.</string>
+    <string name="account_app_version_unknown">desconocida (anterior a %1$s)</string>
+    <string name="account_versions">Nextcloud %1$s · E-Book Reader %2$s</string>
+    <string name="annotation_add_note">Añadir nota</string>
+    <string name="annotation_bookmark">Marcador</string>
+    <string name="annotation_color_blue">Azul</string>
+    <string name="annotation_color_green">Verde</string>
+    <string name="annotation_color_pink">Rosa</string>
+    <string name="annotation_color_purple">Morado</string>
+    <string name="annotation_color_selected">%1$s (seleccionado)</string>
+    <string name="annotation_color_yellow">Amarillo</string>
+    <string name="annotation_delete">Eliminar</string>
+    <string name="annotation_edit_note">Editar nota</string>
+    <string name="annotation_note_label">Nota</string>
+    <string name="annotation_note_title_new">Nueva nota</string>
+    <string name="annotation_pending">Aún no sincronizado</string>
+    <string name="annotations_empty">Todavía no hay resaltados ni notas. Selecciona texto en el libro para resaltarlo o añadir una nota.</string>
+    <string name="annotations_empty_fixed">Los resaltados y las notas solo están disponibles en libros de texto. Aquí aparecen los marcadores creados en la app web.</string>
+    <string name="annotations_group_bookmarks">Marcadores</string>
+    <string name="annotations_group_highlights">Resaltados</string>
+    <string name="annotations_group_notes">Notas</string>
+    <string name="banner_server_outdated">La app del servidor (E-Book Reader %1$s) es más antigua de lo recomendado (%2$s). Algunas funciones no están disponibles.</string>
+    <string name="reader_annotation_highlight">Resaltar</string>
+    <string name="reader_annotation_note">Nota</string>
+    <string name="reader_annotations">Resaltados y notas</string>
+    <string name="settings_donate">Apoyar la app</string>
+    <string name="settings_donate_hint">Abre la página de donaciones en el navegador. La app no tiene anuncios ni seguimiento.</string>
+    <string name="settings_third_party_licenses">Licencias de terceros</string>
 </resources>

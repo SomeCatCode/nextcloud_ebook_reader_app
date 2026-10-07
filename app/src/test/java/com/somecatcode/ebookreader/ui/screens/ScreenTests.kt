@@ -389,6 +389,7 @@ class ScreenTests {
         assertEquals(1, licenses)
     }
 
+    @Test
     fun collection_showsReadingStateAndSwitchesBetweenGridAndList() {
         val books = listOf(
             book(1, "Done", status = ReadStatus.FINISHED),
