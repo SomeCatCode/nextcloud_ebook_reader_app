@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">E-Book Reader</string>
+
+    <!-- Navigation / screens -->
+    <string name="nav_accounts">Cuentas</string>
+    <string name="nav_library">Biblioteca</string>
+    <string name="nav_downloads">Descargas</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="screen_book_detail">Detalles del libro</string>
+
+    <!-- Common actions -->
+    <string name="action_back">Atrás</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_ok">Aceptar</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_apply">Aplicar</string>
+    <string name="action_clear">Borrar</string>
+    <string name="action_remove">Quitar</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_refresh">Actualizar</string>
+    <string name="action_more">Más opciones</string>
+
+    <!-- Accounts -->
+    <string name="accounts_add">Añadir cuenta</string>
+    <string name="accounts_empty_title">Aún no hay cuentas</string>
+    <string name="accounts_empty_body">Inicia sesión en tu servidor Nextcloud para ver tu biblioteca de libros electrónicos.</string>
+    <string name="account_last_sync">Última sincronización: %1$s</string>
+    <string name="account_never_synced">Aún no sincronizada</string>
+    <string name="account_sign_in_again">Volver a iniciar sesión</string>
+    <string name="account_sync_now">Sincronizar ahora</string>
+    <string name="account_remove">Quitar</string>
+    <string name="status_ok">Conectada</string>
+    <string name="status_syncing">Sincronizando…</string>
+    <string name="status_offline">Sin conexión</string>
+    <string name="status_auth_expired">La sesión ha caducado. Vuelve a iniciar sesión.</string>
+    <string name="status_app_unavailable">La app E-Book Reader no está en el servidor o es anterior a la versión 0.5.0.</string>
+    <string name="status_error">Error al sincronizar. El servidor informó de un error.</string>
+
+    <string name="add_title">Añadir cuenta</string>
+    <string name="relogin_title">Volver a iniciar sesión</string>
+    <string name="add_server_intro">Introduce la dirección de tu servidor Nextcloud. Inicias sesión en el navegador; la app nunca ve tu contraseña.</string>
+    <string name="add_server_label">Dirección del servidor</string>
+    <string name="add_server_hint">cloud.example.org</string>
+    <string name="add_sign_in">Iniciar sesión</string>
+    <string name="add_starting">Contactando con el servidor…</string>
+    <string name="add_waiting">Esperando al navegador…</string>
+    <string name="add_waiting_body">Inicia sesión y concede el acceso en el navegador; después vuelve a esta app.</string>
+    <string name="add_open_browser">Abrir el navegador de nuevo</string>
+    <string name="add_verifying">Comprobando el servidor…</string>
+    <string name="add_error_invalid_url">Introduce una dirección HTTPS válida, por ejemplo cloud.example.org.</string>
+    <string name="add_error_network">No se pudo contactar con el servidor. Comprueba la dirección y tu conexión.</string>
+    <string name="add_error_timeout">El inicio de sesión no se completó a tiempo. Inténtalo de nuevo.</string>
+    <string name="add_error_app_missing">La app E-Book Reader no está instalada en este servidor.</string>
+    <string name="add_error_app_too_old">La app E-Book Reader de este servidor es demasiado antigua. Se necesita la versión 0.5.0 o posterior.</string>
+    <string name="add_error_duplicate">Esta cuenta ya se ha añadido.</string>
+    <string name="add_error_wrong_user">Has iniciado sesión con un usuario distinto al de esta cuenta.</string>
+    <string name="add_error_rejected">El servidor rechazó el inicio de sesión.</string>
+    <string name="add_error_generic">Error al iniciar sesión. Inténtalo de nuevo.</string>
+
+    <string name="remove_title">¿Quitar la cuenta?</string>
+    <string name="remove_body">Se cerrará la sesión de %1$s (%2$s). Su contraseña de aplicación se revoca en el servidor, y la biblioteca guardada y los libros sin conexión de esta cuenta se eliminan de este dispositivo.</string>
+    <string name="remove_confirm">Quitar cuenta</string>
+    <string name="remove_revoke_failed_title">Cuenta quitada</string>
+    <string name="remove_revoke_failed_body">No se pudo revocar la contraseña de aplicación en el servidor (¿sin conexión?). Elimínala manualmente en Nextcloud, en Ajustes, Seguridad, Dispositivos y sesiones.</string>
+
+    <!-- Library -->
+    <string name="library_welcome_title">Te damos la bienvenida a E-Book Reader</string>
+    <string name="library_welcome_body">Añade tu cuenta de Nextcloud para explorar, descargar y leer tus libros electrónicos. Esta es una app no oficial, sin relación con Nextcloud GmbH.</string>
+    <string name="library_all_accounts">Todas las cuentas</string>
+    <string name="library_tab_books">Libros</string>
+    <string name="library_tab_shelves">Estanterías</string>
+    <string name="library_tab_series">Series</string>
+    <string name="library_search">Buscar</string>
+    <string name="library_search_close">Cerrar búsqueda</string>
+    <string name="library_search_hint">Buscar título, autor, serie</string>
+    <string name="library_layout_list">Ver como lista</string>
+    <string name="library_layout_grid">Ver como cuadrícula</string>
+    <string name="library_sort">Ordenar</string>
+    <string name="library_continue_reading">Seguir leyendo</string>
+    <string name="library_empty_title">Aún no hay libros</string>
+    <string name="library_empty_body">Desliza hacia abajo para sincronizar tu biblioteca desde el servidor.</string>
+    <string name="library_no_results">Ningún libro coincide con tus filtros</string>
+    <string name="library_select_book">Selecciona un libro</string>
+    <string name="shelves_empty">No hay estanterías</string>
+    <string name="series_empty">No hay series</string>
+    <string name="shelf_smart">Estantería inteligente</string>
+    <string name="series_read_count">%1$d de %2$d leídos</string>
+    <plurals name="books_count">
+        <item quantity="one">%d libro</item>
+        <item quantity="many">%d de libros</item>
+        <item quantity="other">%d libros</item>
+    </plurals>
+    <plurals name="volumes_count">
+        <item quantity="one">%d volumen</item>
+        <item quantity="many">%d de volúmenes</item>
+        <item quantity="other">%d volúmenes</item>
+    </plurals>
+
+    <string name="filter_status">Estado</string>
+    <string name="filter_any">Cualquiera</string>
+    <string name="filter_offline_only">Solo sin conexión</string>
+    <string name="filter_clear_all">Borrar filtros</string>
+    <string name="filter_none_available">Aún no hay nada para elegir.</string>
+
+    <string name="sort_title">Título</string>
+    <string name="sort_author">Autor</string>
+    <string name="sort_series">Serie</string>
+    <string name="sort_rating">Valoración</string>
+    <string name="sort_added">Fecha de adición</string>
+    <string name="sort_recently_read">Leídos recientemente</string>
+    <string name="sort_ascending">Ascendente</string>
+    <string name="sort_descending">Descendente</string>
+
+    <string name="status_unread">No leído</string>
+    <string name="status_reading">Leyendo</string>
+    <string name="status_finished">Leído</string>
+
+    <string name="banner_offline">Sin conexión. Se muestra la biblioteca guardada.</string>
+    <string name="banner_auth_expired">Tu sesión ha caducado.</string>
+    <string name="banner_server_error">La sincronización falló por un error del servidor.</string>
+
+    <!-- Book detail / editing -->
+    <string name="book_not_found">Este libro ya no está disponible.</string>
+    <string name="book_read_online">Leer</string>
+    <string name="book_read_offline">Leer (sin conexión)</string>
+    <string name="book_view_only">Este libro se ha compartido solo para ver y no se puede abrir en la app.</string>
+    <string name="book_available_offline">Disponible sin conexión</string>
+    <string name="book_progress">Progreso: %1$s</string>
+    <string name="book_rating">Valoración</string>
+    <string name="book_status">Estado de lectura</string>
+    <string name="book_genres">Géneros</string>
+    <string name="book_tags">Etiquetas</string>
+    <string name="book_description">Descripción</string>
+    <string name="book_publisher">Editorial</string>
+    <string name="book_language">Idioma</string>
+    <string name="book_isbn">ISBN</string>
+    <string name="book_edit">Editar libro</string>
+    <string name="rating_stars">%1$d estrellas</string>
+    <string name="edit_title">Título</string>
+    <string name="edit_authors">Autores</string>
+    <string name="edit_series">Serie</string>
+    <string name="edit_series_index">Volumen</string>
+    <string name="edit_comma_separated">Separa las entradas con comas</string>
+    <string name="edit_error_title_empty">El título no puede estar vacío.</string>
+    <string name="edit_error_index_invalid">Introduce el volumen como número.</string>
+    <string name="edit_pending">Pendiente de sincronizar</string>
+    <string name="edit_failed">El servidor rechazó un cambio: %1$s</string>
+
+    <string name="collection_empty">No hay libros aquí</string>
+    <string name="collection_offline_shelf">Hacer disponible sin conexión esta estantería</string>
+    <string name="collection_offline_series">Hacer disponible sin conexión esta serie</string>
+
+    <!-- Downloads -->
+    <string name="offline_available">Disponible sin conexión</string>
+    <string name="download_queued">En espera de descarga</string>
+    <string name="download_in_progress">Descargando</string>
+    <string name="download_failed">Error en la descarga</string>
+    <string name="download_failed_reason">Error en la descarga: %1$s</string>
+    <string name="download_cancel">Cancelar descarga</string>
+    <string name="downloads_empty_title">No hay libros sin conexión</string>
+    <string name="downloads_empty_body">Activa \"Disponible sin conexión\" en un libro, una estantería o una serie para leer sin conexión.</string>
+    <string name="downloads_storage_used">Almacenamiento usado: %1$s</string>
+    <string name="downloads_remove_all">Quitar todo</string>
+    <string name="downloads_remove_all_title">¿Quitar todas las descargas?</string>
+    <string name="downloads_remove_all_body">Todos los libros sin conexión se eliminan de este dispositivo. Tu biblioteca se mantiene.</string>
+    <string name="downloads_remove_account">Quitar todo</string>
+    <string name="downloads_remove_account_title">¿Quitar las descargas?</string>
+    <string name="downloads_remove_account_body">Todos los libros sin conexión de %1$s se eliminan de este dispositivo.</string>
+
+    <!-- Settings -->
+    <string name="settings_appearance">Apariencia</string>
+    <string name="settings_theme">Tema</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="settings_dynamic_color">Colores dinámicos</string>
+    <string name="settings_dynamic_color_hint">Usa los colores de tu fondo de pantalla (Android 12 y posteriores).</string>
+    <string name="settings_eink">Modo e-ink</string>
+    <string name="settings_eink_hint">Alto contraste, sin animaciones. Adecuado para pantallas de tinta electrónica.</string>
+    <string name="settings_downloads">Descargas</string>
+    <string name="settings_wifi_only">Descargar solo con Wi-Fi</string>
+    <string name="settings_wifi_only_hint">Ahorra datos móviles. Las descargas esperan hasta que haya Wi-Fi.</string>
+    <string name="settings_sync">Progreso de lectura</string>
+    <string name="settings_device_name">Nombre del dispositivo</string>
+    <string name="settings_device_name_hint">Se muestra en tus otros dispositivos cuando ofrecen saltar a esta posición.</string>
+    <string name="settings_reader">Valores predeterminados del lector</string>
+    <string name="settings_reader_font_size">Tamaño de letra: %1$d %%</string>
+    <string name="settings_reader_theme">Tema del lector</string>
+    <string name="reader_theme_auto">Automático</string>
+    <string name="reader_theme_sepia">Sepia</string>
+    <string name="settings_about">Acerca de</string>
+    <string name="settings_version">Versión %1$s</string>
+    <string name="settings_license">Licencia: AGPL-3.0-or-later</string>
+    <string name="settings_unofficial">App no oficial, sin relación con Nextcloud GmbH.</string>
+    <string name="settings_source">Código fuente</string>
+    <string name="settings_privacy">Política de privacidad</string>
+    <string name="settings_license_link">Texto de la licencia</string>
+
+    <!-- Reader -->
+    <string name="reader_toc">Índice</string>
+    <string name="reader_settings">Ajustes del lector</string>
+    <string name="reader_flow">Diseño</string>
+    <string name="reader_flow_paginated">Páginas</string>
+    <string name="reader_flow_scrolled">Desplazamiento</string>
+    <string name="reader_comic_zoom">Páginas de cómic</string>
+    <string name="reader_comic_zoom_fit_page">Ajustar a la página</string>
+    <string name="reader_comic_zoom_fit_width">Ajustar al ancho</string>
+    <string name="reader_comic_zoom_hint">Pellizca con dos dedos o toca dos veces para ampliar; al pasar la página se vuelve a reducir.</string>
+    <string name="reader_keep_screen_on">Mantener la pantalla encendida</string>
+    <string name="reader_conflict_title">Posición más reciente de %1$s</string>
+    <string name="reader_conflict_body">¿Saltar allí (%1$s) o quedarte en tu posición en este dispositivo (%2$s)?</string>
+    <string name="reader_conflict_unknown_device">otro dispositivo</string>
+    <string name="reader_conflict_jump">Saltar</string>
+    <string name="reader_conflict_keep">Quedarme aquí</string>
+    <string name="reader_link_title">¿Abrir enlace?</string>
+    <string name="reader_link_body">Este libro quiere abrir un enlace externo:\n\n%1$s</string>
+    <string name="reader_link_open">Abrir</string>
+    <string name="reader_error_title">No se pudo abrir el libro</string>
+    <string name="reader_error_network">No hay conexión con el servidor. Haz que el libro esté disponible sin conexión para leerlo sin conexión.</string>
+    <string name="reader_error_unsupported">Este formato no es compatible.</string>
+    <string name="reader_error_open">No se pudo leer el archivo.</string>
+    <string name="filter_open">Filtrar</string>
+    <string name="filter_sheet_title">Filtrar biblioteca</string>
+    <string name="filter_section_genres">Géneros</string>
+    <string name="filter_section_tags">Etiquetas</string>
+    <string name="filter_section_authors">Autores</string>
+    <string name="filter_section_series">Series</string>
+    <string name="filter_section_formats">Formatos</string>
+    <string name="filter_section_missing">Requiere atención</string>
+    <string name="filter_search_hint">Buscar en esta lista</string>
+    <string name="filter_hint_cycle">Toca: incluir; toca de nuevo: excluir; tercer toque: desactivar</string>
+    <string name="filter_match_all">Coincidir con todos</string>
+    <string name="filter_match_any">Coincidir con alguno</string>
+    <string name="filter_hide_finished">Ocultar leídos</string>
+    <string name="filter_with_sub">%1$s (+ subniveles)</string>
+    <string name="filter_remove_term">Quitar el filtro %1$s</string>
+    <string name="filter_shelf_term">Estantería: %1$s</string>
+    <string name="filter_missing_genre">Sin género</string>
+    <string name="filter_missing_tag">Sin etiquetas</string>
+    <string name="filter_missing_author">Sin autor</string>
+    <string name="filter_missing_series">Sin serie</string>
+    <string name="filter_missing_description">Sin descripción</string>
+    <string name="filter_missing_cover">Sin portada</string>
+    <string name="filter_missing_language">Sin idioma</string>
+    <string name="filter_has_genre">Con género</string>
+    <string name="filter_has_tag">Con etiquetas</string>
+    <string name="filter_has_author">Con autor</string>
+    <string name="filter_has_series">Con serie</string>
+    <string name="filter_has_description">Con descripción</string>
+    <string name="filter_has_cover">Con portada</string>
+    <string name="filter_has_language">Con idioma</string>
+    <string name="filter_save_smart">Guardar como estantería inteligente</string>
+    <string name="filter_editing_shelf">Filtro de la estantería inteligente “%1$s”</string>
+    <string name="filter_stop_editing">Cerrar</string>
+    <string name="sort_shelf">Orden de la estantería</string>
+    <string name="shelf_new">Nueva estantería</string>
+    <string name="shelf_new_smart">Nueva estantería inteligente</string>
+    <string name="shelf_name">Nombre</string>
+    <string name="shelf_rename">Cambiar nombre</string>
+    <string name="shelf_delete">Eliminar estantería</string>
+    <string name="shelf_delete_confirm">¿Eliminar la estantería “%1$s”? Los libros se quedan en tu biblioteca.</string>
+    <string name="shelf_move_up">Subir</string>
+    <string name="shelf_move_down">Bajar</string>
+    <string name="shelf_add_to">Añadir a una estantería</string>
+    <string name="shelf_add_dialog_title">Estanterías</string>
+    <string name="shelf_none_manual">Aún no hay estanterías. Crea una abajo.</string>
+    <string name="shelf_remove_book">Quitar de la estantería</string>
+    <string name="shelf_remove_book_confirm">¿Quitar “%1$s” de esta estantería?</string>
+    <string name="shelf_open_as_filter">Editar filtro</string>
+    <string name="shelf_error_offline">Las estanterías solo se pueden cambiar con conexión.</string>
+    <string name="shelf_error_name">Este nombre no es válido o ya está en uso.</string>
+    <string name="shelf_error_generic">No se pudo cambiar la estantería.</string>
+    <string name="shelf_refresh_failed">No se pudo actualizar la estantería; se muestra el último estado sincronizado.</string>
+    <string name="sync_now">Sincronizar ahora</string>
+    <string name="sync_last">Sincronizado %1$s</string>
+    <string name="sync_never">Aún no sincronizado</string>
+    <string name="sync_running">Sincronizando…</string>
+    <string name="book_in_shelves">Estanterías</string>
+</resources>

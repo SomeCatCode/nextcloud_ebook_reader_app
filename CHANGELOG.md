@@ -16,8 +16,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ### Behoben
 - Regale zeigten keine Bücher: Die App hängte `format=json` an alle Anfragen an die E-Book-Reader-API an, und `GET /books` las das als Filter „nur Bücher im Format json“. Jetzt wählt nur der `Accept`-Header das Antwortformat, wie in der Web-App.
-
 - Regal- und Serienansicht: Umschalter zwischen Raster und Liste (gemeinsame Einstellung mit der Bibliothek) und Lesestand bei jedem Buch („Ungelesen“, Fortschritt in Prozent mit Balken, „Gelesen“ mit Häkchen).
+
+- Sprachen: Spanisch und Japanisch (neben Deutsch und Englisch) für alle Texte der App inklusive Benachrichtigungen; Sprachauswahl pro App ab Android 13 (Systemeinstellungen → Apps → E-Book Reader → Sprache) über `locales_config.xml`.
 
 ## 0.2.0 – 2026-10-05
 

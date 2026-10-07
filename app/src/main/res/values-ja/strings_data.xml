@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="data_channel_name">同期とダウンロード</string>
+    <string name="data_channel_description">ライブラリの同期中や大きな書籍のダウンロード中に表示されます。</string>
+    <string name="data_notification_downloading">書籍をダウンロードしています</string>
+    <string name="data_notification_syncing">ライブラリを同期しています</string>
+</resources>
