@@ -49,7 +49,10 @@ class EbookApiImpl(
     }
 
     private fun ocsUrl(path: String): HttpUrl.Builder =
-        base("ocs/v2.php/apps/ebookreader/api/v1", path).addQueryParameter("format", "json")
+        // No `format=json` here: GET /books has its own `format` filter (epub, cbz, ...), so `format=json`
+        // filtered for books in the format "json" and every book list came back empty. The OCS response
+        // format is chosen by the `Accept: application/json` header instead (as the web app does).
+        base("ocs/v2.php/apps/ebookreader/api/v1", path)
 
     private fun contentUrl(path: String): HttpUrl.Builder = base("index.php/apps/ebookreader", path)
 
