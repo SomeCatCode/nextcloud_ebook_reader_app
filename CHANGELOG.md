@@ -6,8 +6,6 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 ## [Unreleased]
 
 ### Hinzugefügt
-
-
 ### Geändert
 - Die App ist nicht mehr quelloffen: Lizenz proprietär (alle Rechte vorbehalten) statt AGPL-3.0-or-later; Quellcode- und AGPL-Links aus den Einstellungen entfernt. Komponenten Dritter behalten ihre Lizenzen.
 - Markierungen und Notizen in EPUB- und anderen Textbüchern, synchron mit der Web-App: Text auswählen, im Auswahlmenü „Markieren“ (in der zuletzt gewählten Farbe, danach Farbwahl Gelb/Grün/Blau/Pink/Lila wie im Web) oder „Notiz“ wählen; Antippen einer Markierung öffnet Farbe, Notiz und Löschen. Liste „Markierungen & Notizen“ im Reader (gruppiert nach Markierungen, Notizen und Lesezeichen, mit Kapitel und Position) zum Springen, Notiz bearbeiten und Löschen; im E-Ink-Modus als ruhige Vollbildseite ohne Animation. Comics und Fixed-Layout-Bücher haben keine Textauswahl; dort zeigt die Liste nur Lesezeichen aus der Web-App.
@@ -18,6 +16,8 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ### Behoben
 - Regale zeigten keine Bücher: Die App hängte `format=json` an alle Anfragen an die E-Book-Reader-API an, und `GET /books` las das als Filter „nur Bücher im Format json“. Jetzt wählt nur der `Accept`-Header das Antwortformat, wie in der Web-App.
+
+- Regal- und Serienansicht: Umschalter zwischen Raster und Liste (gemeinsame Einstellung mit der Bibliothek) und Lesestand bei jedem Buch („Ungelesen“, Fortschritt in Prozent mit Balken, „Gelesen“ mit Häkchen).
 
 ## 0.2.0 – 2026-10-05
 

@@ -17,6 +17,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.somecatcode.ebookreader.data.api.AppDataPatch
@@ -29,12 +30,11 @@ import com.somecatcode.ebookreader.data.repo.AnnotationColor
 import com.somecatcode.ebookreader.data.repo.AnnotationType
 import com.somecatcode.ebookreader.data.repo.BookAnnotation
 import com.somecatcode.ebookreader.data.repo.BookKey
-import com.somecatcode.ebookreader.reader.SelectionRect
-import androidx.compose.ui.unit.dp
 import com.somecatcode.ebookreader.data.repo.EditFailure
 import com.somecatcode.ebookreader.data.repo.OfflineItem
 import com.somecatcode.ebookreader.data.repo.OfflineState
 import com.somecatcode.ebookreader.data.repo.ProgressConflict
+import com.somecatcode.ebookreader.reader.SelectionRect
 import com.somecatcode.ebookreader.ui.FakeAccountStore
 import com.somecatcode.ebookreader.ui.FakeContainer
 import com.somecatcode.ebookreader.ui.FakeDownloadRepository
@@ -387,6 +387,28 @@ class ScreenTests {
         compose.onNodeWithTag("donate").performScrollTo().assertIsDisplayed()
         compose.onNodeWithTag("third_party_licenses").performScrollTo().performClick()
         assertEquals(1, licenses)
+    }
+
+    fun collection_showsReadingStateAndSwitchesBetweenGridAndList() {
+        val books = listOf(
+            book(1, "Done", status = ReadStatus.FINISHED),
+            book(2, "Halfway", status = ReadStatus.READING).copy(percentage = 0.42),
+            book(3, "New"),
+        )
+        var grid by mutableStateOf(true)
+        show(container()) {
+            CollectionContent(
+                state = CollectionUiState(loaded = true, title = "Want To Read", books = books, manualShelf = true, grid = grid),
+                isSeries = false, onBack = {}, onToggleOffline = {}, onOpenBook = {},
+                onToggleLayout = { grid = !grid },
+            )
+        }
+        compose.onNodeWithTag("collection_grid").assertIsDisplayed()
+        compose.onNodeWithText("42 %").assertIsDisplayed()
+        compose.onNodeWithText("Finished").assertIsDisplayed()
+        compose.onNodeWithTag("collection_layout_toggle").performClick()
+        compose.onNodeWithTag("collection_list").assertIsDisplayed()
+        compose.onNodeWithText("Unread").assertIsDisplayed()
     }
 }
 
