@@ -62,7 +62,7 @@ URL zur `PRIVACY.md`, siehe Abschnitt 6. Ohne sie lässt sich nichts veröffentl
 ### 3.2 App-Zugriff („Zugriffsbeschränkungen“)
 - Wähle **„Alle oder einige Funktionen sind eingeschränkt“**.
 - Gib eine **Anleitung mit Testzugang** an: Server-URL, Benutzername, Passwort sowie kurze Schritte („Konto hinzufügen → Server-URL eingeben → im Browser anmelden → Bibliothek öffnet sich“).
-- ⚠️ **Lege dafür einen eigenen Test-Nutzer an**, z. B. `playreview`, mit:
+- ⚠️ **Lege dafür einen eigenen Test-Nutzer an**, z. B. `<PRÜFER-NUTZER>`, mit:
   - **nur gemeinfreien Büchern** (ein paar EPUBs und ein Comic). Auf keinen Fall Zugriff auf deine eigene Bibliothek, schon gar nicht auf Inhalte für Erwachsene. Sonst drohen eine Ablehnung oder eine falsche Altersfreigabe.
   - ohne Admin-Rechte, mit kleinem Speicherkontingent, ohne Freigaben zu anderen Nutzern
   - einem Login, der dauerhaft funktioniert. Google prüft auch spätere Updates. Kein Ablaufdatum, keine Zwei-Faktor-Anmeldung für diesen Nutzer.
@@ -165,7 +165,7 @@ Einen Entwurf lege ich in Phase 6 als `PRIVACY.md` (Deutsch und Englisch) an.
 
 1. [ ] Play-Console-Konto anlegen und verifizieren
 2. [ ] App anlegen (Name, Standardsprache Deutsch, „App“, „kostenlos“)
-3. [ ] Test-Nutzer `playreview` auf der Nextcloud mit gemeinfreien Büchern anlegen
+3. [ ] Test-Nutzer `<PRÜFER-NUTZER>` auf der Nextcloud mit gemeinfreien Büchern anlegen
 4. [ ] Datenschutzerklärung veröffentlichen (GitHub Pages)
 5. [ ] App-Inhalte ausfüllen: Datenschutz, App-Zugriff mit Testzugang, Werbung, Einstufung, Zielgruppe 18+, Datensicherheit, Werbe-ID, Vordergrunddienst inkl. Video
 6. [ ] Store-Eintrag: Texte, Icon, Feature-Grafik, Screenshots
