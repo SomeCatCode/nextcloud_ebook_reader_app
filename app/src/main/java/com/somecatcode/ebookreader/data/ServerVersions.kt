@@ -56,7 +56,13 @@ enum class ServerFeature(val since: String) {
     STATUS_PROGRESS_COUPLING("0.7.0"),
     VERSION_REPORTING("0.8.0"),
     BOOK_FLAGS("0.8.0"),
-    SHARING("0.8.0");
+    SHARING("0.8.0"),
+
+    /** `shared` filter of `GET /books` and the `sharedOut` book field: "Shared" view, share badges on own books. */
+    SHARED_VIEW("0.10.0"),
+
+    /** Book paths and folder shares (`ebookreader.features` contains `folders`): "Folders" view. */
+    FOLDERS_VIEW("0.10.0");
 
     fun availableOn(serverAppVersion: String?): Boolean = ServerVersions.isAtLeast(serverAppVersion, since)
 }

@@ -302,4 +302,18 @@
     <string name="settings_donate">Apoyar la app</string>
     <string name="settings_donate_hint">Abre la página de donaciones en el navegador. La app no tiene anuncios ni seguimiento.</string>
     <string name="settings_third_party_licenses">Licencias de terceros</string>
+    <string name="library_tab_shared">Compartidos</string>
+    <string name="library_tab_folders">Carpetas</string>
+    <string name="shared_filter_all">Todos</string>
+    <string name="shared_filter_incoming">Compartidos conmigo</string>
+    <string name="shared_filter_outgoing">Compartidos por mí</string>
+    <string name="shared_empty">No hay libros compartidos</string>
+    <string name="share_badge_outgoing">Compartido por ti</string>
+    <string name="share_badge_incoming">Compartido contigo</string>
+    <string name="share_badge_incoming_by">Compartido contigo por %1$s</string>
+    <string name="folders_root">Biblioteca</string>
+    <string name="folders_include_subfolders">Incluir subcarpetas</string>
+    <string name="folders_up">Subir un nivel</string>
+    <string name="folders_empty">Esta carpeta está vacía</string>
+    <string name="folders_path">Ruta de la carpeta</string>
 </resources>

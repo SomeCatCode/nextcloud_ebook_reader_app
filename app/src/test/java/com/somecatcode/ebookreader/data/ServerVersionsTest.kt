@@ -25,4 +25,18 @@ class ServerVersionsTest {
         assertFalse(ServerFeature.SHARING.availableOn("0.7.0"))
         assertTrue(ServerFeature.ANNOTATIONS.availableOn("0.7.0"))
     }
+
+    @Test
+    fun sharedAndFolderViewsNeedServer0100() {
+        for (feature in listOf(ServerFeature.SHARED_VIEW, ServerFeature.FOLDERS_VIEW)) {
+            assertFalse(feature.availableOn(null))
+            assertFalse(feature.availableOn("0.9.0"))
+            assertFalse(feature.availableOn("0.10.0-rc.1"))
+            assertTrue(feature.availableOn("0.10.0"))
+            assertTrue(feature.availableOn("0.10.1"))
+            assertTrue(feature.availableOn("1.0.0"))
+        }
+        // not bumped: the app keeps working with 0.8.0+ servers, the new views are simply hidden there
+        assertFalse(ServerVersions.isOutdated("0.9.0"))
+    }
 }

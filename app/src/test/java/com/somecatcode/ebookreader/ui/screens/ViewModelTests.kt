@@ -246,6 +246,80 @@ class ViewModelTests {
     ) = LibraryViewModel(store, library, settings, sync, shelves)
 
     @Test
+    fun library_sharedAndFolderTabsNeedServer0100() = runTest(dispatcher) {
+        val old = FakeAccountStore(listOf(account("acc1").copy(appVersion = "0.9.0")))
+        val vmOld = libraryVm(FakeLibraryRepository(), store = old)
+        backgroundScope.launch { vmOld.state.collect {} }
+        advanceUntilIdle()
+        assertEquals(listOf(LibraryTab.BOOKS, LibraryTab.SERIES, LibraryTab.SHELVES), vmOld.state.value.visibleTabs)
+        vmOld.selectTab(LibraryTab.SHARED)
+        assertEquals("a hidden tab falls back to the books list", LibraryTab.BOOKS, vmOld.state.value.tab)
+
+        val current = FakeAccountStore(listOf(account("acc1").copy(appVersion = "0.10.0")))
+        val vm = libraryVm(FakeLibraryRepository(), store = current)
+        backgroundScope.launch { vm.state.collect {} }
+        advanceUntilIdle()
+        assertEquals(
+            listOf(LibraryTab.BOOKS, LibraryTab.SERIES, LibraryTab.SHARED, LibraryTab.FOLDERS, LibraryTab.SHELVES),
+            vm.state.value.visibleTabs,
+        )
+    }
+
+    @Test
+    fun library_sharedTabFiltersByDirection() = runTest(dispatcher) {
+        val library = FakeLibraryRepository(
+            listOf(
+                book(1, "Own"),
+                book(2, "Incoming", shared = true, owner = "bob"),
+                book(3, "Outgoing", sharedOut = true),
+            ),
+        )
+        val vm = libraryVm(library, store = FakeAccountStore(listOf(account("acc1").copy(appVersion = "0.10.0"))))
+        backgroundScope.launch { vm.state.collect {} }
+        vm.selectTab(LibraryTab.SHARED)
+        advanceUntilIdle()
+        assertEquals(listOf("Incoming", "Outgoing"), vm.state.value.books.map { it.title })
+        vm.setSharedMode(com.somecatcode.ebookreader.data.repo.SharedFilter.INCOMING)
+        assertEquals(listOf("Incoming"), vm.state.value.books.map { it.title })
+        vm.setSharedMode(com.somecatcode.ebookreader.data.repo.SharedFilter.OUTGOING)
+        assertEquals(listOf("Outgoing"), vm.state.value.books.map { it.title })
+        vm.selectTab(LibraryTab.BOOKS)
+        assertEquals("the shared filter does not leak into the books list", 3, vm.state.value.books.size)
+    }
+
+    @Test
+    fun library_foldersTabBrowsesTheFolderStructureFromBookPaths() = runTest(dispatcher) {
+        val library = FakeLibraryRepository(
+            listOf(
+                book(1, "Top", path = "/Top.epub"),
+                book(2, "Saga 1", path = "/Books/Comics/Saga/1.cbz"),
+                book(3, "Saga 2", path = "/Books/Comics/Saga/2.cbz"),
+                book(4, "Novel", path = "/Books/Novel.epub"),
+            ),
+        )
+        val vm = libraryVm(library, store = FakeAccountStore(listOf(account("acc1").copy(appVersion = "0.10.0"))))
+        backgroundScope.launch { vm.state.collect {} }
+        vm.selectTab(LibraryTab.FOLDERS)
+        advanceUntilIdle()
+        var listing = vm.state.value.folderListing!!
+        assertEquals(listOf("Books"), listing.subfolders.map { it.name })
+        assertEquals(3, listing.subfolders.single().totalCount)
+        assertEquals(listOf("Top"), vm.state.value.books.map { it.title })
+
+        vm.openFolder("/Books")
+        listing = vm.state.value.folderListing!!
+        assertEquals(listOf("/Books/Comics"), listing.subfolders.map { it.path })
+        assertEquals(listOf("Novel"), vm.state.value.books.map { it.title })
+        vm.setIncludeSubfolders(true)
+        assertEquals(listOf("Novel", "Saga 1", "Saga 2"), vm.state.value.books.map { it.title })
+
+        vm.folderUp()
+        assertEquals("", vm.state.value.query.folder)
+        vm.folderUp()
+        assertEquals("", vm.state.value.query.folder)
+    }
+
+    @Test
     fun library_filtersAreReflectedInStateAndQuery() = runTest(dispatcher) {
         val library = FakeLibraryRepository(
             listOf(

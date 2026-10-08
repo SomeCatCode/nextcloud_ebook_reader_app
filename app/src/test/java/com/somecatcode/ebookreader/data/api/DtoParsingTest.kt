@@ -21,6 +21,29 @@ class DtoParsingTest {
     """.trimIndent()
 
     @Test
+    fun parsesSharingFieldsAndCapabilityFeatures() {
+        val book = ApiJson.decodeFromString(
+            BookDto.serializer(),
+            """{"fileId":1,"format":"epub","path":"/Shared/x.epub","size":1,"owner":"bob","shared":true,"sharedOut":false}""",
+        )
+        assertEquals("bob", book.owner)
+        assertTrue(book.shared)
+        assertEquals(false, book.sharedOut)
+        val own = ApiJson.decodeFromString(BookDto.serializer(), """{"fileId":2,"format":"epub","path":"/a.epub","size":1,"sharedOut":true}""")
+        assertNull(own.owner)
+        assertEquals(false, own.shared)
+        assertTrue(own.sharedOut)
+
+        val caps = ApiJson.decodeFromString(
+            EbookReaderCapabilities.serializer(),
+            """{"version":"0.10.0","sharing":true,"features":["shared-filter","series-shares","folder-shares","folders","sidecar-meta"]}""",
+        )
+        assertTrue(caps.sharing)
+        assertTrue("folders" in caps.features)
+        assertEquals(emptyList<String>(), ApiJson.decodeFromString(EbookReaderCapabilities.serializer(), """{"version":"0.9.0"}""").features)
+    }
+
+    @Test
     fun parsesSyncEnvelope() {
         val envelope = ApiJson.decodeFromString<OcsEnvelope<SyncDto>>(syncJson)
         assertEquals(200, envelope.ocs.meta.statuscode)

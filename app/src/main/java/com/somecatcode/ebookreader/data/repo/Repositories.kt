@@ -51,6 +51,11 @@ data class LibraryBook(
     val offline: OfflineState,
     /** Offline edit waiting for upload. */
     val hasPendingEdit: Boolean,
+    /** Incoming: the file belongs to another user ([owner]). */
+    val shared: Boolean = false,
+    val owner: String? = null,
+    /** Outgoing: own book shared with other users. */
+    val sharedOut: Boolean = false,
 )
 
 /** Offline state of a book file. */
@@ -76,6 +81,10 @@ data class SeriesInfo(
     val count: Int,
     val readCount: Int,
     val coverFileIds: List<Long>,
+    /** At least one volume is shared with other users. */
+    val sharedOut: Boolean = false,
+    /** At least one volume comes from another user. */
+    val shared: Boolean = false,
 )
 
 data class FacetCount(val name: String, val count: Int)
@@ -110,9 +119,18 @@ data class LibraryFilter(
     val shelf: ShelfKey? = null,
     val series: String? = null,
     val onlyOffline: Boolean = false,
+    /** Only incoming / outgoing / any shared books; null = no restriction. */
+    val shared: SharedFilter? = null,
+    /** Only books directly in this folder (path relative to the home folder, leading slash, "" = top level). */
+    val folder: String? = null,
+    /** With [folder]: also books in subfolders. */
+    val folderRecursive: Boolean = false,
     val sort: LibrarySort = LibrarySort.TITLE,
     val descending: Boolean = false,
 )
+
+/** Same values as the server `shared` parameter: `incoming|outgoing|any`. */
+enum class SharedFilter { ANY, INCOMING, OUTGOING }
 
 /** [SHELF] = position inside a manual shelf (only meaningful together with [LibraryFilter.shelf]). */
 enum class LibrarySort { TITLE, AUTHOR, SERIES, RATING, ADDED, RECENTLY_READ, SHELF }
