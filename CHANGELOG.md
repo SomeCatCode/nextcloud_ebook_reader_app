@@ -5,6 +5,14 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Hinzugefügt
+- **Neue Reiter „Geteilt“ und „Ordner“** (Reihenfolge wie in der Web-App: Bücher, Serien, Geteilt, Ordner, Regale; benötigt Server-App 0.10.0, auf älteren Servern bleiben sie ausgeblendet). „Geteilt“ zeigt die Bücher als Raster oder Liste, umschaltbar zwischen „Alle“, „Mit mir geteilt“ und „Von mir geteilt“. „Ordner“ durchsucht die Ordnerstruktur der Bibliothek (Pfadleiste, Hoch-Taste und Zurück-Geste, Unterordner mit Anzahl, optional inklusive Unterordnern). Beides wird lokal aus der Datenbank berechnet und funktioniert deshalb auch offline.
+- **Teilen-Symbol** auf Buchcovern, Listenzeilen und Serien: „Von dir geteilt“ bzw. „Mit dir geteilt von …“ (mit Inhaltsbeschreibung für Screenreader).
+- Datenbank (Version 3): neue Buchfelder `shared`, `owner` und `sharedOut`; beim Update startet automatisch ein vollständiger Abgleich, der sie füllt.
+
+### Geändert
+- Der Reiter „Serien“ zeigt weiterhin direkt alle Serien (kein Filter); die Tab-Leiste ist jetzt scrollbar.
+
 ## 0.2.1 – 2026-10-07
 
 ### Hinzugefügt

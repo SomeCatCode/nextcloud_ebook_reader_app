@@ -1,6 +1,11 @@
 package com.somecatcode.ebookreader.ui.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.People
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -148,6 +153,34 @@ fun OfflineIndicator(state: OfflineState, modifier: Modifier = Modifier) {
                 CircularProgressIndicator(sized, strokeWidth = 2.dp)
             }
         }
+    }
+}
+
+/**
+ * Share badge: [sharedOut] = own item shared with others ("Shared by you"), [shared] = item that comes
+ * from another user ([owner], "Shared with you by ..."). Draws nothing when neither applies.
+ */
+@Composable
+fun ShareBadge(shared: Boolean, sharedOut: Boolean, owner: String? = null, modifier: Modifier = Modifier) {
+    if (!shared && !sharedOut) return
+    val description = when {
+        shared && !owner.isNullOrBlank() -> stringResource(R.string.share_badge_incoming_by, owner)
+        shared -> stringResource(R.string.share_badge_incoming)
+        else -> stringResource(R.string.share_badge_outgoing)
+    }
+    Box(
+        modifier
+            .size(22.dp)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f), CircleShape)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            if (shared) Icons.Filled.People else Icons.Filled.Share,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(14.dp),
+        )
     }
 }
 

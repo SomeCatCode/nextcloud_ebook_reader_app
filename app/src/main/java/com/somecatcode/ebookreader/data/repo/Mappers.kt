@@ -70,6 +70,9 @@ internal fun BookDto.toEntity(accountId: String, fileEtag: String?): BookEntity 
     overrides = encodeStrings(overrides),
     hasSidecar = hasSidecar,
     deleted = false,
+    shared = shared,
+    owner = owner,
+    sharedOut = sharedOut,
 )
 
 internal fun BookDto.tagEntities(accountId: String): List<BookTagEntity> =
@@ -153,6 +156,9 @@ internal fun BookEntity.toLibraryBook(
     percentage = progress?.percentage,
     offline = download?.offlineState() ?: OfflineState(null),
     hasPendingEdit = hasPendingEdit,
+    shared = shared,
+    owner = owner,
+    sharedOut = sharedOut,
 )
 
 /** Manual shelf memberships and smart shelf queries of the shown accounts, keyed by (accountId, shelfId). */

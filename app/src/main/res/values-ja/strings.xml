@@ -298,4 +298,18 @@
     <string name="settings_donate">アプリを応援する</string>
     <string name="settings_donate_hint">ブラウザーで寄付ページを開きます。このアプリには広告もトラッキングもありません。</string>
     <string name="settings_third_party_licenses">サードパーティのライセンス</string>
+    <string name="library_tab_shared">共有</string>
+    <string name="library_tab_folders">フォルダ</string>
+    <string name="shared_filter_all">すべて</string>
+    <string name="shared_filter_incoming">自分と共有</string>
+    <string name="shared_filter_outgoing">自分が共有</string>
+    <string name="shared_empty">共有された本はありません</string>
+    <string name="share_badge_outgoing">あなたが共有中</string>
+    <string name="share_badge_incoming">あなたと共有されています</string>
+    <string name="share_badge_incoming_by">%1$s さんがあなたと共有</string>
+    <string name="folders_root">ライブラリ</string>
+    <string name="folders_include_subfolders">サブフォルダーを含める</string>
+    <string name="folders_up">1 つ上へ</string>
+    <string name="folders_empty">このフォルダーは空です</string>
+    <string name="folders_path">フォルダーのパス</string>
 </resources>

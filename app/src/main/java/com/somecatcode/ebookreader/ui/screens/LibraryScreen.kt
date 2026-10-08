@@ -1,6 +1,17 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import com.somecatcode.ebookreader.ui.components.ShareBadge
+import com.somecatcode.ebookreader.data.repo.FolderTree
+import com.somecatcode.ebookreader.data.repo.FolderNode
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,7 +53,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -77,6 +88,7 @@ import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.LibraryBook
 import com.somecatcode.ebookreader.data.repo.LibrarySort
 import com.somecatcode.ebookreader.data.repo.SeriesInfo
+import com.somecatcode.ebookreader.data.repo.SharedFilter
 import com.somecatcode.ebookreader.data.repo.ShelfInfo
 import com.somecatcode.ebookreader.data.repo.ShelfKey
 import com.somecatcode.ebookreader.ui.components.ConfirmDialog
@@ -114,6 +126,10 @@ class LibraryActions(
     val onRenameShelf: (ShelfKey, String) -> Unit = { _, _ -> },
     val onDeleteShelf: (ShelfKey) -> Unit = {},
     val onMoveShelf: (ShelfKey, Int) -> Unit = { _, _ -> },
+    val onSharedMode: (SharedFilter) -> Unit = {},
+    val onOpenFolder: (String) -> Unit = {},
+    val onFolderUp: () -> Unit = {},
+    val onIncludeSubfolders: (Boolean) -> Unit = {},
 )
 
 /** Commands handed to the library by other screens (book details, smart shelf). */
@@ -151,6 +167,8 @@ fun LibraryScreen(
             onToggleDescending = vm::toggleDescending, onClearFilters = vm::clearFilters,
             onSaveSmartShelf = vm::saveSmartShelf, onUpdateEditingShelf = vm::updateEditingShelf, onStopEditingShelf = vm::stopEditingShelf,
             onCreateShelf = vm::createShelf, onRenameShelf = vm::renameShelf, onDeleteShelf = vm::deleteShelf, onMoveShelf = vm::moveShelf,
+            onSharedMode = vm::setSharedMode, onOpenFolder = vm::openFolder, onFolderUp = vm::folderUp,
+            onIncludeSubfolders = vm::setIncludeSubfolders,
         )
     }
     LaunchedEffect(command) {
@@ -281,10 +299,13 @@ fun LibraryContent(
                     onAction = onOpenAccounts,
                 )
                 else -> {
-                    PrimaryTabRow(selectedTabIndex = state.query.tab.ordinal) {
-                        LibraryTab.entries.forEach { tab ->
+                    // up navigation inside the folders tab: the back gesture goes one folder up first
+                    BackHandler(enabled = state.tab == LibraryTab.FOLDERS && state.query.folder.isNotEmpty(), onBack = actions.onFolderUp)
+                    val tabs = state.visibleTabs
+                    PrimaryScrollableTabRow(selectedTabIndex = tabs.indexOf(state.tab).coerceAtLeast(0), edgePadding = 0.dp) {
+                        tabs.forEach { tab ->
                             Tab(
-                                selected = state.query.tab == tab,
+                                selected = state.tab == tab,
                                 onClick = { actions.onSelectTab(tab) },
                                 text = { Text(stringResource(tabTitle(tab))) },
                                 modifier = Modifier.testTag("tab_${tab.name.lowercase()}"),
@@ -292,10 +313,12 @@ fun LibraryContent(
                         }
                     }
                     PullToRefreshBox(isRefreshing = state.refreshing, onRefresh = actions.onRefresh, modifier = Modifier.fillMaxSize()) {
-                        when (state.query.tab) {
+                        when (state.tab) {
                             LibraryTab.BOOKS -> BooksTab(state, actions, onOpenBook)
-                            LibraryTab.SHELVES -> ShelvesTab(state.shelves, actions, onOpenShelf)
                             LibraryTab.SERIES -> SeriesTab(state.series, onOpenSeries)
+                            LibraryTab.SHARED -> SharedTab(state, actions, onOpenBook)
+                            LibraryTab.FOLDERS -> FoldersTab(state, actions, onOpenBook)
+                            LibraryTab.SHELVES -> ShelvesTab(state.shelves, actions, onOpenShelf)
                         }
                     }
                 }
@@ -308,6 +331,8 @@ private fun tabTitle(tab: LibraryTab) = when (tab) {
     LibraryTab.BOOKS -> R.string.library_tab_books
     LibraryTab.SHELVES -> R.string.library_tab_shelves
     LibraryTab.SERIES -> R.string.library_tab_series
+    LibraryTab.SHARED -> R.string.library_tab_shared
+    LibraryTab.FOLDERS -> R.string.library_tab_folders
 }
 
 @Composable
@@ -443,21 +468,58 @@ private fun BooksTab(state: LibraryUiState, actions: LibraryActions, onOpenBook:
     Column(Modifier.fillMaxSize()) {
         if (state.refreshing) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("sync_progress"))
         FilterRow(state, actions)
-        when {
-            state.books.isEmpty() && state.query.hasActiveFilter -> EmptyState(
-                title = stringResource(R.string.library_no_results),
-                actionLabel = stringResource(R.string.filter_clear_all),
-                onAction = actions.onClearFilters,
-            )
-            state.books.isEmpty() -> EmptyState(
-                title = stringResource(R.string.library_empty_title),
-                body = stringResource(R.string.library_empty_body),
-                actionLabel = stringResource(R.string.action_refresh),
-                onAction = actions.onRefresh,
-            )
-            state.grid -> BookGrid(state, onOpenBook)
-            else -> BookList(state, onOpenBook)
+        BookResults(state, actions, onOpenBook, showContinueReading = true, emptyTitle = R.string.library_empty_title, emptyBody = R.string.library_empty_body)
+    }
+}
+
+/** Books shared with the user and shared by the user, as the plain books list narrowed by [SharedFilter]. */
+@Composable
+private fun SharedTab(state: LibraryUiState, actions: LibraryActions, onOpenBook: (BookKey) -> Unit) {
+    Column(Modifier.fillMaxSize()) {
+        if (state.refreshing) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("sync_progress"))
+        val modes = listOf(
+            SharedFilter.ANY to R.string.shared_filter_all,
+            SharedFilter.INCOMING to R.string.shared_filter_incoming,
+            SharedFilter.OUTGOING to R.string.shared_filter_outgoing,
+        )
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp).testTag("shared_mode")) {
+            modes.forEachIndexed { index, (mode, label) ->
+                SegmentedButton(
+                    selected = state.query.sharedMode == mode,
+                    onClick = { actions.onSharedMode(mode) },
+                    shape = SegmentedButtonDefaults.itemShape(index, modes.size),
+                    modifier = Modifier.testTag("shared_${mode.name.lowercase()}"),
+                ) { Text(stringResource(label), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            }
         }
+        FilterRow(state, actions)
+        BookResults(state, actions, onOpenBook, showContinueReading = false, emptyTitle = R.string.shared_empty, emptyBody = null)
+    }
+}
+
+@Composable
+private fun BookResults(
+    state: LibraryUiState,
+    actions: LibraryActions,
+    onOpenBook: (BookKey) -> Unit,
+    showContinueReading: Boolean,
+    emptyTitle: Int,
+    emptyBody: Int?,
+) {
+    when {
+        state.books.isEmpty() && state.query.hasActiveFilter -> EmptyState(
+            title = stringResource(R.string.library_no_results),
+            actionLabel = stringResource(R.string.filter_clear_all),
+            onAction = actions.onClearFilters,
+        )
+        state.books.isEmpty() -> EmptyState(
+            title = stringResource(emptyTitle),
+            body = emptyBody?.let { stringResource(it) },
+            actionLabel = stringResource(R.string.action_refresh),
+            onAction = actions.onRefresh,
+        )
+        state.grid -> BookGrid(state, onOpenBook, showContinueReading)
+        else -> BookList(state, onOpenBook)
     }
 }
 
@@ -468,7 +530,7 @@ internal fun statusTitle(status: ReadStatus) = when (status) {
 }
 
 @Composable
-private fun BookGrid(state: LibraryUiState, onOpenBook: (BookKey) -> Unit) {
+private fun BookGrid(state: LibraryUiState, onOpenBook: (BookKey) -> Unit, showContinueReading: Boolean) {
     val gridState = rememberLazyGridState()
     // A changed query shows a different list: start at the top instead of keeping the old anchor item.
     LaunchedEffect(state.query, state.shownAccountIds) { gridState.scrollToItem(0) }
@@ -480,26 +542,31 @@ private fun BookGrid(state: LibraryUiState, onOpenBook: (BookKey) -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize().testTag("book_grid"),
     ) {
-        if (state.continueReading.isNotEmpty() && !state.query.hasActiveFilter) {
+        if (showContinueReading && state.continueReading.isNotEmpty() && !state.query.hasActiveFilter) {
             item(span = { GridItemSpan(maxLineSpan) }) { ContinueReadingRow(state.continueReading, onOpenBook) }
         }
-        items(state.books, key = { "${it.key.accountId}/${it.key.fileId}" }) { book ->
-            Column(Modifier.clickable { onOpenBook(book.key) }.testTag("book_${book.key.fileId}")) {
-                Box(Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(8.dp))) {
-                    BookCover(book, Modifier.fillMaxSize())
-                    OfflineIndicator(book.offline, Modifier.align(Alignment.TopEnd).padding(4.dp))
-                    book.percentage?.takeIf { it > 0.0 && it < 1.0 }?.let {
-                        LinearProgressIndicator({ it.toFloat() }, Modifier.align(Alignment.BottomCenter).fillMaxWidth())
-                    }
-                }
-                Text(book.title, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
-                if (book.authors.isNotEmpty()) {
-                    Text(
-                        book.authors.joinToString(), style = MaterialTheme.typography.bodySmall, maxLines = 1,
-                        overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+        items(state.books, key = { "${it.key.accountId}/${it.key.fileId}" }) { book -> BookGridCell(book, onOpenBook) }
+    }
+}
+
+/** Cover, title and authors of a book in the grid layout; share badge top left, offline state top right. */
+@Composable
+internal fun BookGridCell(book: LibraryBook, onOpenBook: (BookKey) -> Unit) {
+    Column(Modifier.clickable { onOpenBook(book.key) }.testTag("book_${book.key.fileId}")) {
+        Box(Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(8.dp))) {
+            BookCover(book, Modifier.fillMaxSize())
+            ShareBadge(book.shared, book.sharedOut, book.owner, Modifier.align(Alignment.TopStart).padding(4.dp).testTag("share_badge_${book.key.fileId}"))
+            OfflineIndicator(book.offline, Modifier.align(Alignment.TopEnd).padding(4.dp))
+            book.percentage?.takeIf { it > 0.0 && it < 1.0 }?.let {
+                LinearProgressIndicator({ it.toFloat() }, Modifier.align(Alignment.BottomCenter).fillMaxWidth())
             }
+        }
+        Text(book.title, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
+        if (book.authors.isNotEmpty()) {
+            Text(
+                book.authors.joinToString(), style = MaterialTheme.typography.bodySmall, maxLines = 1,
+                overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -521,24 +588,122 @@ private fun BookList(state: LibraryUiState, onOpenBook: (BookKey) -> Unit) {
     val listState = rememberLazyListState()
     LaunchedEffect(state.query, state.shownAccountIds) { listState.scrollToItem(0) }
     LazyColumn(Modifier.fillMaxSize().testTag("book_list"), state = listState, contentPadding = PaddingValues(vertical = 8.dp)) {
-        items(state.books, key = { "${it.key.accountId}/${it.key.fileId}" }) { book ->
-            Row(
-                Modifier.fillMaxWidth().clickable { onOpenBook(book.key) }.padding(horizontal = 16.dp, vertical = 6.dp).testTag("book_${book.key.fileId}"),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                BookCover(book, Modifier.width(48.dp).height(72.dp).clip(RoundedCornerShape(4.dp)))
-                Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
-                    Text(book.title, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    val sub = listOfNotNull(book.authors.joinToString().ifBlank { null }, book.series?.let { s -> book.seriesIndex?.let { "$s #${formatIndex(it)}" } ?: s }).joinToString(" · ")
-                    if (sub.isNotBlank()) {
-                        Text(sub, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    book.percentage?.takeIf { it > 0.0 && it < 1.0 }?.let {
-                        LinearProgressIndicator({ it.toFloat() }, Modifier.fillMaxWidth().padding(top = 6.dp))
-                    }
-                }
-                OfflineIndicator(book.offline)
+        items(state.books, key = { "${it.key.accountId}/${it.key.fileId}" }) { book -> BookListRow(book, onOpenBook) }
+    }
+}
+
+/** One book row of the list layout; the share badge sits next to the offline indicator at the end. */
+@Composable
+internal fun BookListRow(book: LibraryBook, onOpenBook: (BookKey) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable { onOpenBook(book.key) }.padding(horizontal = 16.dp, vertical = 6.dp).testTag("book_${book.key.fileId}"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        BookCover(book, Modifier.width(48.dp).height(72.dp).clip(RoundedCornerShape(4.dp)))
+        Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
+            Text(book.title, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            val sub = listOfNotNull(book.authors.joinToString().ifBlank { null }, book.series?.let { s -> book.seriesIndex?.let { "$s #${formatIndex(it)}" } ?: s }).joinToString(" · ")
+            if (sub.isNotBlank()) {
+                Text(sub, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            book.percentage?.takeIf { it > 0.0 && it < 1.0 }?.let {
+                LinearProgressIndicator({ it.toFloat() }, Modifier.fillMaxWidth().padding(top = 6.dp))
+            }
+        }
+        ShareBadge(book.shared, book.sharedOut, book.owner, Modifier.padding(end = 4.dp).testTag("share_badge_${book.key.fileId}"))
+        OfflineIndicator(book.offline)
+    }
+}
+
+// ---- Folders --------------------------------------------------------------------------------------
+
+/** Folder browser: breadcrumb, sub-folders with book counts and the books of the shown folder (computed from the synced paths). */
+@Composable
+private fun FoldersTab(state: LibraryUiState, actions: LibraryActions, onOpenBook: (BookKey) -> Unit) {
+    val listing = state.folderListing
+    val folder = state.query.folder
+    val gridState = rememberLazyGridState()
+    LaunchedEffect(folder, state.query.includeSubfolders, state.shownAccountIds) { gridState.scrollToItem(0) }
+    Column(Modifier.fillMaxSize()) {
+        if (state.refreshing) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("sync_progress"))
+        FolderBreadcrumb(folder, actions)
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(stringResource(R.string.folders_include_subfolders), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+            Switch(
+                checked = state.query.includeSubfolders, onCheckedChange = actions.onIncludeSubfolders,
+                modifier = Modifier.testTag("folders_recursive"),
+            )
+        }
+        FilterRow(state, actions)
+        val subfolders = listing?.subfolders.orEmpty()
+        if (subfolders.isEmpty() && state.books.isEmpty()) {
+            if (state.query.hasActiveFilter) {
+                EmptyState(
+                    title = stringResource(R.string.library_no_results),
+                    actionLabel = stringResource(R.string.filter_clear_all),
+                    onAction = actions.onClearFilters,
+                )
+            } else {
+                EmptyState(stringResource(if (folder.isEmpty()) R.string.library_empty_title else R.string.folders_empty))
+            }
+            return@Column
+        }
+        LazyVerticalGrid(
+            state = gridState,
+            columns = if (state.grid) GridCells.Adaptive(120.dp) else GridCells.Fixed(1),
+            contentPadding = PaddingValues(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(if (state.grid) 12.dp else 4.dp),
+            modifier = Modifier.fillMaxSize().testTag("folder_content"),
+        ) {
+            items(subfolders, key = { "f/${it.path}" }, span = { GridItemSpan(maxLineSpan) }) { node ->
+                FolderRow(node) { actions.onOpenFolder(node.path) }
+            }
+            items(state.books, key = { "${it.key.accountId}/${it.key.fileId}" }) { book ->
+                if (state.grid) BookGridCell(book, onOpenBook) else BookListRow(book, onOpenBook)
+            }
+        }
+    }
+}
+
+@Composable
+private fun FolderBreadcrumb(folder: String, actions: LibraryActions) {
+    val crumbs = FolderTree.breadcrumb(folder)
+    val listState = rememberLazyListState()
+    LaunchedEffect(folder) { listState.scrollToItem(crumbs.size) }
+    Row(Modifier.fillMaxWidth().testTag("folder_breadcrumb"), verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = actions.onFolderUp, enabled = folder.isNotEmpty(), modifier = Modifier.testTag("folder_up")) {
+            Icon(Icons.Filled.ArrowUpward, contentDescription = stringResource(R.string.folders_up))
+        }
+        LazyRow(state = listState, verticalAlignment = Alignment.CenterVertically) {
+            item {
+                TextButton(onClick = { actions.onOpenFolder("") }) { Text(stringResource(R.string.folders_root)) }
+            }
+            items(crumbs, key = { it.second }) { (name, path) ->
+                Text("›", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TextButton(onClick = { actions.onOpenFolder(path) }) { Text(name, maxLines = 1) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FolderRow(node: FolderNode, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(horizontal = 4.dp, vertical = 10.dp)
+            .testTag("folder_${node.path}"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Filled.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(end = 12.dp).size(32.dp))
+        Column(Modifier.weight(1f)) {
+            Text(node.name, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                pluralStringResource(R.plurals.books_count, node.totalCount, node.totalCount),
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -642,21 +807,31 @@ private fun SeriesTab(series: List<SeriesInfo>, onOpenSeries: (String, String) -
                 subtitle = pluralStringResource(R.plurals.volumes_count, s.count, s.count) +
                     " · " + stringResource(R.string.series_read_count, s.readCount, s.count),
                 onClick = { onOpenSeries(s.accountId, s.name) },
+                shared = s.shared, sharedOut = s.sharedOut,
             )
         }
     }
 }
 
 @Composable
-private fun CollectionRow(accountId: String, coverFileId: Long?, title: String, subtitle: String, onClick: () -> Unit) {
+private fun CollectionRow(
+    accountId: String,
+    coverFileId: Long?,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    shared: Boolean = false,
+    sharedOut: Boolean = false,
+) {
     Row(
         Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         BookCover(accountId, coverFileId ?: 0L, coverFileId != null, null, Modifier.width(48.dp).height(72.dp).clip(RoundedCornerShape(4.dp)))
-        Column(Modifier.padding(start = 12.dp)) {
+        Column(Modifier.weight(1f).padding(start = 12.dp)) {
             Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        ShareBadge(shared, sharedOut, null, Modifier.padding(start = 8.dp).testTag("share_badge_$title"))
     }
 }

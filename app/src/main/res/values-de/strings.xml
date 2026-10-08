@@ -300,4 +300,18 @@
     <string name="account_app_version_unknown">unbekannt (älter als %1$s)</string>
     <string name="account_app_outdated">Die App „E-Book Reader“ auf diesem Server ist veraltet. Einige Funktionen benötigen Version %1$s oder neuer.</string>
     <string name="banner_server_outdated">Die Server-App (E-Book Reader %1$s) ist älter als empfohlen (%2$s). Einige Funktionen sind nicht verfügbar.</string>
+    <string name="library_tab_shared">Geteilt</string>
+    <string name="library_tab_folders">Ordner</string>
+    <string name="shared_filter_all">Alle</string>
+    <string name="shared_filter_incoming">Mit mir geteilt</string>
+    <string name="shared_filter_outgoing">Von mir geteilt</string>
+    <string name="shared_empty">Keine geteilten Bücher</string>
+    <string name="share_badge_outgoing">Von dir geteilt</string>
+    <string name="share_badge_incoming">Mit dir geteilt</string>
+    <string name="share_badge_incoming_by">Mit dir geteilt von %1$s</string>
+    <string name="folders_root">Bibliothek</string>
+    <string name="folders_include_subfolders">Unterordner einbeziehen</string>
+    <string name="folders_up">Eine Ebene nach oben</string>
+    <string name="folders_empty">Dieser Ordner ist leer</string>
+    <string name="folders_path">Ordnerpfad</string>
 </resources>
