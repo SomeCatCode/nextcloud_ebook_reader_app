@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,21 +17,27 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Toc
 import androidx.compose.material.icons.filled.Bookmarks
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
@@ -43,13 +50,20 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -70,6 +84,7 @@ import com.somecatcode.ebookreader.ui.util.LocalAppContainer
 import com.somecatcode.ebookreader.ui.util.UiPrefs
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 import com.somecatcode.ebookreader.ui.util.percentText
+import kotlin.math.roundToInt
 
 /** Full-screen reader: hosts W-READER's WebView through [ReaderHost], handles conflict, TOC, settings, links. */
 @Composable
@@ -83,6 +98,8 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
             key, c.libraryRepository, c.progressRepository, c.downloadRepository, c.settingsRepository, c.annotationRepository,
             keepScreenOn = prefs.readerKeepScreenOn,
             onKeepScreenOnChanged = { prefs.readerKeepScreenOn = it },
+            gestureHintShown = prefs.readerGestureHintShown,
+            onGestureHintShown = { prefs.readerGestureHintShown = true },
         )
     }
     val host = remember(key) { createReaderHost(context, container, key) }
@@ -100,7 +117,9 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { vm.flushProgress() }
 
     val state by vm.state.collectAsState()
-    LaunchedEffect(state.openMessage) { state.openMessage?.let(host::send) }
+    // a new host (also after a rotation, which rebuilds the WebView) opens at the current position
+    LaunchedEffect(host, state.openMessage) { state.openMessage?.let { host.send(vm.openMessageForPage(it)) } }
+    LaunchedEffect(state.closeRequested) { if (state.closeRequested) onBack() }
     LaunchedEffect(state.settings, state.phase) {
         if (state.phase == ReaderPhase.READING) host.send(HostToReader.SetSettings(state.settings))
     }
@@ -110,8 +129,9 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
 
     ReaderSystemBars(hidden = true)
     KeepScreenOn(state.keepScreenOn)
-    BackHandler(enabled = state.showToc || state.showSettings || state.barsVisible || state.popup != null || state.showAnnotations) {
+    BackHandler(enabled = state.showToc || state.showSettings || state.barsVisible || state.popup != null || state.showAnnotations || state.showGestureHint) {
         when {
+            state.showGestureHint -> vm.dismissGestureHint()
             state.popup != null -> vm.dismissPopup()
             state.showAnnotations -> vm.showAnnotations(false)
             state.showToc -> vm.showToc(false)
@@ -136,6 +156,9 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
         onHideSettings = { vm.showSettings(false) },
         onSettings = vm::updateSettings,
         onKeepScreenOn = vm::setKeepScreenOn,
+        onSeek = { fraction -> host.send(HostToReader.GoTo(locator = vm.seekLocator(fraction))) },
+        onShowGestureHint = vm::showGestureHint,
+        onDismissGestureHint = vm::dismissGestureHint,
         onConfirmLink = { url ->
             vm.dismissExternalLink()
             openExternal(context, url)
@@ -208,6 +231,9 @@ fun ReaderContent(
     onConfirmLink: (String) -> Unit,
     onDismissLink: () -> Unit,
     annotationActions: AnnotationActions = AnnotationActions(),
+    onSeek: (Double) -> Unit = {},
+    onShowGestureHint: () -> Unit = {},
+    onDismissGestureHint: () -> Unit = {},
 ) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
         Box(Modifier.fillMaxSize()) {
@@ -248,16 +274,11 @@ fun ReaderContent(
                     }
                 }
                 Surface(Modifier.align(Alignment.BottomCenter).fillMaxWidth(), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f), tonalElevation = 2.dp) {
-                    Column(Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                        Text(
-                            listOfNotNull(state.label, percentText(state.percentage)).joinToString(" · "),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                        LinearProgressIndicator({ state.percentage.toFloat().coerceIn(0f, 1f) }, Modifier.fillMaxWidth().padding(top = 4.dp))
-                    }
+                    ProgressBar(state, onSeek, Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp))
                 }
             }
             AnnotationsPage(state, annotationActions)
+            if (state.showGestureHint && state.phase == ReaderPhase.READING) GestureHint(onDismissGestureHint)
         }
     }
 
@@ -269,7 +290,7 @@ fun ReaderContent(
     }
     if (state.showSettings) {
         ModalBottomSheet(onDismissRequest = onHideSettings) {
-            ReaderSettingsSheet(state.settings, state.fixedLayout, state.keepScreenOn, onSettings, onKeepScreenOn)
+            ReaderSettingsSheet(state.settings, state.fixedLayout, state.keepScreenOn, onSettings, onKeepScreenOn, onShowGestureHint)
         }
     }
     state.externalLink?.let { url ->
@@ -332,6 +353,7 @@ private fun ReaderSettingsSheet(
     keepScreenOn: Boolean,
     onChange: ((ReaderSettings) -> ReaderSettings) -> Unit,
     onKeepScreenOn: (Boolean) -> Unit,
+    onShowGestureHint: () -> Unit,
 ) {
     Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.settings_reader_font_size, settings.fontSize), style = MaterialTheme.typography.bodyLarge)
@@ -375,5 +397,77 @@ private fun ReaderSettingsSheet(
             Text(stringResource(R.string.reader_keep_screen_on), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
             Switch(keepScreenOn, onKeepScreenOn)
         }
+        TextButton(onClick = onShowGestureHint, modifier = Modifier.testTag("reader_gesture_help")) {
+            Text(stringResource(R.string.reader_gestures_help))
+        }
+    }
+}
+
+/**
+ * Position label and a slider over the whole book: dragging previews the target, releasing jumps there
+ * (comics by page, other books by overall progress).
+ */
+@Composable
+private fun ProgressBar(state: ReaderUiState, onSeek: (Double) -> Unit, modifier: Modifier = Modifier) {
+    var dragging by remember { mutableStateOf<Float?>(null) }
+    val shown = dragging ?: state.percentage.toFloat().coerceIn(0f, 1f)
+    val comicPages = state.pageCount.takeIf { state.isComic && it > 0 }
+    val position = if (comicPages != null) {
+        stringResource(R.string.reader_page_of, (shown * comicPages).roundToInt().coerceIn(1, comicPages), comicPages)
+    } else {
+        percentText(shown.toDouble())
+    }
+    Column(modifier) {
+        Text(
+            listOfNotNull(state.label.takeIf { dragging == null }, position).joinToString(" · "),
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        val seekLabel = stringResource(R.string.reader_seek)
+        Slider(
+            value = shown,
+            onValueChange = { dragging = it },
+            onValueChangeFinished = {
+                dragging?.let { onSeek(it.toDouble()) }
+                dragging = null
+            },
+            modifier = Modifier.fillMaxWidth().testTag("reader_seek").semantics { contentDescription = seekLabel },
+        )
+    }
+}
+
+/** First-run explanation of the reading gestures, drawn over the page; any tap closes it. */
+@Composable
+private fun GestureHint(onDismiss: () -> Unit) {
+    Box(
+        Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.8f)).clickable(onClick = onDismiss).testTag("reader_gesture_hint"),
+    ) {
+        Column(
+            Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            GestureLabel(Icons.Filled.KeyboardArrowUp, stringResource(R.string.reader_gesture_up))
+            Row(Modifier.weight(1f).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                GestureLabel(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.reader_gesture_prev), Modifier.weight(0.3f))
+                Column(Modifier.weight(0.4f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(stringResource(R.string.reader_gestures_title), color = Color.White, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+                    GestureLabel(Icons.Filled.TouchApp, stringResource(R.string.reader_gesture_center), Modifier.padding(top = 16.dp))
+                }
+                GestureLabel(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.reader_gesture_next), Modifier.weight(0.3f))
+            }
+            GestureLabel(Icons.Filled.KeyboardArrowDown, stringResource(R.string.reader_gesture_down))
+            Button(onClick = onDismiss, modifier = Modifier.padding(top = 16.dp).testTag("reader_gesture_ok")) {
+                Text(stringResource(R.string.reader_gestures_ok))
+            }
+        }
+    }
+}
+
+@Composable
+private fun GestureLabel(icon: ImageVector, text: String, modifier: Modifier = Modifier.fillMaxWidth()) {
+    Column(modifier.padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(36.dp))
+        Text(text, color = Color.White, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
     }
 }

@@ -133,6 +133,11 @@ sealed interface ReaderToHost {
     @SerialName("tap")
     data class Tap(val zone: String) : ReaderToHost
 
+    /** Quick vertical swipe on the page: `up` (open the menu) or `down` (close the book). Never in scrolled text or zoomed. */
+    @Serializable
+    @SerialName("swipe")
+    data class Swipe(val direction: String) : ReaderToHost
+
     /**
      * The user selected text (reflowable books, debounced by reader-core). [locator] is the locator of the
      * selection with the range CFI in `locations.cfi`; [rect] is in CSS px relative to the page (= dp).

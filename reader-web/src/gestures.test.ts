@@ -5,7 +5,7 @@
 import type { ZoomTransform } from './gestures.ts'
 
 import { describe, expect, it } from 'vitest'
-import { clampTransform, DOUBLE_TAP_MS, DOUBLE_TAP_SCALE, FIT, GestureController, MAX_SCALE, tapZone, toCss, zoomAt } from './gestures.ts'
+import { clampTransform, classifySwipe, DOUBLE_TAP_MS, DOUBLE_TAP_SCALE, FIT, GestureController, MAX_SCALE, tapZone, toCss, zoomAt } from './gestures.ts'
 
 const SIZE = { width: 400, height: 800 }
 
@@ -21,6 +21,7 @@ function setup() {
 	const g = new GestureController({
 		tap: (x, y) => events.push(`tap ${x},${y}`),
 		swipe: (dx) => events.push(`swipe ${dx}`),
+		swipeVertical: (dy) => events.push(`vswipe ${dy}`),
 		scroll: (dy) => events.push(`scroll ${dy}`),
 		transform: (t, animate) => transforms.push([t, animate]),
 	}, {
@@ -171,7 +172,27 @@ describe('GestureController', () => {
 		g.down(1, 200, 600, 0)
 		g.move(1, 210, 300)
 		g.up(1, 210, 300, 100)
-		expect(events).toEqual(['scroll -300'])
+		expect(events).toEqual(['scroll -300', 'vswipe -300'])
+	})
+
+	it('slow vertical drags and short ones are no vertical swipes', () => {
+		const { events, g } = setup()
+		g.down(1, 200, 600, 0)
+		g.move(1, 200, 300)
+		g.up(1, 200, 300, 2000)
+		g.down(1, 200, 600, 0)
+		g.move(1, 200, 560)
+		g.up(1, 200, 560, 100)
+		expect(events.filter((e) => e.startsWith('vswipe'))).toEqual([])
+	})
+
+	it('classifies swipes by direction', () => {
+		expect(classifySwipe(-100, 10)).toBe('left')
+		expect(classifySwipe(100, -20)).toBe('right')
+		expect(classifySwipe(10, -120)).toBe('up')
+		expect(classifySwipe(-5, 120)).toBe('down')
+		expect(classifySwipe(70, 70)).toBeNull()
+		expect(classifySwipe(0, 50)).toBeNull()
 	})
 
 	it('one finger left after a pinch keeps panning', () => {

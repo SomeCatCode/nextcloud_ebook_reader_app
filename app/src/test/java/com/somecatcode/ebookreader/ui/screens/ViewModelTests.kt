@@ -593,6 +593,79 @@ class ViewModelTests {
     }
 
     @Test
+    fun reader_newPageReopensAtTheLastPositionWithCurrentSettings() = runTest(dispatcher) {
+        val stored = com.somecatcode.ebookreader.data.repo.StoredProgress(key, localLocator, 0.2, "me", 1, false)
+        val vm = readerVm(FakeProgressRepository(local = stored))
+        advanceUntilIdle()
+        val open = vm.state.value.openMessage!!
+        assertEquals(localLocator, vm.openMessageForPage(open).initialLocator)
+        // reading on, then the screen rotates: the new WebView must not start at the first position again
+        vm.onEvent(ReaderToHost.Opened(BookInfo()))
+        vm.onEvent(ReaderToHost.Relocate(remoteLocator, 0.6))
+        vm.updateSettings { it.copy(fontSize = 140) }
+        val reopen = vm.openMessageForPage(vm.state.value.openMessage!!)
+        assertEquals(remoteLocator, reopen.initialLocator)
+        assertEquals(140, reopen.settings.fontSize)
+    }
+
+    @Test
+    fun reader_swipeUpShowsMenuAndSwipeDownHidesItThenCloses() = runTest(dispatcher) {
+        val progress = FakeProgressRepository()
+        val vm = readerVm(progress)
+        advanceUntilIdle()
+        vm.onEvent(ReaderToHost.Swipe("up"))
+        assertTrue(vm.state.value.barsVisible)
+        vm.onEvent(ReaderToHost.Swipe("down"))
+        assertFalse(vm.state.value.barsVisible)
+        assertFalse(vm.state.value.closeRequested)
+        vm.onEvent(ReaderToHost.Relocate(localLocator, 0.3))
+        vm.onEvent(ReaderToHost.Swipe("down"))
+        assertTrue(vm.state.value.closeRequested)
+        advanceUntilIdle()
+        assertEquals(0.3, progress.saved.single().third, 0.0)
+    }
+
+    @Test
+    fun reader_seekTargetsPagesForComicsAndProgressOtherwise() = runTest(dispatcher) {
+        val vm = readerVm(FakeProgressRepository())
+        advanceUntilIdle()
+        vm.onEvent(ReaderToHost.Opened(BookInfo()))
+        assertEquals(0.42, vm.seekLocator(0.42).locations?.totalProgression!!, 1e-9)
+        vm.onEvent(ReaderToHost.Opened(BookInfo(isComic = true, fixedLayout = true, pageCount = 20)))
+        assertEquals(10, vm.seekLocator(0.5).locations?.position)
+        assertEquals(1, vm.seekLocator(0.0).locations?.position)
+        assertEquals(20, vm.seekLocator(1.0).locations?.position)
+    }
+
+    @Test
+    fun reader_gestureHintShowsOnceOnFirstOpen() = runTest(dispatcher) {
+        var stored = 0
+        fun vm(shown: Boolean) = ReaderViewModel(
+            key, FakeLibraryRepository(listOf(book(1, "Dune"))), FakeProgressRepository(), FakeDownloadRepository(), FakeSettingsRepository(),
+            FakeAnnotationRepository(), gestureHintShown = shown, onGestureHintShown = { stored++ }, remoteCheckTimeoutMs = 100,
+        )
+        val first = vm(shown = false)
+        advanceUntilIdle()
+        assertFalse(first.state.value.showGestureHint)
+        first.onEvent(ReaderToHost.Opened(BookInfo()))
+        assertTrue(first.state.value.showGestureHint)
+        first.dismissGestureHint()
+        assertFalse(first.state.value.showGestureHint)
+        assertEquals(1, stored)
+        first.onEvent(ReaderToHost.Opened(BookInfo()))
+        assertFalse(first.state.value.showGestureHint)
+
+        val later = vm(shown = true)
+        advanceUntilIdle()
+        later.onEvent(ReaderToHost.Opened(BookInfo()))
+        assertFalse(later.state.value.showGestureHint)
+        later.showGestureHint()
+        assertTrue(later.state.value.showGestureHint)
+        later.dismissGestureHint()
+        assertEquals(1, stored)
+    }
+
+    @Test
     fun reader_tapCenterTogglesBarsAndExternalLinksAreFiltered() = runTest(dispatcher) {
         val vm = readerVm(FakeProgressRepository())
         advanceUntilIdle()

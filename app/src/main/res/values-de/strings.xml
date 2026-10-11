@@ -218,6 +218,16 @@
     <string name="reader_error_network">Keine Verbindung zum Server. Mache das Buch offline verfügbar, um ohne Verbindung zu lesen.</string>
     <string name="reader_error_unsupported">Dieses Format wird nicht unterstützt.</string>
     <string name="reader_error_open">Die Datei konnte nicht gelesen werden.</string>
+    <string name="reader_gestures_title">Gesten beim Lesen</string>
+    <string name="reader_gesture_prev">Tippen oder nach rechts wischen: vorherige Seite</string>
+    <string name="reader_gesture_next">Tippen oder nach links wischen: nächste Seite</string>
+    <string name="reader_gesture_center">Mitte antippen: Menü</string>
+    <string name="reader_gesture_up">Nach oben wischen: Menü mit Fortschrittsleiste – ziehen, um im Buch zu springen</string>
+    <string name="reader_gesture_down">Nach unten wischen: Buch schließen (die Position wird gespeichert)</string>
+    <string name="reader_gestures_ok">Verstanden</string>
+    <string name="reader_gestures_help">Gesten anzeigen</string>
+    <string name="reader_seek">Leseposition</string>
+    <string name="reader_page_of">Seite %1$d von %2$d</string>
     <string name="filter_open">Filter</string>
     <string name="filter_sheet_title">Bibliothek filtern</string>
     <string name="filter_section_genres">Genres</string>
