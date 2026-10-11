@@ -218,6 +218,16 @@
     <string name="reader_error_network">No connection to the server. Make the book available offline to read without a connection.</string>
     <string name="reader_error_unsupported">This format is not supported.</string>
     <string name="reader_error_open">The file could not be read.</string>
+    <string name="reader_gestures_title">Reading gestures</string>
+    <string name="reader_gesture_prev">Tap or swipe right: previous page</string>
+    <string name="reader_gesture_next">Tap or swipe left: next page</string>
+    <string name="reader_gesture_center">Tap the middle: menu</string>
+    <string name="reader_gesture_up">Swipe up: menu with progress bar – drag it to jump through the book</string>
+    <string name="reader_gesture_down">Swipe down: close the book (your position is saved)</string>
+    <string name="reader_gestures_ok">Got it</string>
+    <string name="reader_gestures_help">Show gestures</string>
+    <string name="reader_seek">Reading position</string>
+    <string name="reader_page_of">Page %1$d of %2$d</string>
     <string name="filter_open">Filter</string>
     <string name="filter_sheet_title">Filter library</string>
     <string name="filter_section_genres">Genres</string>

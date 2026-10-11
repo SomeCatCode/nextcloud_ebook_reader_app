@@ -73,6 +73,7 @@ class ReaderBridgeTest {
         roundTrip(ReaderToHost.Toc(listOf(TocItem("A", "a.xhtml", listOf(TocItem("A1", "a.xhtml#1"))), TocItem("B", "b.xhtml"))))
         roundTrip(ReaderToHost.ExternalLink("https://example.org"))
         roundTrip(ReaderToHost.Tap("center"))
+        roundTrip(ReaderToHost.Swipe("up"))
         for (code in ErrorCode.entries) {
             roundTrip(ReaderToHost.Error(code, "m"))
         }

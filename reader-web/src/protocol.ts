@@ -82,6 +82,8 @@ export type ReaderToHostMsg =
 	| { type: 'toc', items: TocItemMsg[] }
 	| { type: 'externalLink', url: string }
 	| { type: 'tap', zone: 'left' | 'center' | 'right' }
+	/** Vertical swipe of the page (paginated text and fit pages only): up = menu, down = close */
+	| { type: 'swipe', direction: 'up' | 'down' }
 	| { type: 'selection', text: string, cfi: string, locator: ReaderLocator, rect: RectMsg }
 	| { type: 'selectionClear' }
 	| { type: 'annotationClick', id: string, rect: RectMsg }
