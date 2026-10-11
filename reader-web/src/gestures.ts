@@ -26,6 +26,28 @@ export const MAX_SCALE = 5
 export const DOUBLE_TAP_SCALE = 2.5
 /** Minimal horizontal movement of a page-turning swipe (CSS px). */
 export const SWIPE_MIN = 60
+/** Minimal vertical movement of a menu/close swipe (CSS px). */
+export const SWIPE_V_MIN = 80
+/** Slower drags are no swipes (ms), e.g. a long press that starts a text selection. */
+export const SWIPE_MAX_MS = 800
+
+export type SwipeKind = 'left' | 'right' | 'up' | 'down' | null
+
+/**
+ * Classifies a finished one-finger drag: mostly horizontal or mostly vertical and long enough.
+ *
+ * @param dx finger movement, positive = right
+ * @param dy finger movement, positive = down
+ */
+export function classifySwipe(dx: number, dy: number): SwipeKind {
+	if (Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy) * 2) {
+		return dx < 0 ? 'left' : 'right'
+	}
+	if (Math.abs(dy) > SWIPE_V_MIN && Math.abs(dy) > Math.abs(dx) * 2) {
+		return dy < 0 ? 'up' : 'down'
+	}
+	return null
+}
 /** Time a single tap waits for a second one (ms); also the double-tap window. */
 export const DOUBLE_TAP_MS = 250
 /** Movement up to which a touch still counts as a tap (CSS px). */
@@ -98,6 +120,8 @@ export interface GestureSink {
 	tap: (x: number, y: number) => void
 	/** Horizontal swipe at fit zoom: `dx < 0` = finger moved left. */
 	swipe: (dx: number) => void
+	/** Quick vertical swipe at fit zoom: `dy < 0` = finger moved up. */
+	swipeVertical?: (dy: number) => void
 	/** Vertical drag (CSS px of finger movement) the zoom could not absorb, e.g. for fit-width pages. */
 	scroll: (dy: number) => void
 	/** New zoom transform; `animate` for discrete jumps (double tap, snap back). */
@@ -272,8 +296,11 @@ export class GestureController {
 		if (mode === 'drag' && !this.#start.zoomed && !this.zoomed) {
 			const dx = x - this.#start.x
 			const dy = y - this.#start.y
-			if (Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy) * 2) {
+			const kind = classifySwipe(dx, dy)
+			if (kind === 'left' || kind === 'right') {
 				this.sink.swipe(dx)
+			} else if (kind && time - this.#start.time < SWIPE_MAX_MS) {
+				this.sink.swipeVertical?.(dy)
 			}
 		}
 	}

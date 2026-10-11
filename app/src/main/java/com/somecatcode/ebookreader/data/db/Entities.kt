@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -79,6 +80,12 @@ data class BookEntity(
     val hasSidecar: Boolean,
     /** Soft delete: set when the server reports the book as deleted; rows are purged after cleanup of the download. */
     val deleted: Boolean = false,
+    /** The file belongs to another user (incoming share, server 0.9.0+). */
+    @ColumnInfo(defaultValue = "0") val shared: Boolean = false,
+    /** Nextcloud user id of the file owner; null when unknown. */
+    val owner: String? = null,
+    /** Own book shared through the app with other users (server 0.10.0+). */
+    @ColumnInfo(defaultValue = "0") val sharedOut: Boolean = false,
 )
 
 /** Genre or tag of a book. */

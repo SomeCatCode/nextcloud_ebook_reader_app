@@ -30,5 +30,19 @@ val MIGRATION_1_2: Migration = object : Migration(1, 2) {
     }
 }
 
+/**
+ * Version 3: sharing fields of a book (`shared`, `owner`, `sharedOut`, server 0.9.0/0.10.0) for the
+ * "Shared" view and the share badges. The stored `/sync` cursors are reset so the next sync is a full
+ * one and fills the new columns for the existing books (books are upserted, nothing is lost).
+ */
+val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `book` ADD COLUMN `shared` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE `book` ADD COLUMN `owner` TEXT")
+        db.execSQL("ALTER TABLE `book` ADD COLUMN `sharedOut` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("UPDATE account SET lastSyncCursor = NULL")
+    }
+}
+
 /** All migrations, registered by the database builder. */
-val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2)
+val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)

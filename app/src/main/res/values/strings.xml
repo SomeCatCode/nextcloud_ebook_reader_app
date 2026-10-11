@@ -218,6 +218,16 @@
     <string name="reader_error_network">No connection to the server. Make the book available offline to read without a connection.</string>
     <string name="reader_error_unsupported">This format is not supported.</string>
     <string name="reader_error_open">The file could not be read.</string>
+    <string name="reader_gestures_title">Reading gestures</string>
+    <string name="reader_gesture_prev">Tap or swipe right: previous page</string>
+    <string name="reader_gesture_next">Tap or swipe left: next page</string>
+    <string name="reader_gesture_center">Tap the middle: menu</string>
+    <string name="reader_gesture_up">Swipe up: menu with progress bar – drag it to jump through the book</string>
+    <string name="reader_gesture_down">Swipe down: close the book (your position is saved)</string>
+    <string name="reader_gestures_ok">Got it</string>
+    <string name="reader_gestures_help">Show gestures</string>
+    <string name="reader_seek">Reading position</string>
+    <string name="reader_page_of">Page %1$d of %2$d</string>
     <string name="filter_open">Filter</string>
     <string name="filter_sheet_title">Filter library</string>
     <string name="filter_section_genres">Genres</string>
@@ -300,4 +310,18 @@
     <string name="account_app_version_unknown">unknown (older than %1$s)</string>
     <string name="account_app_outdated">The E-Book Reader app on this server is out of date. Some features need version %1$s or later.</string>
     <string name="banner_server_outdated">The server app (E-Book Reader %1$s) is older than recommended (%2$s). Some features are not available.</string>
+    <string name="library_tab_shared">Shared</string>
+    <string name="library_tab_folders">Folders</string>
+    <string name="shared_filter_all">All</string>
+    <string name="shared_filter_incoming">Shared with me</string>
+    <string name="shared_filter_outgoing">Shared by me</string>
+    <string name="shared_empty">No shared books</string>
+    <string name="share_badge_outgoing">Shared by you</string>
+    <string name="share_badge_incoming">Shared with you</string>
+    <string name="share_badge_incoming_by">Shared with you by %1$s</string>
+    <string name="folders_root">Library</string>
+    <string name="folders_include_subfolders">Include subfolders</string>
+    <string name="folders_up">Up one level</string>
+    <string name="folders_empty">This folder is empty</string>
+    <string name="folders_path">Folder path</string>
 </resources>

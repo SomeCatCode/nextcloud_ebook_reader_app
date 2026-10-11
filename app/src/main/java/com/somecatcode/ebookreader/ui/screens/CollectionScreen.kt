@@ -71,6 +71,7 @@ import com.somecatcode.ebookreader.ui.components.BookCover
 import com.somecatcode.ebookreader.ui.components.ConfirmDialog
 import com.somecatcode.ebookreader.ui.components.EmptyState
 import com.somecatcode.ebookreader.ui.components.OfflineIndicator
+import com.somecatcode.ebookreader.ui.components.ShareBadge
 import com.somecatcode.ebookreader.ui.components.rememberDownloadGate
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 import com.somecatcode.ebookreader.ui.util.percentText
@@ -321,6 +322,7 @@ fun CollectionContent(
                     Column(click) {
                         Box(Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(8.dp))) {
                             BookCover(book, Modifier.fillMaxSize())
+                            ShareBadge(book.shared, book.sharedOut, book.owner, Modifier.align(Alignment.TopStart).padding(4.dp))
                             OfflineIndicator(book.offline, Modifier.align(Alignment.TopEnd).padding(4.dp))
                             book.percentage?.takeIf { it > 0.0 && it < 1.0 }?.let {
                                 LinearProgressIndicator({ it.toFloat() }, Modifier.align(Alignment.BottomCenter).fillMaxWidth())
@@ -345,6 +347,7 @@ fun CollectionContent(
                                 LinearProgressIndicator({ it.toFloat() }, Modifier.fillMaxWidth().padding(top = 4.dp))
                             }
                         }
+                        ShareBadge(book.shared, book.sharedOut, book.owner, Modifier.padding(end = 4.dp))
                         OfflineIndicator(book.offline)
                     }
                 }

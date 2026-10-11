@@ -85,12 +85,16 @@ fun book(
     editable: Boolean = true,
     percentage: Double? = null,
     pending: Boolean = false,
+    path: String = "/Books/$title.$format",
+    shared: Boolean = false,
+    sharedOut: Boolean = false,
+    owner: String? = null,
 ) = LibraryBook(
-    key = BookKey(accountId, fileId), format = format, path = "/Books/$title.$format", size = 1_000_000, title = title,
+    key = BookKey(accountId, fileId), format = format, path = path, size = 1_000_000, title = title,
     authors = authors, series = series, seriesIndex = seriesIndex, descriptionHtml = null, language = "en", publisher = null,
     isbn = null, publishedAt = null, genres = genres, tags = tags, rating = rating, readStatus = status, hasCover = false,
     coverEtag = null, addedAt = fileId, editable = editable, downloadable = true, percentage = percentage, offline = offline,
-    hasPendingEdit = pending,
+    hasPendingEdit = pending, shared = shared, owner = owner, sharedOut = sharedOut,
 )
 
 // ---- repositories -----------------------------------------------------------------------------------
@@ -147,6 +151,8 @@ class FakeLibraryRepository(initial: List<LibraryBook> = emptyList()) : LibraryR
                 .filter { !filter.hideFinished || filter.status != null || it.readStatus != ReadStatus.FINISHED }
                 .filter { b -> filter.include.all { t -> fakeTermMatches(t, b) } && filter.exclude.none { t -> fakeTermMatches(t, b) } }
                 .filter { filter.series == null || it.series == filter.series }
+                .filter { b -> filter.shared == null || com.somecatcode.ebookreader.data.repo.SharedFilters.matches(filter.shared!!, b.shared, b.sharedOut) }
+                .filter { b -> filter.folder == null || com.somecatcode.ebookreader.data.repo.FolderTree.inFolder(b.path, filter.folder!!, filter.folderRecursive) }
                 .sortedBy { it.title.lowercase() }
         }
     }

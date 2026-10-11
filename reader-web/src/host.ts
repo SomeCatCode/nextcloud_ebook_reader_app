@@ -43,6 +43,8 @@ export interface ReaderHostApi {
 	swipe: (dx: number) => void
 	/** Tap of the comic gesture layer (reader-core reports text taps itself). */
 	tap: (zone: 'left' | 'center' | 'right') => void
+	/** Vertical swipe: `dy < 0` = finger moved up. Ignored for scrolled text and zoomed pages. */
+	swipeVertical: (dy: number) => void
 }
 
 /**
@@ -250,6 +252,17 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 	}
 
 	/**
+	 * @param dy
+	 */
+	function swipeVertical(dy: number): void {
+		// scrolled text uses vertical drags for scrolling, a zoomed page pans
+		if (!reader?.getInfo() || isScrolledText() || isZoomed() || dy === 0) {
+			return
+		}
+		deps.send({ type: 'swipe', direction: dy < 0 ? 'up' : 'down' })
+	}
+
+	/**
 	 * @param patch
 	 * @param initial true while building the reader (nothing to apply yet)
 	 */
@@ -424,5 +437,5 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 		}
 	}
 
-	return { receive, handleKey, swipe, tap: onTap }
+	return { receive, handleKey, swipe, tap: onTap, swipeVertical }
 }

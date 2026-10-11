@@ -94,6 +94,10 @@ data class EbookReaderCapabilities(
     val editor: Boolean = false,
     /** Highlights, notes and bookmarks (`/books/{id}/annotations`, server 0.7.0+). */
     val annotations: Boolean = false,
+    /** Sharing of books and shelves (server 0.8.0+). */
+    val sharing: Boolean = false,
+    /** Optional features (server 0.10.0+): `shared-filter`, `series-shares`, `folder-shares`, `folders`, `sidecar-meta`. */
+    val features: List<String> = emptyList(),
 )
 
 /** `data` of `GET /ocs/v2.php/cloud/user`. */
@@ -181,6 +185,12 @@ data class BookDto(
     /** Metadata fields changed in the app only (title, authors, series, ...). */
     val overrides: List<String> = emptyList(),
     val hasSidecar: Boolean = false,
+    /** Nextcloud user id of the file owner (server 0.9.0+); null on older servers. */
+    val owner: String? = null,
+    /** The file belongs to another user (incoming share, server 0.9.0+). */
+    val shared: Boolean = false,
+    /** Own book shared through the app with at least one user (book, shelf, series or folder share; server 0.10.0+). */
+    val sharedOut: Boolean = false,
     val progress: ProgressDto? = null,
 )
 

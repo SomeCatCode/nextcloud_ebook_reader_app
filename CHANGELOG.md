@@ -5,6 +5,22 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+## 0.3.0 – 2026-10-11
+
+### Hinzugefügt
+- **Gesten im Reader:** Nach oben wischen öffnet das Menü mit Fortschrittsleiste, nach unten wischen schließt es bzw. schließt das Buch (die Position wird vorher gespeichert). Links/rechts tippen oder wischen blättert wie bisher.
+- **Fortschrittsregler:** Die Fortschrittsleiste im Reader-Menü lässt sich ziehen, um schnell im Buch zu springen (Vorschau der Zielposition in Prozent, bei Comics als Seitenzahl).
+- **Gesten-Erklärung** beim ersten Öffnen eines Buchs; später jederzeit über die Reader-Einstellungen („Gesten anzeigen“).
+- **Neue Reiter „Geteilt“ und „Ordner“** (Reihenfolge wie in der Web-App: Bücher, Serien, Geteilt, Ordner, Regale; benötigt Server-App 0.10.0, auf älteren Servern bleiben sie ausgeblendet). „Geteilt“ zeigt die Bücher als Raster oder Liste, umschaltbar zwischen „Alle“, „Mit mir geteilt“ und „Von mir geteilt“. „Ordner“ durchsucht die Ordnerstruktur der Bibliothek (Pfadleiste, Hoch-Taste und Zurück-Geste, Unterordner mit Anzahl, optional inklusive Unterordnern). Beides wird lokal aus der Datenbank berechnet und funktioniert deshalb auch offline.
+- **Teilen-Symbol** auf Buchcovern, Listenzeilen und Serien: „Von dir geteilt“ bzw. „Mit dir geteilt von …“ (mit Inhaltsbeschreibung für Screenreader).
+- Datenbank (Version 3): neue Buchfelder `shared`, `owner` und `sharedOut`; beim Update startet automatisch ein vollständiger Abgleich, der sie füllt.
+
+### Behoben
+- Beim Drehen des Geräts sprang der Reader an die Position zurück, an der das Buch geöffnet wurde, und speicherte diese als Lesestand. Jetzt bleibt die aktuelle Seite erhalten (auch geänderte Reader-Einstellungen).
+
+### Geändert
+- Der Reiter „Serien“ zeigt weiterhin direkt alle Serien (kein Filter); die Tab-Leiste ist jetzt scrollbar.
+
 ## 0.2.1 – 2026-10-07
 
 ### Hinzugefügt

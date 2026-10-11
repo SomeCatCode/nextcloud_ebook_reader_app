@@ -99,6 +99,7 @@ Echter Code: `ReaderBridge.kt` (Nachrichten, `BridgeJson`), `ReaderRequestProxy.
 | JS → Kotlin | `toc` | `items[{label, href, subitems}]` |
 | JS → Kotlin | `externalLink` | `url` – Kotlin fragt nach und startet `ACTION_VIEW` (nur http/https/mailto) |
 | JS → Kotlin | `tap` | `zone` = `left|center|right` |
+| JS → Kotlin | `swipe` | `direction` = `up|down` – schnelles senkrechtes Wischen (nicht bei Fließtext-Scrollen, gezoomten oder scrollbaren Comicseiten): oben = Menü mit Fortschrittsregler, unten = Menü schließen bzw. Buch schließen |
 | JS → Kotlin | `selection` | `text`, `cfi` (Bereichs-CFI), `locator` (mit `locations.cfi`), `rect{left,top,right,bottom}` in CSS-px (= dp) |
 | JS → Kotlin | `selectionClear` | Auswahl weg |
 | JS → Kotlin | `annotationClick` | `id` (UUID), `rect` – Antippen einer Markierung (blättert nicht) |
@@ -106,7 +107,11 @@ Echter Code: `ReaderBridge.kt` (Nachrichten, `BridgeJson`), `ReaderRequestProxy.
 
 **Markierungen & Notizen:** Die WebView (`ReaderWebView`) ergänzt ihr eigenes Textauswahl-Menü (Kopieren, Teilen …) um „Markieren“ und „Notiz“, solange `supportsAnnotations` gilt; ein Tipp geht als `ReaderHost.selectionActions` an den Reader-Screen, der die zuletzt gemeldete `selection` verwendet. Daten: `AnnotationRepository` (Room-Tabelle `annotation`, Schlüssel `accountId`+`uuid`, `dirty`/`deleted` wie beim Fortschritt), Upload im `PUSH_LOCAL`-Schritt per `POST /books/{id}/annotations` (Upsert) bzw. `DELETE /annotations/{uuid}`, Zusammenführung aus `/sync` nach Server-Regel (neuerer `clientUpdatedAt` gewinnt, Tombstones löschen).
 
-**Gesten bei Comics** (rein im Bundle, kein Protokollanteil): Eine transparente Ebene über dem Reader (`reader-web/src/gestures.ts`) nimmt alle Berührungen auf – Tippen (Zonen links/Mitte/rechts, um 250 ms verzögert wegen Doppeltippen), Wischen, Pinch-Zoom (1–5×), Verschieben und Doppeltippen (eingepasst ↔ 2,5×). Der Zoom ist eine CSS-Transformation des Reader-Containers und damit nie Teil des Locators; jedes Blättern/Springen und jede Layout-Änderung setzt ihn zurück. Die WebView selbst bleibt unzoombar (`user-scalable=no`, `builtInZoomControls=false`). Text-Bücher behalten die Gesten von foliate.
+**Gesten bei Comics** (rein im Bundle, kein Protokollanteil): Eine transparente Ebene über dem Reader (`reader-web/src/gestures.ts`) nimmt alle Berührungen auf – Tippen (Zonen links/Mitte/rechts, um 250 ms verzögert wegen Doppeltippen), Wischen, Pinch-Zoom (1–5×), Verschieben und Doppeltippen (eingepasst ↔ 2,5×). Der Zoom ist eine CSS-Transformation des Reader-Containers und damit nie Teil des Locators; jedes Blättern/Springen und jede Layout-Änderung setzt ihn zurück. Die WebView selbst bleibt unzoombar (`user-scalable=no`, `builtInZoomControls=false`). Text-Bücher behalten die Gesten von foliate (waagrechtes Wischen blättert); senkrechtes Wischen erkennt `main.ts` in den Abschnittsdokumenten (nicht bei Textauswahl) und meldet es als `swipe`.
+
+**Fortschrittsregler:** Der Regler in der unteren Leiste springt per `goTo` mit einem Locator ohne `href`: bei Comics `locations.position` (Seite), sonst `locations.totalProgression`.
+
+**Neuaufbau der WebView** (z. B. Drehen des Geräts): Der Reader-Screen erzeugt einen neuen Host, das ViewModel bleibt. `ReaderViewModel.openMessageForPage` öffnet dann an der zuletzt gemeldeten Position mit den aktuellen Einstellungen statt an der Startposition.
 
 `open.source` (Kotlin entscheidet, JS baut daraus die `ReaderSource` von reader-core): `file` (ganze Datei von `/api/book` → `File`), `remote-zip` (EPUB/FBZ eintragsweise: `entriesUrl`, `itemUrl`), `remote-comic` (Seiten einzeln: `pagesUrl`, `pageUrl` mit `{index}`/`{width}`). Offline ist es immer `file`. Der **Locator** ist exakt das Server-Format (`href` + `locations{progression,totalProgression,position,cfi}`), damit Web und App dieselbe Position teilen.
 

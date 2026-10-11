@@ -213,6 +213,16 @@
     <string name="reader_error_network">サーバーに接続できません。接続なしで読むには、書籍をオフラインで利用可能にしてください。</string>
     <string name="reader_error_unsupported">この形式には対応していません。</string>
     <string name="reader_error_open">ファイルを読み込めませんでした。</string>
+    <string name="reader_gestures_title">読書中のジェスチャー</string>
+    <string name="reader_gesture_prev">タップまたは右へスワイプ：前のページ</string>
+    <string name="reader_gesture_next">タップまたは左へスワイプ：次のページ</string>
+    <string name="reader_gesture_center">中央をタップ：メニュー</string>
+    <string name="reader_gesture_up">上へスワイプ：進捗バー付きメニュー（ドラッグして本の中を移動）</string>
+    <string name="reader_gesture_down">下へスワイプ：本を閉じる（位置は保存されます）</string>
+    <string name="reader_gestures_ok">わかりました</string>
+    <string name="reader_gestures_help">ジェスチャーを表示</string>
+    <string name="reader_seek">読書位置</string>
+    <string name="reader_page_of">%1$d / %2$d ページ</string>
     <string name="filter_open">フィルター</string>
     <string name="filter_sheet_title">ライブラリを絞り込む</string>
     <string name="filter_section_genres">ジャンル</string>
@@ -298,4 +308,18 @@
     <string name="settings_donate">アプリを応援する</string>
     <string name="settings_donate_hint">ブラウザーで寄付ページを開きます。このアプリには広告もトラッキングもありません。</string>
     <string name="settings_third_party_licenses">サードパーティのライセンス</string>
+    <string name="library_tab_shared">共有</string>
+    <string name="library_tab_folders">フォルダ</string>
+    <string name="shared_filter_all">すべて</string>
+    <string name="shared_filter_incoming">自分と共有</string>
+    <string name="shared_filter_outgoing">自分が共有</string>
+    <string name="shared_empty">共有された本はありません</string>
+    <string name="share_badge_outgoing">あなたが共有中</string>
+    <string name="share_badge_incoming">あなたと共有されています</string>
+    <string name="share_badge_incoming_by">%1$s さんがあなたと共有</string>
+    <string name="folders_root">ライブラリ</string>
+    <string name="folders_include_subfolders">サブフォルダーを含める</string>
+    <string name="folders_up">1 つ上へ</string>
+    <string name="folders_empty">このフォルダーは空です</string>
+    <string name="folders_path">フォルダーのパス</string>
 </resources>

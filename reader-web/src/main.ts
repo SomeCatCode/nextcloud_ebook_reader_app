@@ -8,7 +8,7 @@
 import type { ReaderToHostMsg } from './protocol.ts'
 
 import { createReader } from '../../third_party/nextcloud_ebook_reader/packages/reader-core/index.ts'
-import { GestureController, SWIPE_MIN, tapZone, toCss } from './gestures.ts'
+import { classifySwipe, GestureController, SWIPE_MAX_MS, tapZone, toCss } from './gestures.ts'
 import { createHost } from './host.ts'
 import { PROTOCOL_VERSION } from './protocol.ts'
 import { comicPageWidth } from './source.ts'
@@ -107,12 +107,26 @@ function scrollPage(dy: number): void {
 }
 
 /**
+ * True while the comic page is taller than the screen (fit width): vertical drags scroll it.
+ */
+function pageScrolls(): boolean {
+	const view = container.querySelector('foliate-view') as (HTMLElement & { renderer?: HTMLElement }) | null
+	const r = view?.renderer
+	return !!r && r.scrollHeight > r.clientHeight + 1
+}
+
+/**
  * Comic zoom: pinch, pan and double tap on the overlay, applied as a CSS transform of the reader
  * container (purely visual, never part of the locator).
  */
 const gestures = new GestureController({
 	tap: (x) => host.tap(tapZone(x, overlay.clientWidth || window.innerWidth)),
 	swipe: (dx) => host.swipe(dx),
+	swipeVertical: (dy) => {
+		if (!pageScrolls()) {
+			host.swipeVertical(dy)
+		}
+	},
 	scroll: (dy) => scrollPage(-dy),
 	transform: (t, animate) => {
 		container.style.transition = animate && !einkOn ? 'transform 150ms ease-out' : 'none'
@@ -172,18 +186,30 @@ overlay.addEventListener('wheel', (e) => scrollPage(e.deltaY), { passive: true }
 window.addEventListener('resize', () => gestures.reset())
 
 /**
- * Swipe handling for fixed-layout EPUB pages (comics use the gesture overlay); host.swipe ignores text books.
+ * Swipe handling inside section documents (comics use the gesture overlay): horizontal swipes turn
+ * fixed-layout EPUB pages (the paginator turns text pages itself, host.swipe ignores them); quick
+ * vertical swipes open the menu (up) or close the book (down).
  *
  * @param doc
  */
 function bindSwipe(doc: Document): void {
 	let startX = 0
 	let startY = 0
+	let startTime = 0
 	let tracking = false
 	doc.addEventListener('touchstart', (e) => {
 		tracking = e.touches.length === 1
 		startX = e.touches[0]?.clientX ?? 0
 		startY = e.touches[0]?.clientY ?? 0
+		startTime = e.timeStamp
+	}, { passive: true })
+	doc.addEventListener('touchmove', (e) => {
+		if (e.touches.length > 1) {
+			tracking = false
+		}
+	}, { passive: true })
+	doc.addEventListener('touchcancel', () => {
+		tracking = false
 	}, { passive: true })
 	doc.addEventListener('touchend', (e) => {
 		if (!tracking) {
@@ -193,8 +219,12 @@ function bindSwipe(doc: Document): void {
 		const t = e.changedTouches[0]
 		const dx = (t?.clientX ?? 0) - startX
 		const dy = (t?.clientY ?? 0) - startY
-		if (Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy) * 2) {
+		const kind = classifySwipe(dx, dy)
+		if (kind === 'left' || kind === 'right') {
 			host.swipe(dx)
+		} else if (kind && e.timeStamp - startTime < SWIPE_MAX_MS && doc.getSelection?.()?.type !== 'Range') {
+			// a drag that selects text is no swipe
+			host.swipeVertical(dy)
 		}
 	}, { passive: true })
 }

@@ -3,6 +3,7 @@ package com.somecatcode.ebookreader.ui.screens
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.somecatcode.ebookreader.R
+import com.somecatcode.ebookreader.data.ServerFeature
 import com.somecatcode.ebookreader.data.ServerVersions
 import com.somecatcode.ebookreader.data.account.Account
 import com.somecatcode.ebookreader.data.account.AccountStore
@@ -10,6 +11,9 @@ import com.somecatcode.ebookreader.data.api.ApiException
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.api.SmartQueryDto
 import com.somecatcode.ebookreader.data.repo.FacetCount
+import com.somecatcode.ebookreader.data.repo.FolderListing
+import com.somecatcode.ebookreader.data.repo.FolderTree
+import com.somecatcode.ebookreader.data.repo.SharedFilter
 import com.somecatcode.ebookreader.data.repo.LibraryBook
 import com.somecatcode.ebookreader.data.repo.LibraryFacets
 import com.somecatcode.ebookreader.data.repo.LibraryFilter
@@ -46,7 +50,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class LibraryTab { BOOKS, SHELVES, SERIES }
+/**
+ * Order as in the web app: books (all / continue / unread / finished via the status filter), series, shared,
+ * folders, shelves. [SHARED] and [FOLDERS] need server 0.10.0 (see [LibraryUiState.visibleTabs]).
+ */
+enum class LibraryTab { BOOKS, SERIES, SHARED, FOLDERS, SHELVES }
 
 sealed interface LibraryBanner {
     data object Offline : LibraryBanner
@@ -65,6 +73,11 @@ data class LibraryQuery(
     val filter: LibraryFilter = LibraryFilter(),
     /** Smart shelf whose saved query is shown and can be updated. */
     val editingShelf: ShelfKey? = null,
+    /** "Shared" tab: all / shared with me / shared by me. */
+    val sharedMode: SharedFilter = SharedFilter.ANY,
+    /** "Folders" tab: shown folder ("" = top level) and whether books of subfolders are listed too. */
+    val folder: String = "",
+    val includeSubfolders: Boolean = false,
 ) {
     val activeFilterCount: Int
         get() = filter.include.size + filter.exclude.size + listOf(filter.status != null, filter.onlyOffline).count { it }
@@ -105,6 +118,14 @@ internal fun sortFromWire(value: String) = when (value) {
 internal fun defaultDescending(sort: LibrarySort) =
     sort == LibrarySort.ADDED || sort == LibrarySort.RECENTLY_READ || sort == LibrarySort.RATING
 
+/** The filter the books list of the selected tab is computed with. */
+internal fun LibraryQuery.effectiveFilter(hideFinished: Boolean): LibraryFilter = when (tab) {
+    // the persisted "hide finished" option belongs to the plain books list only
+    LibraryTab.SHARED -> filter.copy(shared = sharedMode, hideFinished = false)
+    LibraryTab.FOLDERS -> filter.copy(hideFinished = false)
+    else -> filter.copy(hideFinished = hideFinished)
+}
+
 /** Filter that a saved smart query stands for. */
 internal fun SmartQueryDto.toFilter(): LibraryFilter = LibraryFilter(
     search = search.ifBlank { null },
@@ -125,7 +146,10 @@ data class LibraryUiState(
     val grid: Boolean = true,
     val hideFinished: Boolean = true,
     val query: LibraryQuery = LibraryQuery(),
+    /** Books of the selected tab; in the folders tab the books of the shown folder. */
     val books: List<LibraryBook> = emptyList(),
+    /** Folders tab: sub-folders and books of the shown folder. */
+    val folderListing: FolderListing<LibraryBook>? = null,
     val continueReading: List<LibraryBook> = emptyList(),
     val shelves: List<ShelfInfo> = emptyList(),
     val series: List<SeriesInfo> = emptyList(),
@@ -135,6 +159,16 @@ data class LibraryUiState(
     /** Oldest last successful sync of the shown accounts (null = at least one never synced). */
     val lastSyncAt: Long? = null,
 ) {
+    /** Tabs shown: the new views need server 0.10.0 on at least one of the shown accounts. */
+    val visibleTabs: List<LibraryTab>
+        get() {
+            val shown = accounts.filter { it.id in shownAccountIds }
+            val shared = shown.any { ServerFeature.SHARED_VIEW.availableOn(it.appVersion) }
+            val folders = shown.any { ServerFeature.FOLDERS_VIEW.availableOn(it.appVersion) }
+            return LibraryTab.entries.filter { (it != LibraryTab.SHARED || shared) && (it != LibraryTab.FOLDERS || folders) }
+        }
+    /** The selected tab, or books when an older server hides it. */
+    val tab: LibraryTab get() = query.tab.takeIf { it in visibleTabs } ?: LibraryTab.BOOKS
     val accountNames: Map<String, String> get() = accounts.associate { it.id to (it.displayName?.takeIf(String::isNotBlank) ?: it.loginName) }
     val genres: List<FacetCount> get() = facets.genres
     val tags: List<FacetCount> get() = facets.tags
@@ -172,10 +206,29 @@ class LibraryViewModel(
 
     private val hideFinished: Flow<Boolean> = settings.settings.map { it.hideFinished }.distinctUntilChanged()
 
-    private val books: Flow<List<LibraryBook>> = combine(shownIds, query, hideFinished) { ids, q, hide -> Triple(ids, q.filter, hide) }
+    private data class TabBooks(val books: List<LibraryBook>, val listing: FolderListing<LibraryBook>? = null)
+
+    /** Folder shown by the folders tab; null in all other tabs (so browsing folders does not reload the other lists). */
+    private data class FolderView(val folder: String, val recursive: Boolean)
+
+    private val tabBooks: Flow<TabBooks> = combine(shownIds, query, hideFinished) { ids, q, hide ->
+        Triple(ids, q.effectiveFilter(hide), if (q.tab == LibraryTab.FOLDERS) FolderView(FolderTree.normalize(q.folder), q.includeSubfolders) else null)
+    }
         .distinctUntilChanged()
-        .flatMapLatest { (ids, filter, hide) ->
-            if (ids.isEmpty()) flowOf(emptyList()) else library.books(ids, filter.copy(hideFinished = hide))
+        .flatMapLatest { (ids, filter, folderView) ->
+            if (ids.isEmpty()) {
+                flowOf(TabBooks(emptyList()))
+            } else {
+                library.books(ids, filter).map { list ->
+                    if (folderView == null) {
+                        TabBooks(list)
+                    } else {
+                        // the folder structure is computed locally from the synced book paths
+                        val listing = FolderTree.list(list, folderView.folder, folderView.recursive) { it.path }
+                        TabBooks(listing.items, listing)
+                    }
+                }
+            }
         }
 
     private data class Collections(val shelves: List<ShelfInfo>, val series: List<SeriesInfo>, val facets: LibraryFacets)
@@ -210,7 +263,7 @@ class LibraryViewModel(
             lastSyncAt = if (shown.isEmpty() || shown.any { it.lastSyncAt == null }) null else shown.mapNotNull { it.lastSyncAt }.minOrNull(),
         )
     }
-        .combine(books) { st, b -> st.copy(books = b) }
+        .combine(tabBooks) { st, b -> st.copy(books = b.books, folderListing = b.listing) }
         .combine(collections) { st, c -> st.copy(shelves = c.shelves, series = c.series, facets = c.facets) }
         .combine(continueReading) { st, c -> st.copy(continueReading = c) }
         .combine(syncInfo) { st, (refreshing, banner) ->
@@ -231,6 +284,7 @@ class LibraryViewModel(
         query.update {
             it.copy(
                 editingShelf = null,
+                folder = "",
                 filter = it.filter.copy(
                     include = it.filter.include.filterNot { t -> termType(t) == "shelf" },
                     exclude = it.filter.exclude.filterNot { t -> termType(t) == "shelf" },
@@ -251,6 +305,15 @@ class LibraryViewModel(
     }
 
     fun selectTab(tab: LibraryTab) = query.update { it.copy(tab = tab) }
+
+    fun setSharedMode(mode: SharedFilter) = query.update { it.copy(sharedMode = mode) }
+
+    fun openFolder(path: String) = query.update { it.copy(folder = FolderTree.normalize(path)) }
+
+    /** One level up; no effect at the top level. */
+    fun folderUp() = query.update { it.copy(folder = FolderTree.parent(it.folder) ?: "") }
+
+    fun setIncludeSubfolders(include: Boolean) = query.update { it.copy(includeSubfolders = include) }
 
     fun setSearchOpen(open: Boolean) = query.update {
         if (open) it.copy(searchOpen = true) else it.copy(searchOpen = false, filter = it.filter.copy(search = null))

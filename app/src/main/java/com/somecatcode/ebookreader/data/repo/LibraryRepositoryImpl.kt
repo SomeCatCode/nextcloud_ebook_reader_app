@@ -80,6 +80,8 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
                 SmartQueryEvaluator.matchesTerms(filter.include, filter.exclude, filter.matchAny, it, tagsBy[it.accountId to it.fileId].orEmpty(), lookup)
             }
         }
+        filter.shared?.let { mode -> list = list.filter { SharedFilters.matches(mode, it.shared, it.sharedOut) } }
+        filter.folder?.let { folder -> list = list.filter { FolderTree.inFolder(it.path, folder, filter.folderRecursive) } }
         if (filter.onlyOffline) {
             list = list.filter { downloadBy[it.accountId to it.fileId]?.state == "DONE" }
         }
@@ -157,6 +159,8 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
                         count = group.size,
                         readCount = group.count { it.readStatus == "finished" },
                         coverFileIds = ordered.filter { it.hasCover }.take(3).map { it.fileId },
+                        sharedOut = group.any { it.sharedOut },
+                        shared = group.any { it.shared },
                     )
                 }
                 .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })

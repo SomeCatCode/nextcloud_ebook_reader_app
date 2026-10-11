@@ -114,6 +114,37 @@ class DaoAndLibraryTest : DbTest() {
     }
 
     @Test
+    fun sharedAndFolderFiltersAndSeriesBadges() = runBlocking {
+        val repo = LibraryRepositoryImpl(db)
+        db.bookDao().upsertAll(
+            listOf(
+                book(1, title = "Own", series = "Saga").copy(path = "/Books/Comics/Saga/1.cbz"),
+                book(2, title = "Out", series = "Saga").copy(path = "/Books/Comics/Saga/2.cbz", sharedOut = true),
+                book(3, title = "In").copy(path = "/Shared/Bob/3.epub", shared = true, owner = "bob"),
+                book(4, title = "Top").copy(path = "/Top.epub"),
+            ),
+        )
+        val all = listOf("acc1")
+        assertEquals(listOf("In", "Out"), repo.books(all, LibraryFilter(shared = SharedFilter.ANY)).first().map { it.title })
+        assertEquals(listOf("In"), repo.books(all, LibraryFilter(shared = SharedFilter.INCOMING)).first().map { it.title })
+        assertEquals(listOf("Out"), repo.books(all, LibraryFilter(shared = SharedFilter.OUTGOING)).first().map { it.title })
+        val incoming = repo.books(all, LibraryFilter(shared = SharedFilter.INCOMING)).first().single()
+        assertEquals("bob", incoming.owner)
+        assertTrue(incoming.shared)
+        assertFalse(incoming.sharedOut)
+        assertEquals(listOf("Out", "Own"), repo.books(all, LibraryFilter(folder = "/Books/Comics/Saga")).first().map { it.title })
+        assertEquals(listOf("Out", "Own"), repo.books(all, LibraryFilter(folder = "/Books", folderRecursive = true)).first().map { it.title })
+        assertEquals(emptyList<String>(), repo.books(all, LibraryFilter(folder = "/Books")).first().map { it.title })
+        assertEquals(listOf("Top"), repo.books(all, LibraryFilter(folder = "")).first().map { it.title })
+        // combines with the other filters
+        assertEquals(listOf("Out"), repo.books(all, LibraryFilter(shared = SharedFilter.ANY, series = "Saga")).first().map { it.title })
+
+        val saga = repo.series(all).first().single()
+        assertTrue("one shared volume marks the series", saga.sharedOut)
+        assertFalse(saga.shared)
+    }
+
+    @Test
     fun manualAndSmartShelvesResolveMembers() = runBlocking {
         val repo = LibraryRepositoryImpl(db)
         db.bookDao().upsertAll(listOf(book(1), book(2), book(3)))

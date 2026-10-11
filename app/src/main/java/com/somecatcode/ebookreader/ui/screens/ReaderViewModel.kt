@@ -2,6 +2,7 @@ package com.somecatcode.ebookreader.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.somecatcode.ebookreader.data.api.Locations
 import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.repo.AnnotationColor
 import com.somecatcode.ebookreader.data.repo.AnnotationRepository
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.math.roundToInt
 
 enum class ReaderPhase { LOADING, CONFLICT, OPENING, READING, ERROR }
 
@@ -69,6 +71,13 @@ data class ReaderUiState(
     /** Note dialog (new note from the selection or editing an existing annotation). */
     val noteEditor: NoteEditor? = null,
     val showAnnotations: Boolean = false,
+    /** Comic: the progress bar shows and seeks pages ([pageCount] of the open book). */
+    val isComic: Boolean = false,
+    val pageCount: Int = 0,
+    /** First-run explanation of the reading gestures (also from the reader settings). */
+    val showGestureHint: Boolean = false,
+    /** Swipe down: the screen leaves the reader. */
+    val closeRequested: Boolean = false,
 ) {
     /** What the page draws: highlights and notes with a CFI. */
     val drawnAnnotations: List<DrawnAnnotation>
@@ -103,6 +112,9 @@ class ReaderViewModel(
     private val annotationRepository: AnnotationRepository,
     keepScreenOn: Boolean = true,
     private val onKeepScreenOnChanged: (Boolean) -> Unit = {},
+    /** The gesture explanation was already shown once (it then only opens from the settings). */
+    private var gestureHintShown: Boolean = true,
+    private val onGestureHintShown: () -> Unit = {},
     private val remoteCheckTimeoutMs: Long = 6_000,
     private val saveDebounceMs: Long = 1_000,
 ) : ViewModel() {
@@ -113,6 +125,8 @@ class ReaderViewModel(
     private var book: LibraryBook? = null
     private var offline = false
     private var pendingSave: Pair<Locator, Double>? = null
+    /** Last position the page reported since the last (re)open; survives a new WebView (rotation). */
+    private var lastLocator: Locator? = null
     private var saveJob: Job? = null
     /** Color of the next highlight: the last one the user picked (web: yellow by default). */
     private var lastColor = AnnotationColor.YELLOW
@@ -163,7 +177,27 @@ class ReaderViewModel(
             initialLocator = locator,
             settings = _state.value.settings,
         )
+        lastLocator = null
         _state.update { it.copy(phase = ReaderPhase.OPENING, conflict = null, openMessage = message) }
+    }
+
+    /**
+     * The open message for a (new) reader page. The screen keeps this ViewModel across configuration
+     * changes but builds a new WebView: it must reopen at the current position with the current
+     * settings, not at the one the book was first opened with.
+     */
+    fun openMessageForPage(open: HostToReader.Open): HostToReader.Open =
+        open.copy(initialLocator = lastLocator ?: open.initialLocator, settings = _state.value.settings)
+
+    /** Target of the progress slider: a page for comics, otherwise a position in the whole book (0..1). */
+    fun seekLocator(fraction: Double): Locator {
+        val f = fraction.coerceIn(0.0, 1.0)
+        val s = _state.value
+        return if (s.isComic && s.pageCount > 0) {
+            Locator(href = "", locations = Locations(position = (f * s.pageCount).roundToInt().coerceIn(1, s.pageCount)))
+        } else {
+            Locator(href = "", locations = Locations(totalProgression = f))
+        }
     }
 
     /** Conflict dialog: jump to the position of the other device or keep the local one. */
@@ -185,13 +219,19 @@ class ReaderViewModel(
     fun onEvent(event: ReaderToHost) {
         when (event) {
             is ReaderToHost.Ready -> Unit
-            is ReaderToHost.Opened -> _state.update {
-                it.copy(
-                    phase = ReaderPhase.READING,
-                    title = event.info.title ?: it.title,
-                    fixedLayout = event.info.isComic || event.info.fixedLayout,
-                    supportsAnnotations = event.info.supportsAnnotations,
-                )
+            is ReaderToHost.Opened -> {
+                val firstRun = !gestureHintShown
+                _state.update {
+                    it.copy(
+                        phase = ReaderPhase.READING,
+                        title = event.info.title ?: it.title,
+                        fixedLayout = event.info.isComic || event.info.fixedLayout,
+                        supportsAnnotations = event.info.supportsAnnotations,
+                        isComic = event.info.isComic,
+                        pageCount = event.info.pageCount,
+                        showGestureHint = it.showGestureHint || firstRun,
+                    )
+                }
             }
             is ReaderToHost.Selection -> _state.update { it.copy(selection = event, popup = null) }
             ReaderToHost.SelectionClear -> _state.update { it.copy(selection = null) }
@@ -199,6 +239,7 @@ class ReaderViewModel(
                 if (s.annotations.any { it.uuid == event.id }) s.copy(popup = AnnotationPopup(event.id, event.rect), barsVisible = false) else s
             }
             is ReaderToHost.Relocate -> {
+                lastLocator = event.locator
                 pendingSave = event.locator to event.percentage
                 // a page turn closes the popup of a highlight
                 _state.update { it.copy(percentage = event.percentage, label = event.label, popup = null) }
@@ -214,6 +255,7 @@ class ReaderViewModel(
                 _state.value.popup != null -> dismissPopup() // a tap next to the popup only closes it
                 event.zone == "center" -> toggleBars()
             }
+            is ReaderToHost.Swipe -> onSwipe(event.direction)
             is ReaderToHost.Error -> fail(
                 when (event.code) {
                     ErrorCode.NETWORK -> ReaderFailure.NETWORK
@@ -234,6 +276,33 @@ class ReaderViewModel(
     }
 
     fun toggleBars() = _state.update { it.copy(barsVisible = !it.barsVisible) }
+
+    /** Up shows the menu with the progress bar; down hides an open menu or popup, otherwise closes the book. */
+    private fun onSwipe(direction: String) {
+        val s = _state.value
+        when (direction) {
+            "up" -> _state.update { it.copy(barsVisible = true, popup = null) }
+            "down" -> when {
+                s.popup != null -> dismissPopup()
+                s.barsVisible -> _state.update { it.copy(barsVisible = false) }
+                else -> {
+                    flushProgress()
+                    _state.update { it.copy(closeRequested = true) }
+                }
+            }
+        }
+    }
+
+    /** Shows the gesture explanation again (reader settings). */
+    fun showGestureHint() = _state.update { it.copy(showGestureHint = true, showSettings = false, barsVisible = false) }
+
+    fun dismissGestureHint() {
+        _state.update { it.copy(showGestureHint = false) }
+        if (!gestureHintShown) {
+            gestureHintShown = true
+            onGestureHintShown()
+        }
+    }
 
     fun showToc(show: Boolean) = _state.update { it.copy(showToc = show, barsVisible = if (show) it.barsVisible else false) }
 

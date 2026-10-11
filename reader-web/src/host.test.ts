@@ -219,6 +219,28 @@ describe('taps and keys', () => {
 		expect(fr.calls).toEqual([])
 	})
 
+	it('reports vertical swipes except in scrolled text mode and while zoomed', async () => {
+		const { host, sent, zoom } = setup()
+		host.swipeVertical(-120)
+		expect(sent).toEqual([])
+		host.receive(OPEN)
+		await flush()
+		sent.length = 0
+		host.swipeVertical(-120)
+		host.swipeVertical(150)
+		expect(sent).toEqual([{ type: 'swipe', direction: 'up' }, { type: 'swipe', direction: 'down' }])
+		sent.length = 0
+		zoom.zoomed = true
+		host.swipeVertical(-120)
+		expect(sent).toEqual([])
+		const scrolled = setup()
+		scrolled.host.receive({ ...OPEN, settings: { flow: 'scrolled' } })
+		await flush()
+		scrolled.sent.length = 0
+		scrolled.host.swipeVertical(-120)
+		expect(scrolled.sent).toEqual([])
+	})
+
 	it('maps keys', async () => {
 		const { host, fr } = setup()
 		host.receive(OPEN)
