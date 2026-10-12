@@ -63,6 +63,7 @@ import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.FacetCount
 import com.somecatcode.ebookreader.data.repo.LibraryBook
 import com.somecatcode.ebookreader.data.repo.ShelfInfo
+import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.components.BackButton
 import com.somecatcode.ebookreader.ui.components.BookCover
 import com.somecatcode.ebookreader.ui.components.EmptyState
@@ -382,32 +383,38 @@ private fun EditBookDialog(
     onSave: () -> Unit,
     onCancel: () -> Unit,
 ) {
+    val title = rememberLocalText(form.title) { v -> onChange { it.copy(title = v) } }
+    val authors = rememberLocalText(form.authors) { v -> onChange { it.copy(authors = v) } }
+    val series = rememberLocalText(form.series) { v -> onChange { it.copy(series = v) } }
+    val seriesIndex = rememberLocalText(form.seriesIndex) { v -> onChange { it.copy(seriesIndex = v) } }
+    val genres = rememberLocalText(form.genres) { v -> onChange { it.copy(genres = v) } }
+    val tags = rememberLocalText(form.tags) { v -> onChange { it.copy(tags = v) } }
     AlertDialog(
         onDismissRequest = onCancel,
         title = { Text(stringResource(R.string.book_edit)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
-                    form.title, { v -> onChange { it.copy(title = v) } },
+                    title.text, title.onChange,
                     label = { Text(stringResource(R.string.edit_title)) },
                     isError = error == EditError.TITLE_EMPTY,
                     supportingText = if (error == EditError.TITLE_EMPTY) ({ Text(stringResource(R.string.edit_error_title_empty)) }) else null,
                     modifier = Modifier.fillMaxWidth().testTag("edit_title"),
                 )
                 OutlinedTextField(
-                    form.authors, { v -> onChange { it.copy(authors = v) } },
+                    authors.text, authors.onChange,
                     label = { Text(stringResource(R.string.edit_authors)) },
                     supportingText = { Text(stringResource(R.string.edit_comma_separated)) },
                     modifier = Modifier.fillMaxWidth().testTag("edit_authors"),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
-                        form.series, { v -> onChange { it.copy(series = v) } },
+                        series.text, series.onChange,
                         label = { Text(stringResource(R.string.edit_series)) },
                         modifier = Modifier.weight(2f).testTag("edit_series"),
                     )
                     OutlinedTextField(
-                        form.seriesIndex, { v -> onChange { it.copy(seriesIndex = v) } },
+                        seriesIndex.text, seriesIndex.onChange,
                         label = { Text(stringResource(R.string.edit_series_index)) },
                         isError = error == EditError.INDEX_INVALID,
                         singleLine = true,
@@ -418,14 +425,14 @@ private fun EditBookDialog(
                     Text(stringResource(R.string.edit_error_index_invalid), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
                 OutlinedTextField(
-                    form.genres, { v -> onChange { it.copy(genres = v) } },
+                    genres.text, genres.onChange,
                     label = { Text(stringResource(R.string.book_genres)) },
                     supportingText = { Text(stringResource(R.string.edit_comma_separated)) },
                     modifier = Modifier.fillMaxWidth().testTag("edit_genres"),
                 )
                 Suggestions(genreSuggestions, form.genres) { name -> onChange { it.copy(genres = appendToList(it.genres, name)) } }
                 OutlinedTextField(
-                    form.tags, { v -> onChange { it.copy(tags = v) } },
+                    tags.text, tags.onChange,
                     label = { Text(stringResource(R.string.book_tags)) },
                     supportingText = { Text(stringResource(R.string.edit_comma_separated)) },
                     modifier = Modifier.fillMaxWidth().testTag("edit_tags"),

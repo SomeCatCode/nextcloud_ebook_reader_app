@@ -2,6 +2,7 @@ package com.somecatcode.ebookreader.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.components.ShareBadge
 import com.somecatcode.ebookreader.data.repo.FolderTree
 import com.somecatcode.ebookreader.data.repo.FolderNode
@@ -252,9 +253,10 @@ fun LibraryContent(
             TopAppBar(
                 title = {
                     if (state.query.searchOpen) {
+                        val search = rememberLocalText(state.query.filter.search.orEmpty(), actions.onSearch)
                         OutlinedTextField(
-                            value = state.query.filter.search.orEmpty(),
-                            onValueChange = actions.onSearch,
+                            value = search.text,
+                            onValueChange = search.onChange,
                             placeholder = { Text(stringResource(R.string.library_search_hint)) },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Search),

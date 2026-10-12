@@ -42,6 +42,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.somecatcode.ebookreader.R
 import com.somecatcode.ebookreader.data.account.Account
+import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.components.BackButton
 import com.somecatcode.ebookreader.ui.components.ConfirmDialog
 import com.somecatcode.ebookreader.ui.components.EmptyState
@@ -262,9 +263,10 @@ private fun AddAccountDialog(flow: AddFlowState, actions: AddFlowActions) {
             text = {
                 Column {
                     Text(stringResource(R.string.add_server_intro), style = MaterialTheme.typography.bodyMedium)
+                    val serverInput = rememberLocalText(flow.serverInput, actions.onInputChange)
                     OutlinedTextField(
-                        value = flow.serverInput,
-                        onValueChange = actions.onInputChange,
+                        value = serverInput.text,
+                        onValueChange = serverInput.onChange,
                         label = { Text(stringResource(R.string.add_server_label)) },
                         placeholder = { Text(stringResource(R.string.add_server_hint)) },
                         singleLine = true,

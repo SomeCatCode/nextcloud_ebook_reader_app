@@ -38,6 +38,7 @@ import com.somecatcode.ebookreader.R
 import com.somecatcode.ebookreader.data.repo.AppSettings
 import com.somecatcode.ebookreader.data.repo.SettingsRepository
 import com.somecatcode.ebookreader.reader.ReaderSettings
+import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.components.BackButton
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 import com.somecatcode.ebookreader.ui.util.readerSettings
@@ -109,9 +110,10 @@ fun SettingsContent(
             SwitchRow(R.string.settings_wifi_only, R.string.settings_wifi_only_hint, settings.downloadOnlyOnWifi, "wifi_only") { v -> onUpdate { it.copy(downloadOnlyOnWifi = v) } }
 
             SectionTitle(R.string.settings_sync)
+            val deviceName = rememberLocalText(settings.deviceName.orEmpty()) { v -> onUpdate { it.copy(deviceName = v.ifBlank { null }) } }
             OutlinedTextField(
-                value = settings.deviceName.orEmpty(),
-                onValueChange = { v -> onUpdate { it.copy(deviceName = v.ifBlank { null }) } },
+                value = deviceName.text,
+                onValueChange = deviceName.onChange,
                 label = { Text(stringResource(R.string.settings_device_name)) },
                 placeholder = { Text(Build.MODEL) },
                 supportingText = { Text(stringResource(R.string.settings_device_name_hint)) },

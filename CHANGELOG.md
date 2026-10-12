@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Behoben
+- Textfelder (Suche, Serveradresse, Gerätename, „Buch bearbeiten“) ließen den Cursor beim Tippen nach vorne springen, weil der Wert verzögert aus dem Zustand zurückkam. Die Felder halten den Text jetzt lokal.
+
 ## 0.3.0 – 2026-10-11
 
 ### Hinzugefügt
