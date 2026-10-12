@@ -1,5 +1,7 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import com.somecatcode.ebookreader.data.local.LocalLibrary
 import android.net.Uri
 import android.util.Log
@@ -86,6 +88,10 @@ class AccountsViewModel(
     private val revokeFailedHint = MutableStateFlow(false)
     private val credentialsMissing = MutableStateFlow<Set<String>>(emptySet())
     private val localError = MutableStateFlow<LocalFolderError?>(null)
+
+    /** The accounts screen is visible (not in the background behind the browser). */
+    private val foreground = MutableStateFlow(true)
+    private val resumed = Channel<Unit>(Channel.CONFLATED)
     private var addJob: Job? = null
     private var lastLoginUrl: String? = null
 
@@ -211,17 +217,32 @@ class AccountsViewModel(
         addFlow.update { it?.copy(stage = AddStage.INPUT, error = null) }
     }
 
+    /**
+     * The screen went to the background (browser in front) or came back. While in the background the
+     * login is not polled: many devices block the network of background apps, which used to end the
+     * login with a network error after a few seconds, and a result fetched then could get lost (the
+     * server hands it out only once). Coming back polls at once.
+     */
+    fun onForeground(visible: Boolean) {
+        foreground.value = visible
+        if (visible) resumed.trySend(Unit)
+    }
+
     private suspend fun poll(poll: LoginFlowPoll): LoginFlowResult? {
         var waited = 0L
         var networkErrors = 0
+        resumed.tryReceive() // a return before the login started is no reason to poll early
         while (waited <= pollTimeoutMs) {
-            delay(pollIntervalMs)
+            // the interval, cut short when the user returns from the browser
+            withTimeoutOrNull(pollIntervalMs) { resumed.receive() }
+            foreground.first { it }
             waited += pollIntervalMs
             try {
                 loginFlowClient.pollOnce(poll)?.let { return it }
                 networkErrors = 0
             } catch (e: ApiException.Network) {
-                if (++networkErrors > 5) throw e
+                // only failures while the app is visible count (and some stay normal right after returning)
+                if (foreground.value && ++networkErrors > 10) throw e
             }
         }
         return null

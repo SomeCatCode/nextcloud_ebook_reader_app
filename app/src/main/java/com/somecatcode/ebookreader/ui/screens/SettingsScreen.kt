@@ -65,10 +65,10 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
 
 /** App settings (theme, e-ink, downloads, device name, reader defaults, about). */
 @Composable
-fun SettingsScreen(onBack: () -> Unit, onOpenLicenses: () -> Unit = {}) {
+fun SettingsScreen(onBack: () -> Unit, onOpenLicenses: () -> Unit = {}, onOpenGuide: () -> Unit = {}) {
     val vm = containerViewModel { c -> SettingsViewModel(c.settingsRepository) }
     val settings by vm.state.collectAsState()
-    SettingsContent(settings, onBack, vm::update, vm::updateReader, onOpenLicenses)
+    SettingsContent(settings, onBack, vm::update, vm::updateReader, onOpenLicenses, onOpenGuide = onOpenGuide)
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -80,6 +80,7 @@ fun SettingsContent(
     onUpdateReader: ((ReaderSettings) -> ReaderSettings) -> Unit,
     onOpenLicenses: () -> Unit = {},
     donationUrl: String = DONATION_URL,
+    onOpenGuide: () -> Unit = {},
 ) {
     val reader = settings.readerSettings()
     val uriHandler = LocalUriHandler.current
@@ -147,6 +148,10 @@ fun SettingsContent(
             }
 
             SectionTitle(R.string.settings_about)
+            Column(Modifier.fillMaxWidth().clickable(onClick = onOpenGuide).padding(horizontal = 16.dp, vertical = 12.dp).testTag("open_guide")) {
+                Text(stringResource(R.string.settings_guide), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.settings_guide_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.settings_version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag("version"))
                 Text(stringResource(R.string.settings_unofficial), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

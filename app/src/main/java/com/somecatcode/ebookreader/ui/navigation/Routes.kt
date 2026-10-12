@@ -13,6 +13,9 @@ object Routes {
     const val SETTINGS = "settings"
     const val LICENSES = "licenses"
 
+    /** Introduction (first start, or from the settings). */
+    const val GUIDE = "guide"
+
     const val ARG_ACCOUNT_ID = "accountId"
     const val ARG_FILE_ID = "fileId"
     const val ARG_SHELF_ID = "shelfId"

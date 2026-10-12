@@ -357,4 +357,21 @@
     <string name="transfer_error_source">Die Buchdatei konnte nicht gelesen werden. Prüfe die Verbindung bzw. den Ordner.</string>
     <string name="transfer_error_target">Das Buch konnte im Zielkonto nicht gespeichert werden.</string>
     <string name="transfer_error_delete">Das Buch wurde kopiert, aber das Original konnte nicht gelöscht werden.</string>
+    <string name="guide_skip">Überspringen</string>
+    <string name="guide_next">Weiter</string>
+    <string name="guide_later">Später</string>
+    <string name="guide_done">Fertig</string>
+    <string name="guide_add_library">Bibliothek hinzufügen</string>
+    <string name="guide_welcome_title">Willkommen</string>
+    <string name="guide_welcome_body">Lies deine E-Books und Comics: aus einem Ordner auf diesem Gerät oder aus deiner eigenen Nextcloud.\n\nDiese kurze Anleitung zeigt dir, wie es geht. Du findest sie später jederzeit in den Einstellungen.</string>
+    <string name="guide_library_title">Bibliothek einrichten</string>
+    <string name="guide_library_body">Unter „Konten“ → „Konto hinzufügen“ hast du zwei Möglichkeiten:\n\n• Ordner auf diesem Gerät: Wähle einen Ordner mit E-Books (auch Unterordner und SD-Karte). Die App liest ihn ein, ganz ohne Server.\n\n• Nextcloud-Konto: Melde dich im Browser an. Auf deinem Server muss die App „E-Book Reader“ installiert sein.\n\nDu kannst beliebig viele Ordner und Konten hinzufügen.</string>
+    <string name="guide_browse_title">Bücher finden</string>
+    <string name="guide_browse_body">• Oben in der Bibliothek suchen, filtern und sortieren.\n\n• Reiter für Bücher, Serien und Ordner (mit Nextcloud auch Regale).\n\n• Tippe auf ein Buch für Details, Bewertung und Lesestatus.\n\n• Nach unten ziehen liest Ordner neu ein und synchronisiert Konten.</string>
+    <string name="guide_read_title">Lesen</string>
+    <string name="guide_read_body">• Links/rechts tippen oder wischen: umblättern.\n\n• Mitte antippen oder nach oben wischen: Menü mit Fortschrittsregler.\n\n• Nach unten wischen: Buch schließen, die Position wird gespeichert.\n\n• Text lange drücken: markieren oder Notiz anlegen.</string>
+    <string name="guide_move_title">Offline, kopieren und verschieben</string>
+    <string name="guide_move_body">• Nextcloud-Bücher in den Buchdetails offline verfügbar machen.\n\n• Buchdetails → ⋮: Buch in ein anderes Konto kopieren oder verschieben, z. B. vom Handy-Ordner in deine Nextcloud.\n\n• Lesestand und Markierungen ziehen mit.</string>
+    <string name="settings_guide">Anleitung</string>
+    <string name="settings_guide_hint">Bibliothek einrichten, lesen, Bücher verschieben</string>
 </resources>

@@ -355,4 +355,21 @@
     <string name="transfer_error_source">書籍ファイルを読み込めませんでした。接続またはフォルダーを確認してください。</string>
     <string name="transfer_error_target">移動先のアカウントに書籍を保存できませんでした。</string>
     <string name="transfer_error_delete">書籍はコピーされましたが、元のファイルを削除できませんでした。</string>
+    <string name="guide_skip">スキップ</string>
+    <string name="guide_next">次へ</string>
+    <string name="guide_later">後で</string>
+    <string name="guide_done">完了</string>
+    <string name="guide_add_library">ライブラリを追加</string>
+    <string name="guide_welcome_title">ようこそ</string>
+    <string name="guide_welcome_body">この端末のフォルダーや、自分の Nextcloud にある電子書籍とコミックを読めます。\n\nこの短いガイドで使い方を説明します。後から設定でいつでも開けます。</string>
+    <string name="guide_library_title">ライブラリを設定</string>
+    <string name="guide_library_body">「アカウント」→「アカウントを追加」で次の 2 つから選べます。\n\n• この端末のフォルダー：電子書籍のあるフォルダーを選択（サブフォルダーや SD カードも可）。サーバーなしで読み込みます。\n\n• Nextcloud アカウント：ブラウザーでログイン。サーバーに「E-Book Reader」アプリが必要です。\n\nフォルダーとアカウントはいくつでも追加できます。</string>
+    <string name="guide_browse_title">本を探す</string>
+    <string name="guide_browse_body">• ライブラリ上部で検索、フィルター、並べ替え。\n\n• 本、シリーズ、フォルダーのタブ（Nextcloud では本棚も）。\n\n• 本をタップすると詳細、評価、読書状況を表示。\n\n• 下に引っ張るとフォルダーの再読み込みとアカウントの同期。</string>
+    <string name="guide_read_title">読む</string>
+    <string name="guide_read_body">• 左右をタップまたはスワイプ：ページをめくる。\n\n• 中央をタップまたは上にスワイプ：進捗スライダー付きのメニュー。\n\n• 下にスワイプ：本を閉じる（位置は保存されます）。\n\n• テキストを長押し：ハイライトやメモ。</string>
+    <string name="guide_move_title">オフライン、コピーと移動</string>
+    <string name="guide_move_body">• Nextcloud の本は詳細画面からオフライン保存できます。\n\n• 本の詳細 → ⋮：本を別のアカウントにコピーまたは移動（例：スマートフォンのフォルダーから Nextcloud へ）。\n\n• 読書の進捗とハイライトも引き継がれます。</string>
+    <string name="settings_guide">使い方ガイド</string>
+    <string name="settings_guide_hint">ライブラリの設定、読書、本の移動</string>
 </resources>

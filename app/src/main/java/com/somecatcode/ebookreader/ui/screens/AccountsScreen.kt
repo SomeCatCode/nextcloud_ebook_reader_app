@@ -1,5 +1,7 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.Lifecycle
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
@@ -67,6 +69,8 @@ fun AccountsScreen(onBack: () -> Unit, onAccountAdded: () -> Unit = {}) {
     val vm = containerViewModel { c ->
         AccountsViewModel(c.accountStore, c.loginFlowClient, c.apiClientFactory, c.syncEngine, c.localLibrary)
     }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { vm.onForeground(true) }
+    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { vm.onForeground(false) }
     val pickFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         uri?.let(vm::addLocalFolder)
     }

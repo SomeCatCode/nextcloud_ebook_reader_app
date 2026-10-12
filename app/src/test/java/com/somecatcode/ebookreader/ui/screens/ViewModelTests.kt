@@ -4,6 +4,7 @@ import com.somecatcode.ebookreader.R
 import com.somecatcode.ebookreader.data.api.ApiException
 import com.somecatcode.ebookreader.data.api.AppDataPatch
 import com.somecatcode.ebookreader.data.api.Locations
+import com.somecatcode.ebookreader.data.api.LoginFlowResult
 import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.api.ServerCompatibility
@@ -122,6 +123,32 @@ class ViewModelTests {
         assertEquals(listOf<String?>("new"), sync.requested)
         val first = vm.events.first()
         assertEquals(AccountsEvent.OpenBrowser("https://cloud.example.org/login/flow"), first)
+    }
+
+    @Test
+    fun addAccount_pollingPausesInTheBackgroundAndSurvivesNetworkErrors() = runTest(dispatcher) {
+        val store = FakeAccountStore()
+        val login = FakeLoginFlowClient().apply { result = null }
+        val vm = accountsVm(store = store, login = login)
+        backgroundScope.launch { vm.state.collect {} }
+        vm.showAddAccount()
+        vm.onServerInputChange("cloud.example.org")
+        vm.startLogin()
+        advanceTimeBy(5)
+        vm.onForeground(false) // the browser is in front
+        advanceTimeBy(1_000)
+        val pollsBefore = login.polls
+        advanceTimeBy(1_000)
+        assertEquals("no polling while the app is in the background", pollsBefore, login.polls)
+        assertEquals(AddStage.WAITING, vm.state.value.addFlow?.stage)
+
+        // back in the app: the first polls still fail (network not yet allowed), then the result comes
+        login.failingPolls = 6
+        login.result = LoginFlowResult("https://cloud.example.org", "alice", "app-password")
+        vm.onForeground(true)
+        advanceUntilIdle()
+        assertEquals("https://cloud.example.org", store.added?.serverUrl)
+        assertNull(vm.state.value.addFlow)
     }
 
     @Test

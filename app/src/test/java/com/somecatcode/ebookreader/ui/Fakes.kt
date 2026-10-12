@@ -288,7 +288,17 @@ class FakeLoginFlowClient : LoginFlowClient {
         startError?.let { throw it }
         return LoginFlowStart(LoginFlowPoll("t", "$serverInput/poll"), "$serverInput/login/flow")
     }
-    override suspend fun pollOnce(poll: LoginFlowPoll): LoginFlowResult? = result
+    var polls = 0
+    /** The next polls fail with a network error (e.g. background network blocked). */
+    var failingPolls = 0
+    override suspend fun pollOnce(poll: LoginFlowPoll): LoginFlowResult? {
+        polls++
+        if (failingPolls > 0) {
+            failingPolls--
+            throw com.somecatcode.ebookreader.data.api.ApiException.Network(java.io.IOException("blocked"))
+        }
+        return result
+    }
 }
 
 /** [EbookApi] stub answering only what the account flow needs; everything else throws. */
