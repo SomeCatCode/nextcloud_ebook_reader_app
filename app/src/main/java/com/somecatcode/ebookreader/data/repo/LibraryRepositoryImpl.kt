@@ -83,7 +83,7 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
         filter.shared?.let { mode -> list = list.filter { SharedFilters.matches(mode, it.shared, it.sharedOut) } }
         filter.folder?.let { folder -> list = list.filter { FolderTree.inFolder(it.path, folder, filter.folderRecursive) } }
         if (filter.onlyOffline) {
-            list = list.filter { downloadBy[it.accountId to it.fileId]?.state == "DONE" }
+            list = list.filter { it.localUri != null || downloadBy[it.accountId to it.fileId]?.state == "DONE" }
         }
         val mapped = list.map {
             val k = it.accountId to it.fileId

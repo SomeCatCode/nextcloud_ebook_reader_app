@@ -156,7 +156,7 @@ class ReaderViewModel(
         book = loaded
         val settings = settingsRepository.settings.first().readerSettings()
         _state.update { it.copy(title = loaded.title, settings = settings) }
-        offline = downloads.localFile(key) != null
+        offline = loaded.local || downloads.localFile(key) != null
         val conflict = withTimeoutOrNull(remoteCheckTimeoutMs) { runCatching { progress.checkRemote(key) }.getOrNull() }
         if (conflict != null) {
             _state.update { it.copy(phase = ReaderPhase.CONFLICT, conflict = conflict) }

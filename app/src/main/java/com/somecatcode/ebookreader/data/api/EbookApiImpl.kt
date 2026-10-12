@@ -19,6 +19,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okio.source
 import java.io.IOException
 
 /**
@@ -321,6 +322,40 @@ class EbookApiImpl(
         val b = server.newBuilder().addPathSegments("remote.php/dav/files").addPathSegment(userId)
         path.split('/').filter { it.isNotEmpty() }.forEach { b.addPathSegment(it) }
         return b.build()
+    }
+
+    // ---- files (WebDAV) ------------------------------------------------------------------------------------
+
+    override suspend fun libraryFolders(): List<String> = getOcs("settings", LibrarySettingsDto.serializer()).libraryFolders
+
+    override suspend fun fileExists(userId: String, path: String): Boolean =
+        execute(Request.Builder().url(davFileUrl(userId, path)).head().build()).use { r ->
+            when {
+                r.isSuccessful -> true
+                r.code == 404 -> false
+                else -> throw mapHttpError(r.code, r.header("Retry-After"), "")
+            }
+        }
+
+    override suspend fun uploadFile(userId: String, path: String, length: Long, contentType: String, content: () -> java.io.InputStream): Long? {
+        val body = object : RequestBody() {
+            override fun contentType() = contentType.toMediaType()
+            override fun contentLength() = length
+            override fun isOneShot() = true
+            override fun writeTo(sink: okio.BufferedSink) {
+                content().use { input -> sink.writeAll(input.source()) }
+            }
+        }
+        return execute(Request.Builder().url(davFileUrl(userId, path)).put(body).build()).use { r ->
+            if (!r.isSuccessful) throw mapHttpError(r.code, r.header("Retry-After"), readBody(r))
+            parseOcFileId(r.header("OC-FileId"))
+        }
+    }
+
+    override suspend fun deleteFile(userId: String, path: String) {
+        execute(Request.Builder().url(davFileUrl(userId, path)).delete().build()).use { r ->
+            if (!r.isSuccessful && r.code != 404) throw mapHttpError(r.code, r.header("Retry-After"), readBody(r))
+        }
     }
 
     // ---- account -----------------------------------------------------------------------------------------

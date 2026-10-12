@@ -53,6 +53,36 @@ class MigrationTest {
     }
 
     @Test
+    fun migrate3To4MarksExistingAccountsAsNextcloudAndKeepsTheirData() {
+        createFromSchema(3) { db ->
+            db.execSQL(
+                "INSERT INTO account (id, serverUrl, loginName, userId, displayName, serverVersion, appVersion, lastSyncCursor, lastSyncAt, createdAt) " +
+                    "VALUES ('acc1', 'https://cloud.example.org', 'alice', 'alice', 'Alice', '31', '0.10.0', 'b:5', 1000, 1)",
+            )
+            db.execSQL(
+                "INSERT INTO book (accountId, fileId, format, path, size, title, authors, readStatus, hasCover, mtime, addedAt, updatedAt, " +
+                    "editable, downloadable, overrides, hasSidecar, deleted, shared, sharedOut) " +
+                    "VALUES ('acc1', 7, 'epub', '/Books/a.epub', 10, 'A', '[]', 'unread', 0, 1, 2, 3, 1, 1, '[]', 0, 0, 0, 0)",
+            )
+        }
+        val room = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
+            .addMigrations(*ALL_MIGRATIONS)
+            .allowMainThreadQueries()
+            .build()
+        try {
+            runBlocking {
+                val account = room.accountDao().get("acc1")!!
+                assertEquals(AccountKind.NEXTCLOUD, account.kind)
+                assertEquals("b:5", account.lastSyncCursor)
+                assertNull(room.bookDao().get("acc1", 7)!!.localUri)
+            }
+        } finally {
+            room.close()
+            context.deleteDatabase(dbName)
+        }
+    }
+
+    @Test
     fun migrate2To3AddsSharingColumnsKeepsBooksAndResetsTheSyncCursor() {
         createFromSchema(2) { db ->
             db.execSQL(

@@ -2,6 +2,7 @@ package com.somecatcode.ebookreader.data.account
 
 import android.util.Base64
 import com.somecatcode.ebookreader.data.db.AccountEntity
+import com.somecatcode.ebookreader.data.db.AccountKind
 import com.somecatcode.ebookreader.data.db.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -66,6 +67,26 @@ class AccountStoreImpl(
         entity.toAccount()
     }
 
+    override suspend fun addLocal(folderUri: String, name: String): Account = writeLock.withLock {
+        dao.getAll().firstOrNull { it.kind == AccountKind.LOCAL && it.serverUrl == folderUri }
+            ?.let { throw AccountAlreadyExistsException(it.toAccount()) }
+        val entity = AccountEntity(
+            id = newId(),
+            serverUrl = folderUri,
+            loginName = "",
+            userId = "",
+            displayName = name,
+            serverVersion = null,
+            appVersion = null,
+            lastSyncCursor = null,
+            lastSyncAt = null,
+            createdAt = clock(),
+            kind = AccountKind.LOCAL,
+        )
+        dao.upsert(entity)
+        entity.toAccount()
+    }
+
     override suspend fun updateCredentials(accountId: String, credentials: Credentials) = writeLock.withLock {
         val entity = dao.get(accountId) ?: return@withLock
         writeSecret(accountId, credentials.appPassword)
@@ -124,6 +145,7 @@ class AccountStoreImpl(
         serverVersion = serverVersion,
         appVersion = appVersion,
         lastSyncAt = lastSyncAt,
+        local = kind == AccountKind.LOCAL,
     )
 
     private companion object {

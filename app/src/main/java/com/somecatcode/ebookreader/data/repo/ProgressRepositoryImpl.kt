@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.data.repo
 
+import com.somecatcode.ebookreader.data.db.isLocalAccount
 import com.somecatcode.ebookreader.data.api.ApiClientFactory
 import com.somecatcode.ebookreader.data.api.ApiException
 import com.somecatcode.ebookreader.data.api.ApiJson
@@ -36,6 +37,7 @@ class ProgressRepositoryImpl(
         dao.observe(key.accountId, key.fileId).map { it?.toStored() }
 
     override suspend fun saveLocal(key: BookKey, locator: Locator, percentage: Double) {
+        val local = db.isLocalAccount(key.accountId)
         val device = deviceName()
         val now = clock()
         db.withTransaction {
@@ -51,7 +53,7 @@ class ProgressRepositoryImpl(
                     device = device,
                     clientUpdatedAt = stamp,
                     updatedAt = existing?.updatedAt ?: 0L,
-                    dirty = true,
+                    dirty = !local,
                 ),
             )
             // The server derives the status from the progress; mirror it so the library is right offline.
@@ -61,10 +63,11 @@ class ProgressRepositoryImpl(
                 if (status != book.readStatus) db.bookDao().updateAppData(key.accountId, key.fileId, book.rating, status)
             }
         }
-        scheduler.schedule(key.accountId)
+        if (!local) scheduler.schedule(key.accountId)
     }
 
     override suspend fun checkRemote(key: BookKey): ProgressConflict? {
+        if (db.isLocalAccount(key.accountId)) return null
         val remote = try {
             apiFactory.forAccount(key.accountId).progress(key.fileId)
         } catch (e: CancellationException) {
@@ -144,6 +147,7 @@ class ProgressRepositoryImpl(
     }
 
     override suspend fun pushDirty(accountId: String) {
+        if (db.isLocalAccount(accountId)) return
         val rows = dao.dirty(accountId)
         if (rows.isEmpty()) return
         val sent = HashMap<Long, ProgressEntity>()

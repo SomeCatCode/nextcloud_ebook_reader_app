@@ -53,6 +53,8 @@ enum class SyncError {
     /** E-Book Reader app missing or older than 0.5.0. */
     APP_UNAVAILABLE,
     SERVER,
+    /** Local library: the folder cannot be read (deleted, storage removed, permission revoked). */
+    FOLDER_UNAVAILABLE,
     UNKNOWN,
 }
 

@@ -1,5 +1,7 @@
 package com.somecatcode.ebookreader.data.sync
 
+import com.somecatcode.ebookreader.data.db.isLocalAccount
+import com.somecatcode.ebookreader.data.db.AccountKind
 import androidx.room.withTransaction
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -55,6 +57,8 @@ class SyncEngineImpl(
     private val workManager: () -> WorkManager,
     private val scope: CoroutineScope,
     private val clock: () -> Long = System::currentTimeMillis,
+    /** Re-reads the folder of a local library (accounts of kind `local` have no server). */
+    private val localScan: suspend (accountId: String) -> Int = { 0 },
 ) : SyncEngine {
 
     private val states = MutableStateFlow<Map<String, SyncState>>(emptyMap())
@@ -68,9 +72,11 @@ class SyncEngineImpl(
         scope.launch {
             val ids = accountId?.let { listOf(it) } ?: db.accountDao().getAll().map { it.id }
             for (id in ids) {
+                // a local library needs no network
+                val network = if (db.isLocalAccount(id)) NetworkType.NOT_REQUIRED else NetworkType.CONNECTED
                 val request = OneTimeWorkRequestBuilder<SyncWorker>()
                     .setInputData(workDataOf(SyncWorker.KEY_ACCOUNT to id))
-                    .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                    .setConstraints(Constraints.Builder().setRequiredNetworkType(network).build())
                     .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                     .build()
                 runCatching { workManager().enqueueUniqueWork("sync-$id", ExistingWorkPolicy.KEEP, request) }
@@ -114,6 +120,7 @@ class SyncEngineImpl(
 
     private suspend fun run(accountId: String): SyncOutcome {
         val account = db.accountDao().get(accountId) ?: return SyncOutcome.Failure(SyncError.UNKNOWN, retryable = false)
+        if (account.kind == AccountKind.LOCAL) return scanLocal(accountId)
         return try {
             val api = apiFactory.forAccount(accountId)
 
@@ -157,6 +164,16 @@ class SyncEngineImpl(
             android.util.Log.w(TAG, "sync failed", e)
             SyncOutcome.Failure(SyncError.UNKNOWN, retryable = true)
         }
+    }
+
+    private suspend fun scanLocal(accountId: String): SyncOutcome = try {
+        setState(accountId, SyncState.Running(SyncPhase.BOOKS))
+        SyncOutcome.Success(localScan(accountId), 0, 0)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        android.util.Log.w(TAG, "local scan failed: ${e.javaClass.simpleName} ${e.message}")
+        SyncOutcome.Failure(SyncError.FOLDER_UNAVAILABLE, retryable = false)
     }
 
     private class Stats(var changed: Int = 0, var deleted: Int = 0, var progressMerged: Int = 0, var annotationsMerged: Int = 0)

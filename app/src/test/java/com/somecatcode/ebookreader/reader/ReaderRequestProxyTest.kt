@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.reader
 
+import com.somecatcode.ebookreader.data.local.asBookFile
 import android.net.Uri
 import android.webkit.WebResourceResponse
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -39,7 +40,7 @@ class ReaderRequestProxyTest {
         }
     }
 
-    private fun offlineProxy(local: File? = file) = ReaderRequestProxyImpl({ _, _ -> null }, { _, _ -> local })
+    private fun offlineProxy(local: File? = file) = ReaderRequestProxyImpl({ _, _ -> null }, { _, _ -> local?.takeIf { it.isFile }?.asBookFile() })
         .also { it.bind("acc", 7, online = false) }
 
     private fun onlineProxy(backend: ReaderBackend?) = ReaderRequestProxyImpl({ a, f -> backend.takeIf { a == "acc" && f == 7L } }, { _, _ -> null })
@@ -132,7 +133,7 @@ class ReaderRequestProxyTest {
         assertEquals(404, p.get("/api/item")!!.statusCode)
         assertEquals(404, p.get("/api/comic/page/x")!!.statusCode)
         assertEquals(405, p.handle("POST", Uri.parse("$origin/api/book"), null)!!.statusCode)
-        val unbound = ReaderRequestProxyImpl({ _, _ -> null }, { _, _ -> file })
+        val unbound = ReaderRequestProxyImpl({ _, _ -> null }, { _, _ -> file.asBookFile() })
         assertEquals(404, unbound.get("/api/book")!!.statusCode)
     }
 

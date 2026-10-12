@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.data.repo
 
+import com.somecatcode.ebookreader.data.db.isLocalAccount
 import android.util.Log
 import androidx.room.withTransaction
 import com.somecatcode.ebookreader.data.api.ApiClientFactory
@@ -74,7 +75,10 @@ class ShelfRepositoryImpl(
 
     private suspend fun api(accountId: String) = apiFactory.forAccount(accountId)
 
-    override suspend fun refresh(accountId: String) = ShelfSync.refreshAll(db, api(accountId), accountId)
+    override suspend fun refresh(accountId: String) {
+        if (db.isLocalAccount(accountId)) return // shelves are server objects
+        ShelfSync.refreshAll(db, api(accountId), accountId)
+    }
 
     override suspend fun refreshMembers(key: ShelfKey) {
         val shelf = db.shelfDao().get(key.accountId, key.shelfId) ?: return

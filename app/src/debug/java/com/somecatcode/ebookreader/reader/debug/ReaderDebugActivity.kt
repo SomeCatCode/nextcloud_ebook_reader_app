@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.reader.debug
 
+import com.somecatcode.ebookreader.data.local.asBookFile
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -31,7 +32,7 @@ class ReaderDebugActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val file = File(cacheDir, "sample.fb2")
         assets.open("sample.fb2").use { input -> file.outputStream().use { input.copyTo(it) } }
-        val proxy = ReaderRequestProxyImpl(backendFor = { _, _ -> null }, localFile = { _, _ -> file })
+        val proxy = ReaderRequestProxyImpl(backendFor = { _, _ -> null }, localFile = { _, _ -> file.asBookFile() })
         proxy.bind("debug", 1, online = false)
         host = ReaderHostImpl(proxy)
         lifecycleScope.launch {

@@ -5,6 +5,21 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+## 0.4.0 – 2026-10-12
+
+### Hinzugefügt
+- **Lokale Bibliotheken:** Die App funktioniert jetzt auch ohne Server. Unter „Konto hinzufügen“ → „Ordner auf diesem Gerät“ wird ein Ordner (inkl. Unterordnern, auch auf der SD-Karte) zur eigenen Bibliothek; jeder Ordner ist ein eigenes Konto. Titel, Autoren, Serie, Beschreibung, Sprache, Verlag, ISBN, Genres und Cover werden aus EPUB, FB2/FBZ und CBZ gelesen, sonst gilt der Dateiname. Lesestand, Markierungen, Bewertung und Bearbeitungen bleiben auf dem Gerät. „Neu einlesen“ (bzw. Synchronisieren) nimmt neue und geänderte Dateien auf und entfernt gelöschte. Keine Speicherberechtigung nötig (Android-Ordnerauswahl). Beim Entfernen bleiben die Dateien im Ordner erhalten.
+- **Kopieren und Verschieben zwischen Konten:** In den Buchdetails über „⋮“ → „In anderes Konto kopieren/verschieben“, in jede Richtung (lokal ↔ Nextcloud, Nextcloud ↔ Nextcloud). Bei Nextcloud-Zielen wählbarer Bibliotheksordner, belegte Dateinamen bekommen „(2)“. Lesestand, Status, Bewertung und Markierungen ziehen mit. Verschieben löscht das Original erst nach erfolgreicher Kopie (Nextcloud: in den Papierkorb); Bücher, die andere mit dir teilen, lassen sich nur kopieren.
+- Datenbank Version 4 (Kontoart und Dateiverweis lokaler Bücher), bestehende Konten bleiben unverändert.
+- **Anleitung beim ersten Start:** kurze Einführung in fünf Seiten (Willkommen, Bibliothek einrichten mit Ordner oder Nextcloud, Bücher finden, Lesen und Gesten, Offline/Kopieren/Verschieben), am Ende direkt „Bibliothek hinzufügen“. Erscheint einmal (auch nach dem Update) und ist unter Einstellungen → „Anleitung“ jederzeit wieder aufrufbar.
+
+### Geändert
+- Beschreibungen (Play Store, README, Datenschutzerklärungen) nennen die App nicht mehr nur als Nextcloud-Begleiter: Sie läuft auch eigenständig mit lokalen Ordnern.
+
+### Behoben
+- Anmeldung an Nextcloud musste manchmal zweimal gemacht werden: Während man im Browser bestätigte, fragte die App im Hintergrund weiter nach; auf Geräten, die Hintergrund-Apps das Netz sperren (z. B. Samsung), brach die Anmeldung nach wenigen Sekunden mit einem Netzwerkfehler ab. Jetzt pausiert die Abfrage im Hintergrund und läuft beim Zurückkehren sofort weiter.
+- Textfelder (Suche, Serveradresse, Gerätename, „Buch bearbeiten“) ließen den Cursor beim Tippen nach vorne springen, weil der Wert verzögert aus dem Zustand zurückkam. Die Felder halten den Text jetzt lokal.
+
 ## 0.3.0 – 2026-10-11
 
 ### Hinzugefügt

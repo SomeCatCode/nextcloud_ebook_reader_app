@@ -56,6 +56,8 @@ data class LibraryBook(
     val owner: String? = null,
     /** Outgoing: own book shared with other users. */
     val sharedOut: Boolean = false,
+    /** Book of a local library (a file on the device, always readable offline). */
+    val local: Boolean = false,
 )
 
 /** Offline state of a book file. */

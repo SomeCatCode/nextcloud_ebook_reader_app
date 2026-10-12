@@ -119,6 +119,14 @@ Echter Code: `ReaderBridge.kt` (Nachrichten, `BridgeJson`), `ReaderRequestProxy.
 
 **WebView-Härtung** (Pflicht, PLAN.md Abschnitt 5): `allowFileAccess=false`, `allowContentAccess=false`, kein Mixed Content, Navigation weg von `appassets` blockieren, externe Links nur nach Bestätigung, Safe Browsing an, `@JavascriptInterface` nur auf dem Bridge-Objekt (ProGuard-Regel vorhanden).
 
+## 6a. Lokale Bibliotheken und Übertragen (`data/local/`, `data/transfer/`)
+
+**Lokale Bibliothek** = Konto mit `account.kind = "local"` (DB-Version 4): `serverUrl` ist die `content://`-Tree-URI eines Ordners (Android-Ordnerauswahl, persistente Lese-/Schreibberechtigung, keine Speicherberechtigung), `displayName` der Ordnername, keine Zugangsdaten. `LocalLibrary.scan` (über `SyncEngine.syncNow`, ohne Netzbedingung) liest den Ordnerbaum, `fileId` = 53 Bit von SHA-256 der Dokument-ID (stabil, als JS-Zahl exakt), `book.localUri` = Dokument-URI, `path` relativ zum Ordner (für die Ordner-Ansicht), `fileEtag` = `mtime-size` (unveränderte Dateien werden übersprungen). Metadaten und Cover liest `BookMetadataReader` aus EPUB (OPF, `calibre:series`, EPUB-3-Collections), FB2/FBZ und CBZ, sonst gilt der Dateiname; Cover liegen unter `filesDir/local_covers/<accountId>/<fileId>`. Fehlt eine Datei, verschwinden Buch, Lesestand und Markierungen.
+
+Lokale Konten sprechen nie mit einem Server: Lesestand und Markierungen werden nicht `dirty`, gelöschte Markierungen sofort entfernt (kein Tombstone), Bearbeitungen landen nur in Room (keine `pending_edit`), `checkRemote`/`refresh`/`pushDirty`/`flushPending` sind No-ops, Regale und „Geteilt“ gibt es nicht. Bücher sind immer „offline“ und öffnen als `BookSource.File`; der Proxy liest sie über `BookFile` (Seek über den File-Descriptor).
+
+**Kopieren/Verschieben** (`BookTransfer`): Quelle ist die lokale Datei, ein fertiger Download oder ein WebDAV-GET. Ziel Nextcloud: Ordner aus `GET /settings` (`libraryFolders`), freier Name per `HEAD` (`x.epub`, `x (2).epub`, …), `PUT` auf WebDAV (`OC-FileId` → `fileId`), danach Sync, bis der Server das Buch indexiert hat. Ziel lokal: `DocumentsContract.createDocument` im Ordner, dann Einlesen dieser Datei. Lesestand, Status, Bewertung und Markierungen werden mit neuen UUIDs übernommen (bei Nextcloud-Zielen `dirty` und gleich hochgeladen). Verschieben löscht das Original erst nach erfolgreicher Kopie (lokal: Datei löschen; Nextcloud: WebDAV `DELETE`, landet im Papierkorb); Bücher anderer Nutzer (`shared`) lassen sich nur kopieren.
+
 ## 7. UI (`ui/`)
 
 Navigationsgraph und Routen: `ui/navigation` (`Routes`, `AppNavHost`). Platzhalter-Screens in `ui/screens/Screens.kt` sind der **Navigationsvertrag** (Signaturen der Composables); W-UI ersetzt jeden durch eine eigene Datei samt ViewModel. Theme (`EbookReaderTheme`: dynamische Farben ab Android 12, feste Palette davor, hell/dunkel) bleibt in `ui/theme`. Wiederverwendbare Komponenten nach `ui/components`.

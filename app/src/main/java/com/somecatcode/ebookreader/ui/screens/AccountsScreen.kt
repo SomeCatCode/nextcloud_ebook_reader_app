@@ -1,5 +1,16 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.Lifecycle
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.Surface
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Cloud
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -42,6 +53,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.somecatcode.ebookreader.R
 import com.somecatcode.ebookreader.data.account.Account
+import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.components.BackButton
 import com.somecatcode.ebookreader.ui.components.ConfirmDialog
 import com.somecatcode.ebookreader.ui.components.EmptyState
@@ -55,7 +67,12 @@ import com.somecatcode.ebookreader.ui.util.title
 @Composable
 fun AccountsScreen(onBack: () -> Unit, onAccountAdded: () -> Unit = {}) {
     val vm = containerViewModel { c ->
-        AccountsViewModel(c.accountStore, c.loginFlowClient, c.apiClientFactory, c.syncEngine)
+        AccountsViewModel(c.accountStore, c.loginFlowClient, c.apiClientFactory, c.syncEngine, c.localLibrary)
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { vm.onForeground(true) }
+    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { vm.onForeground(false) }
+    val pickFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        uri?.let(vm::addLocalFolder)
     }
     val context = LocalContext.current
     val state by vm.state.collectAsState()
@@ -71,6 +88,7 @@ fun AccountsScreen(onBack: () -> Unit, onAccountAdded: () -> Unit = {}) {
         state = state,
         onBack = onBack,
         onAdd = vm::showAddAccount,
+        onAddLocal = { pickFolder.launch(null) },
         onRelogin = vm::showRelogin,
         onSync = vm::sync,
         onRemove = vm::askRemove,
@@ -84,6 +102,7 @@ fun AccountsScreen(onBack: () -> Unit, onAccountAdded: () -> Unit = {}) {
         onConfirmRemove = vm::confirmRemove,
         onDismissRemove = vm::dismissRemove,
         onDismissRevokeHint = vm::dismissRevokeHint,
+        onDismissLocalError = vm::dismissLocalError,
     )
 }
 
@@ -118,14 +137,17 @@ fun AccountsContent(
     onConfirmRemove: () -> Unit,
     onDismissRemove: () -> Unit,
     onDismissRevokeHint: () -> Unit,
+    onAddLocal: () -> Unit = {},
+    onDismissLocalError: () -> Unit = {},
 ) {
+    var chooseKind by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(stringResource(R.string.nav_accounts)) }, navigationIcon = { BackButton(onBack) })
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = onAdd,
+                onClick = { chooseKind = true },
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.accounts_add)) },
                 modifier = Modifier.testTag("add_account"),
@@ -137,7 +159,7 @@ fun AccountsContent(
                 title = stringResource(R.string.accounts_empty_title),
                 body = stringResource(R.string.accounts_empty_body),
                 actionLabel = stringResource(R.string.accounts_add),
-                onAction = onAdd,
+                onAction = { chooseKind = true },
                 modifier = Modifier.padding(padding),
             )
         } else {
@@ -155,11 +177,45 @@ fun AccountsContent(
         }
     }
 
+    if (chooseKind) {
+        AlertDialog(
+            onDismissRequest = { chooseKind = false },
+            title = { Text(stringResource(R.string.accounts_add)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    AccountKindOption(
+                        Icons.Filled.Cloud, stringResource(R.string.accounts_add_nextcloud), stringResource(R.string.accounts_add_nextcloud_hint),
+                        Modifier.testTag("add_nextcloud"),
+                    ) { chooseKind = false; onAdd() }
+                    AccountKindOption(
+                        Icons.Filled.Folder, stringResource(R.string.accounts_add_local), stringResource(R.string.accounts_add_local_hint),
+                        Modifier.testTag("add_local"),
+                    ) { chooseKind = false; onAddLocal() }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { chooseKind = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
+    }
+    state.localError?.let { error ->
+        AlertDialog(
+            onDismissRequest = onDismissLocalError,
+            title = { Text(stringResource(R.string.accounts_add_local)) },
+            text = {
+                Text(stringResource(if (error == LocalFolderError.DUPLICATE) R.string.local_error_duplicate else R.string.local_error_failed))
+            },
+            confirmButton = { TextButton(onClick = onDismissLocalError) { Text(stringResource(R.string.action_ok)) } },
+        )
+    }
     state.addFlow?.let { AddAccountDialog(it, addActions) }
     state.removeCandidate?.let { account ->
         ConfirmDialog(
             title = stringResource(R.string.remove_title),
-            text = stringResource(R.string.remove_body, account.title(), account.serverLabel()),
+            text = if (account.local) {
+                stringResource(R.string.remove_local_body, account.title())
+            } else {
+                stringResource(R.string.remove_body, account.title(), account.serverLabel())
+            },
             confirmLabel = stringResource(R.string.remove_confirm),
             onConfirm = onConfirmRemove,
             onDismiss = onDismissRemove,
@@ -182,14 +238,15 @@ private fun AccountCard(row: AccountRow, onRelogin: () -> Unit, onSync: () -> Un
         Column(Modifier.padding(16.dp)) {
             Text(account.title(), style = MaterialTheme.typography.titleMedium)
             Text(
-                "${account.loginName} @ ${account.serverLabel()}",
+                if (account.local) stringResource(R.string.account_local_folder, localFolderLabel(account.serverUrl)) else "${account.loginName} @ ${account.serverLabel()}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            val sync = account.lastSyncAt?.let { stringResource(R.string.account_last_sync, formatRelativeTime(it)) }
-                ?: stringResource(R.string.account_never_synced)
+            val sync = account.lastSyncAt?.let {
+                stringResource(if (account.local) R.string.account_last_scan else R.string.account_last_sync, formatRelativeTime(it))
+            } ?: stringResource(R.string.account_never_synced)
             Text(sync, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(
+            if (!account.local) Text(
                 stringResource(
                     R.string.account_versions,
                     account.serverVersion?.takeIf { it.isNotBlank() } ?: "?",
@@ -199,7 +256,7 @@ private fun AccountCard(row: AccountRow, onRelogin: () -> Unit, onSync: () -> Un
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.testTag("versions_${account.id}"),
             )
-            if (ServerVersions.isOutdated(account.appVersion)) {
+            if (!account.local && ServerVersions.isOutdated(account.appVersion)) {
                 Text(
                     stringResource(R.string.account_app_outdated, ServerVersions.RECOMMENDED),
                     style = MaterialTheme.typography.bodySmall,
@@ -207,7 +264,7 @@ private fun AccountCard(row: AccountRow, onRelogin: () -> Unit, onSync: () -> Un
                     modifier = Modifier.padding(top = 4.dp).testTag("outdated_${account.id}"),
                 )
             }
-            val problem = row.status in setOf(AccountStatus.AUTH_EXPIRED, AccountStatus.APP_UNAVAILABLE, AccountStatus.ERROR)
+            val problem = row.status in setOf(AccountStatus.AUTH_EXPIRED, AccountStatus.APP_UNAVAILABLE, AccountStatus.FOLDER_UNAVAILABLE, AccountStatus.ERROR)
             Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (row.status == AccountStatus.SYNCING) {
                     CircularProgressIndicator(Modifier.padding(end = 8.dp).testTag("syncing"), strokeWidth = 2.dp)
@@ -222,9 +279,26 @@ private fun AccountCard(row: AccountRow, onRelogin: () -> Unit, onSync: () -> Un
                 if (row.status == AccountStatus.AUTH_EXPIRED) {
                     TextButton(onClick = onRelogin) { Text(stringResource(R.string.account_sign_in_again)) }
                 } else {
-                    TextButton(onClick = onSync) { Text(stringResource(R.string.account_sync_now)) }
+                    TextButton(onClick = onSync) { Text(stringResource(if (account.local) R.string.account_rescan else R.string.account_sync_now)) }
                 }
                 TextButton(onClick = onRemove) { Text(stringResource(R.string.account_remove)) }
+            }
+        }
+    }
+}
+
+/** Readable folder of a tree URI, e.g. `primary:Books/Comics` -> `Books/Comics`. */
+internal fun localFolderLabel(treeUri: String): String =
+    Uri.decode(treeUri.substringAfterLast("/tree/")).substringAfter(':').ifEmpty { "/" }
+
+@Composable
+private fun AccountKindOption(icon: ImageVector, title: String, hint: String, modifier: Modifier, onClick: () -> Unit) {
+    Surface(onClick = onClick, shape = MaterialTheme.shapes.medium, tonalElevation = 2.dp, modifier = modifier.fillMaxWidth()) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, modifier = Modifier.padding(end = 12.dp))
+            Column {
+                Text(title, style = MaterialTheme.typography.titleSmall)
+                Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -236,6 +310,7 @@ private fun statusText(status: AccountStatus): Int = when (status) {
     AccountStatus.OFFLINE -> R.string.status_offline
     AccountStatus.AUTH_EXPIRED -> R.string.status_auth_expired
     AccountStatus.APP_UNAVAILABLE -> R.string.status_app_unavailable
+    AccountStatus.FOLDER_UNAVAILABLE -> R.string.status_folder_unavailable
     AccountStatus.ERROR -> R.string.status_error
 }
 
@@ -262,9 +337,10 @@ private fun AddAccountDialog(flow: AddFlowState, actions: AddFlowActions) {
             text = {
                 Column {
                     Text(stringResource(R.string.add_server_intro), style = MaterialTheme.typography.bodyMedium)
+                    val serverInput = rememberLocalText(flow.serverInput, actions.onInputChange)
                     OutlinedTextField(
-                        value = flow.serverInput,
-                        onValueChange = actions.onInputChange,
+                        value = serverInput.text,
+                        onValueChange = serverInput.onChange,
                         label = { Text(stringResource(R.string.add_server_label)) },
                         placeholder = { Text(stringResource(R.string.add_server_hint)) },
                         singleLine = true,

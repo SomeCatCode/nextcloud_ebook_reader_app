@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.data.repo
 
+import com.somecatcode.ebookreader.data.db.isLocalAccount
 import androidx.room.withTransaction
 import com.somecatcode.ebookreader.data.api.AnnotationDto
 import com.somecatcode.ebookreader.data.api.AnnotationUpsertRequest
@@ -40,6 +41,7 @@ class AnnotationRepositoryImpl(
     override suspend fun create(key: BookKey, locator: Locator, text: String?, color: AnnotationColor, note: String?): String {
         val uuid = newUuid().lowercase()
         val now = clock()
+        val local = db.isLocalAccount(key.accountId)
         val cleanNote = note?.takeIf { it.isNotBlank() }?.let { cut(it, ANNOTATION_MAX_NOTE) }
         dao.upsert(
             AnnotationEntity(
@@ -55,10 +57,10 @@ class AnnotationRepositoryImpl(
                 updatedAt = 0,
                 clientUpdatedAt = now,
                 deleted = false,
-                dirty = true,
+                dirty = !local,
             ),
         )
-        scheduler.schedule(key.accountId)
+        if (!local) scheduler.schedule(key.accountId)
         return uuid
     }
 
@@ -71,17 +73,21 @@ class AnnotationRepositoryImpl(
     override suspend fun delete(key: BookKey, uuid: String) = change(key, uuid) { it.copy(deleted = true) }
 
     private suspend fun change(key: BookKey, uuid: String, transform: (AnnotationEntity) -> AnnotationEntity) {
+        // local libraries: no upload, so no dirty rows and no tombstones
+        val local = db.isLocalAccount(key.accountId)
         val changed = db.withTransaction {
             val row = dao.get(key.accountId, uuid) ?: return@withTransaction false
             if (row.deleted) return@withTransaction false
             val stamp = maxOf(clock(), row.clientUpdatedAt + 1) // the clock never goes backwards for a row
-            dao.upsert(transform(row).copy(clientUpdatedAt = stamp, dirty = true))
+            val next = transform(row).copy(clientUpdatedAt = stamp, dirty = !local)
+            if (local && next.deleted) dao.delete(key.accountId, uuid) else dao.upsert(next)
             true
         }
-        if (changed) scheduler.schedule(key.accountId)
+        if (changed && !local) scheduler.schedule(key.accountId)
     }
 
     override suspend fun refresh(key: BookKey) {
+        if (db.isLocalAccount(key.accountId)) return
         val remote = try {
             apiFactory.forAccount(key.accountId).annotations(key.fileId)
         } catch (e: CancellationException) {
@@ -100,6 +106,7 @@ class AnnotationRepositoryImpl(
     }
 
     override suspend fun pushDirty(accountId: String) {
+        if (db.isLocalAccount(accountId)) return
         val rows = dao.dirty(accountId)
         if (rows.isEmpty()) return
         val api = try {

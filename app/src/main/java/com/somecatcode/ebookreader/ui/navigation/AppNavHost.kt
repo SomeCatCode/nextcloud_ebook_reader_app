@@ -1,5 +1,10 @@
 package com.somecatcode.ebookreader.ui.navigation
 
+import com.somecatcode.ebookreader.ui.screens.GuideScreen
+import com.somecatcode.ebookreader.ui.util.LocalAppContainer
+import com.somecatcode.ebookreader.ui.util.UiPrefs
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
@@ -24,10 +29,17 @@ import com.somecatcode.ebookreader.ui.screens.ReaderScreen
 import com.somecatcode.ebookreader.ui.screens.SettingsScreen
 import com.somecatcode.ebookreader.ui.theme.LocalEinkMode
 
-/** Navigation graph of the app. Start destination is the library (it shows the welcome state without accounts). */
+/**
+ * Navigation graph of the app. Start destination is the library (it shows the welcome state without
+ * accounts); at the very first start the introduction comes first ([showGuideOnFirstStart]).
+ */
 @Composable
-fun AppNavHost(modifier: Modifier = Modifier) {
+fun AppNavHost(modifier: Modifier = Modifier, showGuideOnFirstStart: Boolean = true) {
     val nav = rememberNavController()
+    val context = LocalContext.current
+    val prefs = remember { UiPrefs(context) }
+    val start = remember { if (showGuideOnFirstStart && !prefs.guideShown) Routes.GUIDE else Routes.LIBRARY }
+    val accounts by LocalAppContainer.current.accountStore.accounts.collectAsState(initial = null)
     val eink = LocalEinkMode.current
     val bookArgs = listOf(
         navArgument(Routes.ARG_ACCOUNT_ID) { type = NavType.StringType },
@@ -40,13 +52,21 @@ fun AppNavHost(modifier: Modifier = Modifier) {
         if (eink) ({ ExitTransition.None }) else ({ androidx.compose.animation.fadeOut() })
     NavHost(
         navController = nav,
-        startDestination = Routes.LIBRARY,
+        startDestination = start,
         modifier = modifier,
         enterTransition = enter,
         exitTransition = exit,
         popEnterTransition = enter,
         popExitTransition = exit,
     ) {
+        composable(Routes.GUIDE) {
+            GuideScreen(hasLibrary = !accounts.isNullOrEmpty()) { addLibrary ->
+                prefs.guideShown = true
+                // first start: the library replaces the guide at the bottom of the stack
+                if (!nav.popBackStack()) nav.navigate(Routes.LIBRARY) { popUpTo(Routes.GUIDE) { inclusive = true } }
+                if (addLibrary) nav.navigate(Routes.ACCOUNTS)
+            }
+        }
         composable(Routes.ACCOUNTS) {
             AccountsScreen(
                 onBack = { nav.popBackStack() },
@@ -123,7 +143,11 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             DownloadsScreen(onBack = { nav.popBackStack() })
         }
         composable(Routes.SETTINGS) {
-            SettingsScreen(onBack = { nav.popBackStack() }, onOpenLicenses = { nav.navigate(Routes.LICENSES) })
+            SettingsScreen(
+                onBack = { nav.popBackStack() },
+                onOpenLicenses = { nav.navigate(Routes.LICENSES) },
+                onOpenGuide = { nav.navigate(Routes.GUIDE) },
+            )
         }
         composable(Routes.LICENSES) {
             com.somecatcode.ebookreader.ui.screens.LicensesScreen(onBack = { nav.popBackStack() })

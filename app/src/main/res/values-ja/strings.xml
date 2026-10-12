@@ -24,7 +24,7 @@
     <!-- Accounts -->
     <string name="accounts_add">アカウントを追加</string>
     <string name="accounts_empty_title">アカウントがありません</string>
-    <string name="accounts_empty_body">Nextcloud サーバーにログインすると、電子書籍ライブラリが表示されます。</string>
+    <string name="accounts_empty_body">Nextcloud サーバーにログインするか、この端末のフォルダーを追加すると、電子書籍が表示されます。</string>
     <string name="account_last_sync">最終同期: %1$s</string>
     <string name="account_never_synced">まだ同期されていません</string>
     <string name="account_sign_in_again">再ログイン</string>
@@ -66,7 +66,7 @@
 
     <!-- Library -->
     <string name="library_welcome_title">E-Book Reader へようこそ</string>
-    <string name="library_welcome_body">Nextcloud アカウントを追加して、電子書籍の閲覧、ダウンロード、読書ができます。これは非公式アプリであり、Nextcloud GmbH とは関係ありません。</string>
+    <string name="library_welcome_body">この端末の電子書籍フォルダー、または Nextcloud アカウントを追加して、ライブラリを閲覧・ダウンロード・読書できます。これは非公式アプリであり、Nextcloud GmbH とは関係ありません。</string>
     <string name="library_all_accounts">すべてのアカウント</string>
     <string name="library_tab_books">書籍</string>
     <string name="library_tab_shelves">本棚</string>
@@ -322,4 +322,54 @@
     <string name="folders_up">1 つ上へ</string>
     <string name="folders_empty">このフォルダーは空です</string>
     <string name="folders_path">フォルダーのパス</string>
+    <string name="accounts_add_nextcloud">Nextcloud アカウント</string>
+    <string name="accounts_add_nextcloud_hint">E-Book Reader アプリのある Nextcloud サーバー上のライブラリ。端末間で同期されます。</string>
+    <string name="accounts_add_local">この端末のフォルダー</string>
+    <string name="accounts_add_local_hint">スマートフォンや SD カードのフォルダーにある電子書籍。サーバー不要で、すべてこの端末に保存されます。</string>
+    <string name="account_local_folder">ローカルフォルダー: %1$s</string>
+    <string name="account_last_scan">最終読み込み: %1$s</string>
+    <string name="account_rescan">再読み込み</string>
+    <string name="status_folder_unavailable">フォルダーを読み込めません。移動・削除されたか、SD カードが取り外されていませんか？</string>
+    <string name="banner_folder_unavailable">ローカルフォルダーを読み込めません。保存済みのライブラリを表示しています。</string>
+    <string name="remove_local_body">ライブラリ「%1$s」を読書の進捗やハイライトとともにアプリから削除します。フォルダー内の電子書籍ファイルは削除されません。</string>
+    <string name="local_error_duplicate">このフォルダーはすでにライブラリです。</string>
+    <string name="local_error_failed">フォルダーを追加できませんでした。</string>
+    <string name="book_local_file">この端末のファイル: %1$s</string>
+    <string name="book_more">その他</string>
+    <string name="book_copy_to">別のアカウントにコピー…</string>
+    <string name="book_move_to">別のアカウントに移動…</string>
+    <string name="transfer_title_copy">書籍をコピー</string>
+    <string name="transfer_title_move">書籍を移動</string>
+    <string name="transfer_target">移動先</string>
+    <string name="transfer_folder">ライブラリフォルダー</string>
+    <string name="transfer_copy">コピー</string>
+    <string name="transfer_move">移動</string>
+    <string name="transfer_move_hint_local">コピー後、ファイルはこの端末から削除されます。</string>
+    <string name="transfer_move_hint_cloud">コピー後、ファイルはサーバーから削除されます（Nextcloud のごみ箱に移動します）。</string>
+    <string name="transfer_running_copy">コピー中… 大きな書籍は時間がかかることがあります。</string>
+    <string name="transfer_running_move">移動中… 大きな書籍は時間がかかることがあります。</string>
+    <string name="transfer_done_copy">%1$s にコピーしました。</string>
+    <string name="transfer_done_move">%1$s に移動しました。</string>
+    <string name="transfer_state_missing">読書の進捗とハイライトはまだ引き継げませんでした。</string>
+    <string name="transfer_error_not_allowed">この書籍はコピーも移動もできません。</string>
+    <string name="transfer_error_source">書籍ファイルを読み込めませんでした。接続またはフォルダーを確認してください。</string>
+    <string name="transfer_error_target">移動先のアカウントに書籍を保存できませんでした。</string>
+    <string name="transfer_error_delete">書籍はコピーされましたが、元のファイルを削除できませんでした。</string>
+    <string name="guide_skip">スキップ</string>
+    <string name="guide_next">次へ</string>
+    <string name="guide_later">後で</string>
+    <string name="guide_done">完了</string>
+    <string name="guide_add_library">ライブラリを追加</string>
+    <string name="guide_welcome_title">ようこそ</string>
+    <string name="guide_welcome_body">この端末のフォルダーや、自分の Nextcloud にある電子書籍とコミックを読めます。\n\nこの短いガイドで使い方を説明します。後から設定でいつでも開けます。</string>
+    <string name="guide_library_title">ライブラリを設定</string>
+    <string name="guide_library_body">「アカウント」→「アカウントを追加」で次の 2 つから選べます。\n\n• この端末のフォルダー：電子書籍のあるフォルダーを選択（サブフォルダーや SD カードも可）。サーバーなしで読み込みます。\n\n• Nextcloud アカウント：ブラウザーでログイン。サーバーに「E-Book Reader」アプリが必要です。\n\nフォルダーとアカウントはいくつでも追加できます。</string>
+    <string name="guide_browse_title">本を探す</string>
+    <string name="guide_browse_body">• ライブラリ上部で検索、フィルター、並べ替え。\n\n• 本、シリーズ、フォルダーのタブ（Nextcloud では本棚も）。\n\n• 本をタップすると詳細、評価、読書状況を表示。\n\n• 下に引っ張るとフォルダーの再読み込みとアカウントの同期。</string>
+    <string name="guide_read_title">読む</string>
+    <string name="guide_read_body">• 左右をタップまたはスワイプ：ページをめくる。\n\n• 中央をタップまたは上にスワイプ：進捗スライダー付きのメニュー。\n\n• 下にスワイプ：本を閉じる（位置は保存されます）。\n\n• テキストを長押し：ハイライトやメモ。</string>
+    <string name="guide_move_title">オフライン、コピーと移動</string>
+    <string name="guide_move_body">• Nextcloud の本は詳細画面からオフライン保存できます。\n\n• 本の詳細 → ⋮：本を別のアカウントにコピーまたは移動（例：スマートフォンのフォルダーから Nextcloud へ）。\n\n• 読書の進捗とハイライトも引き継がれます。</string>
+    <string name="settings_guide">使い方ガイド</string>
+    <string name="settings_guide_hint">ライブラリの設定、読書、本の移動</string>
 </resources>

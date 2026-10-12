@@ -63,6 +63,8 @@ sealed interface LibraryBanner {
     data object ServerError : LibraryBanner
     /** The server app is older than [com.somecatcode.ebookreader.data.ServerVersions.RECOMMENDED] (null = unknown version). */
     data class ServerOutdated(val version: String?) : LibraryBanner
+    /** The folder of a local library cannot be read. */
+    data object FolderUnavailable : LibraryBanner
 }
 
 /** What the user selected; separate from the data so the query flows can react to it. */
@@ -159,14 +161,24 @@ data class LibraryUiState(
     /** Oldest last successful sync of the shown accounts (null = at least one never synced). */
     val lastSyncAt: Long? = null,
 ) {
-    /** Tabs shown: the new views need server 0.10.0 on at least one of the shown accounts. */
+    /**
+     * Tabs shown: the new views need server 0.10.0 on at least one of the shown accounts; local libraries
+     * always have folders, but neither shares nor shelves (those are server objects).
+     */
     val visibleTabs: List<LibraryTab>
         get() {
             val shown = accounts.filter { it.id in shownAccountIds }
-            val shared = shown.any { ServerFeature.SHARED_VIEW.availableOn(it.appVersion) }
-            val folders = shown.any { ServerFeature.FOLDERS_VIEW.availableOn(it.appVersion) }
-            return LibraryTab.entries.filter { (it != LibraryTab.SHARED || shared) && (it != LibraryTab.FOLDERS || folders) }
+            val cloud = shown.filter { !it.local }
+            val shared = cloud.any { ServerFeature.SHARED_VIEW.availableOn(it.appVersion) }
+            val folders = shown.any { it.local || ServerFeature.FOLDERS_VIEW.availableOn(it.appVersion) }
+            val shelves = cloud.isNotEmpty() || shown.isEmpty()
+            return LibraryTab.entries.filter {
+                (it != LibraryTab.SHARED || shared) && (it != LibraryTab.FOLDERS || folders) && (it != LibraryTab.SHELVES || shelves)
+            }
         }
+
+    /** Account new shelves are created in: the first shown Nextcloud account (local libraries have none). */
+    val shelfAccountId: String? get() = accounts.firstOrNull { it.id in shownAccountIds && !it.local }?.id
     /** The selected tab, or books when an older server hides it. */
     val tab: LibraryTab get() = query.tab.takeIf { it in visibleTabs } ?: LibraryTab.BOOKS
     val accountNames: Map<String, String> get() = accounts.associate { it.id to (it.displayName?.takeIf(String::isNotBlank) ?: it.loginName) }
@@ -249,6 +261,7 @@ class LibraryViewModel(
         val banner = failed.firstOrNull { it.second == SyncError.UNAUTHORIZED }?.let { LibraryBanner.AuthExpired(it.first) }
             ?: failed.firstOrNull { it.second == SyncError.APP_UNAVAILABLE }?.let { LibraryBanner.AppUnavailable }
             ?: failed.firstOrNull { it.second == SyncError.SERVER || it.second == SyncError.UNKNOWN }?.let { LibraryBanner.ServerError }
+            ?: failed.firstOrNull { it.second == SyncError.FOLDER_UNAVAILABLE }?.let { LibraryBanner.FolderUnavailable }
             ?: failed.firstOrNull { it.second == SyncError.OFFLINE }?.let { LibraryBanner.Offline }
         refreshing to banner
     }
@@ -268,7 +281,7 @@ class LibraryViewModel(
         .combine(continueReading) { st, c -> st.copy(continueReading = c) }
         .combine(syncInfo) { st, (refreshing, banner) ->
             // An outdated server app is only a hint; real problems (offline, auth, errors) take precedence.
-            val outdated = st.accounts.firstOrNull { it.id in st.shownAccountIds && ServerVersions.isOutdated(it.appVersion) }
+            val outdated = st.accounts.firstOrNull { it.id in st.shownAccountIds && !it.local && ServerVersions.isOutdated(it.appVersion) }
             st.copy(refreshing = refreshing, banner = banner ?: outdated?.let { LibraryBanner.ServerOutdated(it.appVersion) })
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LibraryUiState())
@@ -370,7 +383,7 @@ class LibraryViewModel(
     fun stopEditingShelf() = query.update { it.copy(editingShelf = null) }
 
     fun saveSmartShelf(name: String) = shelfAction { repo ->
-        val accountId = state.value.shownAccountIds.firstOrNull() ?: return@shelfAction
+        val accountId = state.value.shelfAccountId ?: return@shelfAction
         val key = repo.create(accountId, name, query.value.toSmartQuery())
         query.update { it.copy(editingShelf = key) }
     }
@@ -383,7 +396,7 @@ class LibraryViewModel(
     // ---- shelves ----------------------------------------------------------------------------------
 
     fun createShelf(name: String) = shelfAction { repo ->
-        val accountId = state.value.shownAccountIds.firstOrNull() ?: return@shelfAction
+        val accountId = state.value.shelfAccountId ?: return@shelfAction
         repo.create(accountId, name)
     }
 
