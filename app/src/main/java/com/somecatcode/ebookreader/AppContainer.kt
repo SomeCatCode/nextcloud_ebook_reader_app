@@ -1,5 +1,7 @@
 package com.somecatcode.ebookreader
 
+import com.somecatcode.ebookreader.data.transfer.BookTransferImpl
+import com.somecatcode.ebookreader.data.transfer.BookTransfer
 import com.somecatcode.ebookreader.data.local.LocalLibraryImpl
 import com.somecatcode.ebookreader.data.local.LocalLibrary
 import android.content.Context
@@ -79,6 +81,7 @@ interface AppContainer {
     val syncEngine: SyncEngine
     val downloadManager: DownloadManager
     val localLibrary: LocalLibrary
+    val bookTransfer: BookTransfer
 }
 
 /** Production container with the real data layer (W-DATA). */
@@ -154,6 +157,12 @@ class DefaultAppContainer(override val appContext: Context) : AppContainer {
     }
     override val localLibrary: LocalLibrary by lazy {
         LocalLibraryImpl(appContext, database, { accountStore }, File(appContext.filesDir, "local_covers"))
+    }
+    override val bookTransfer: BookTransfer by lazy {
+        BookTransferImpl(
+            database, apiClientFactory, localLibrary, downloadRepository, { downloadManager }, { syncEngine },
+            { progressRepository }, { annotationRepository }, { editRepository },
+        )
     }
     override val downloadManager: DownloadManager by lazy {
         DownloadManagerImpl(database, apiClientFactory, settingsRepository, downloadStorage, { workManager })

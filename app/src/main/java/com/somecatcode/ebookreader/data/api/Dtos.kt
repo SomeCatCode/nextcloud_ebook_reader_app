@@ -214,6 +214,17 @@ data class SyncDto(
 @Serializable
 data class FacetEntryDto(val name: String, val count: Int)
 
+/** The part of `GET /settings` the app needs. */
+@Serializable
+data class LibrarySettingsDto(val libraryFolders: List<String> = emptyList())
+
+/**
+ * Nextcloud file id from the `OC-FileId` header (`<8+ digit id><instance id>`, e.g. `00000123oc1a2b3c4d`),
+ * null when missing or malformed.
+ */
+fun parseOcFileId(header: String?): Long? =
+    header?.trim()?.takeWhile { it.isDigit() }?.takeIf { it.isNotEmpty() && it.length <= 18 }?.toLong()?.takeIf { it > 0 }
+
 @Serializable
 data class FacetsDto(
     val genres: List<FacetEntryDto> = emptyList(),

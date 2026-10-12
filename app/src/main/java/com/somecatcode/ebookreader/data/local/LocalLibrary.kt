@@ -44,6 +44,15 @@ interface LocalLibrary {
 
     /** Before the account is removed: gives the folder permission back and deletes the extracted covers (never the books). */
     suspend fun forget(accountId: String)
+
+    /**
+     * Creates the file [fileName] in the top folder of the library (the provider picks a free name if it
+     * exists), lets [write] fill it and adds it to the library. Returns the new book.
+     */
+    suspend fun importFile(accountId: String, fileName: String, write: (java.io.OutputStream) -> Unit): BookKey
+
+    /** Deletes the file of a local book and the book with its progress and highlights. */
+    suspend fun deleteBook(key: BookKey)
 }
 
 /** The folder of a local library cannot be read (deleted, SD card removed, permission revoked). */
@@ -92,13 +101,25 @@ class LocalLibraryImpl(
         for (f in found) {
             val fileId = localFileId(f.documentId)
             if (!seen.add(fileId)) continue
-            val uri = DocumentsContract.buildDocumentUriUsingTree(tree, f.documentId).toString()
-            val etag = "${f.modified}-${f.size}"
-            val old = existing[fileId]
-            if (old != null && old.fileEtag == etag && old.localUri == uri) {
-                if (old.path != f.path) db.bookDao().upsertAll(listOf(old.copy(path = f.path)))
-                continue
-            }
+            if (index(accountId, tree, f, existing[fileId])) changed++
+        }
+
+        val vanished = existing.keys.filter { it !in seen }
+        if (vanished.isNotEmpty()) removeBooks(accountId, vanished)
+        db.accountDao().updateSync(accountId, null, clock())
+        changed + vanished.size
+    }
+
+    /** Adds or updates one file; false when it is unchanged since the last scan. */
+    private suspend fun index(accountId: String, tree: Uri, f: FoundFile, old: BookEntity?): Boolean {
+        val fileId = localFileId(f.documentId)
+        val uri = DocumentsContract.buildDocumentUriUsingTree(tree, f.documentId).toString()
+        val etag = "${f.modified}-${f.size}"
+        if (old != null && old.fileEtag == etag && old.localUri == uri) {
+            if (old.path != f.path) db.bookDao().upsertAll(listOf(old.copy(path = f.path)))
+            return false
+        }
+        run {
             val meta = BookMetadataReader.read(f.format, f.name) {
                 resolver.openInputStream(Uri.parse(uri)) ?: throw IOException("Cannot open $uri")
             }
@@ -140,23 +161,63 @@ class LocalLibraryImpl(
                 db.bookDao().upsertAll(listOf(entity))
                 db.bookTagDao().replaceForBook(accountId, fileId, meta.genres.map { BookTagEntity(accountId, fileId, TAG_GENRE, it) })
             }
-            changed++
         }
+        return true
+    }
 
-        val vanished = existing.keys.filter { it !in seen }
-        if (vanished.isNotEmpty()) {
-            db.withTransaction {
-                db.bookDao().markDeleted(accountId, vanished)
-                db.bookTagDao().deleteForBooks(accountId, vanished)
-                db.progressDao().deleteForBooks(accountId, vanished)
-                db.pendingEditDao().deleteForBooks(accountId, vanished)
-                db.annotationDao().deleteForBooks(accountId, vanished)
-            }
-            db.bookDao().purgeDeleted(accountId)
-            vanished.forEach { coverFile(accountId, it)?.delete() }
+    private suspend fun removeBooks(accountId: String, fileIds: List<Long>) {
+        db.withTransaction {
+            db.bookDao().markDeleted(accountId, fileIds)
+            db.bookTagDao().deleteForBooks(accountId, fileIds)
+            db.progressDao().deleteForBooks(accountId, fileIds)
+            db.pendingEditDao().deleteForBooks(accountId, fileIds)
+            db.annotationDao().deleteForBooks(accountId, fileIds)
         }
-        db.accountDao().updateSync(accountId, null, clock())
-        changed + vanished.size
+        db.bookDao().purgeDeleted(accountId)
+        fileIds.forEach { coverFile(accountId, it)?.delete() }
+    }
+
+    override suspend fun importFile(accountId: String, fileName: String, write: (java.io.OutputStream) -> Unit): BookKey = withContext(Dispatchers.IO) {
+        val account = db.accountDao().get(accountId) ?: throw FolderUnavailableException("No such library")
+        val tree = Uri.parse(account.serverUrl)
+        val parent = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
+        // octet-stream: providers keep the name as given (no extension added for unknown types)
+        val created = try {
+            DocumentsContract.createDocument(resolver, parent, "application/octet-stream", fileName)
+        } catch (e: Exception) {
+            throw FolderUnavailableException("Cannot create $fileName", e)
+        } ?: throw FolderUnavailableException("Cannot create $fileName")
+        try {
+            (resolver.openOutputStream(created, "w") ?: throw IOException("Cannot write $fileName")).use(write)
+        } catch (e: Exception) {
+            runCatching { DocumentsContract.deleteDocument(resolver, created) }
+            throw e
+        }
+        val docId = DocumentsContract.getDocumentId(created)
+        val projection = arrayOf(Document.COLUMN_DISPLAY_NAME, Document.COLUMN_SIZE, Document.COLUMN_LAST_MODIFIED)
+        val found = query(created, projection) { c ->
+            val name = c.getString(0) ?: fileName
+            FoundFile(
+                docId, name, "/$name", BookMetadataReader.formatOf(name) ?: BookMetadataReader.formatOf(fileName) ?: "epub",
+                if (c.isNull(1)) 0L else c.getLong(1), if (c.isNull(2)) clock() else c.getLong(2),
+            )
+        } ?: throw IOException("Cannot read $fileName")
+        index(accountId, tree, found, null)
+        BookKey(accountId, localFileId(docId))
+    }
+
+    override suspend fun deleteBook(key: BookKey) = withContext(Dispatchers.IO) {
+        val book = db.bookDao().get(key.accountId, key.fileId) ?: return@withContext
+        val uri = Uri.parse(book.localUri ?: return@withContext)
+        val deleted = try {
+            DocumentsContract.deleteDocument(resolver, uri)
+        } catch (e: java.io.FileNotFoundException) {
+            true // already gone
+        } catch (e: Exception) {
+            throw FolderUnavailableException("Cannot delete ${book.path}", e)
+        }
+        if (!deleted) throw FolderUnavailableException("Cannot delete ${book.path}")
+        removeBooks(key.accountId, listOf(key.fileId))
     }
 
     override suspend fun bookFile(key: BookKey): BookFile? = withContext(Dispatchers.IO) {

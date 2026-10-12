@@ -1,6 +1,6 @@
 # Privacy Policy for the Android app "E-Book Reader" (SomeCatCode)
 
-Last updated: 5 October 2026
+Last updated: 12 October 2026
 
 ## 1. Controller
 
@@ -10,7 +10,7 @@ Email: it@wasmitleder.de
 
 ## 2. Summary
 
-The app is a reading client for a **Nextcloud server that you enter yourself**. The developer runs no server for the app and receives **no data at all** from you or your device. The app contains **no ads, no tracking, no analytics and no crash reporting**.
+The app reads e-books from **folders on your device that you choose** and, optionally, from a **Nextcloud server that you enter yourself**. The developer runs no server for the app and receives **no data at all** from you or your device. The app contains **no ads, no tracking, no analytics and no crash reporting**.
 
 ## 3. Data the app processes
 
@@ -19,6 +19,7 @@ To work, the app processes on your device:
 - **Credentials:** the address of your Nextcloud server, your user name and an app password. Your server creates the app password when you log in through the browser (Nextcloud Login Flow). It is stored encrypted with the Android Keystore. The app never sees your actual Nextcloud password.
 - **Library data:** titles, authors, series, genres, tags, covers and other details of your books, and your shelves.
 - **Book files** you download for offline reading, stored in the app's private storage.
+- **Local folders:** when you add a folder as a library, the app reads the book files in it (through the Android folder picker, only that folder). Titles, covers and other details, reading position and highlights of such a library stay on the device only. Only when you explicitly copy or move a book to a Nextcloud account are the file, its reading position and its highlights sent to that server.
 - **Reading data:** reading position, reading status, ratings, highlights and notes, and a device name of your choice (default: the device model) that is sent with the reading position so you can see on other devices where you stopped.
 - **App settings** such as theme and reader settings. These stay on the device.
 
@@ -42,7 +43,7 @@ The app does not access your location, contacts, camera, microphone or your othe
 
 All data stays on the device until you delete it:
 
-- **"Remove account"** in the app deletes all local data of that account (library, downloaded books and credentials) and revokes the app password on your server.
+- **"Remove account"** in the app deletes all local data of that account (library, downloaded books and credentials) and revokes the app password on your server. For a local folder, the library, reading position and highlights are deleted and the folder access is given back; the book files in the folder are kept.
 - **Uninstalling** the app deletes all local data.
 - Downloaded books can be deleted at any time under "Downloads".
 

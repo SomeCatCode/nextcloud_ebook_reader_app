@@ -1,6 +1,17 @@
-Read your e-books and comics straight from your own Nextcloud, on the go and offline.
+Read your e-books and comics from a folder on your device or straight from your own Nextcloud, on the go and offline.
 
-The app connects to your Nextcloud server running the "E-Book Reader" app. Your library, shelves, series and reading position stay in sync across your devices and the browser.
+The app also works without any server: just pick a folder on your phone or SD card, and the app builds your library from it with titles, authors, series and covers. If you have a Nextcloud with the "E-Book Reader" app, connect it as well and keep your library, shelves, series and reading position in sync across your devices and the browser.
+
+NO SERVER NEEDED: LOCAL FOLDERS
+• One or more folders on the device as separate libraries, including sub-folders
+• Titles, authors, series, description and cover are read from EPUB, FB2 and CBZ
+• Reading position, highlights and notes stay on the device
+• No storage permission: the app only sees the folders you choose
+
+COPY AND MOVE
+• Copy books to another account, e.g. from a folder on your phone to your Nextcloud or the other way round
+• Or move them: copy, then delete the original
+• Reading position and highlights come along
 
 LIBRARY
 • EPUB, MOBI, AZW3, FB2 and comics as CBZ, CBR, CB7 and CBT
@@ -23,13 +34,13 @@ OFFLINE
 • Downloads on Wi-Fi only if you like
 
 MULTIPLE ACCOUNTS
-• Several Nextcloud accounts, separate or as one combined library
+• Several Nextcloud accounts and local folders, separate or as one combined library
 • Secure login through the browser (Nextcloud Login Flow); the app never sees your password
 
 PRIVACY
-No ads, no tracking, no analytics. Your data travels only between your device and your own Nextcloud server.
+No ads, no tracking, no analytics. Local libraries stay on your device; with Nextcloud, your data travels only between your device and your own server.
 
-REQUIREMENT
-A Nextcloud server with the "E-Book Reader" app version 0.7.0 or later (Nextcloud App Store or GitHub). The app does not work without this server app.
+NEXTCLOUD (OPTIONAL)
+For sync, shelves and reading in the browser: a Nextcloud server with the "E-Book Reader" app version 0.7.0 or later (Nextcloud App Store or GitHub). Local folders need no server.
 
 Unofficial app, not affiliated with Nextcloud GmbH. Nextcloud is a trademark of Nextcloud GmbH.

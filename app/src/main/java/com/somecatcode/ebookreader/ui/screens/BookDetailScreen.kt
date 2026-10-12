@@ -1,5 +1,15 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import android.widget.Toast
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material.icons.filled.MoreVert
+import com.somecatcode.ebookreader.ui.util.title
+import com.somecatcode.ebookreader.ui.util.serverLabel
+import com.somecatcode.ebookreader.data.transfer.TransferException
+import com.somecatcode.ebookreader.data.account.Account
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.heightIn
@@ -85,7 +95,7 @@ fun BookDetailScreen(
 ) {
     val key = BookKey(accountId, fileId)
     val vm = containerViewModel(key = "book/$accountId/$fileId") { c ->
-        BookDetailViewModel(key, c.libraryRepository, c.editRepository, c.downloadRepository, c.shelfRepository)
+        BookDetailViewModel(key, c.libraryRepository, c.editRepository, c.downloadRepository, c.shelfRepository, c.accountStore.accounts, c.bookTransfer)
     }
     val state by vm.state.collectAsState()
     val snackbar = remember { SnackbarHostState() }
@@ -94,7 +104,26 @@ fun BookDetailScreen(
         vm.failures.collect { failure -> snackbar.showSnackbar(failureText.format(failure.message)) }
     }
     val resources = LocalResources.current
+    val context = LocalContext.current
     LaunchedEffect(vm) { vm.messages.collect { snackbar.showSnackbar(resources.getString(it)) } }
+    LaunchedEffect(vm) {
+        vm.transferEvents.collect { event ->
+            when (event) {
+                is TransferEvent.Done -> {
+                    val text = resources.getString(if (event.move) R.string.transfer_done_move else R.string.transfer_done_copy, event.targetName)
+                    val extra = if (event.stateCopied) "" else " " + resources.getString(R.string.transfer_state_missing)
+                    if (event.move) {
+                        // the original is gone: leave its page, a toast outlives the screen
+                        Toast.makeText(context, text + extra, Toast.LENGTH_LONG).show()
+                        onBack()
+                    } else {
+                        snackbar.showSnackbar(text + extra)
+                    }
+                }
+                is TransferEvent.Failed -> snackbar.showSnackbar(resources.getString(transferErrorText(event.reason)))
+            }
+        }
+    }
     val gate = rememberDownloadGate()
     BookDetailContent(
         state = state,
@@ -112,7 +141,29 @@ fun BookDetailScreen(
         onCancelEdit = vm::cancelEdit,
         onFilter = onFilter,
         onSaveShelves = vm::saveShelves,
+        transferActions = TransferActions(
+            onStart = vm::startTransfer,
+            onTarget = vm::selectTarget,
+            onFolder = vm::selectFolder,
+            onConfirm = vm::confirmTransfer,
+            onDismiss = vm::dismissTransfer,
+        ),
     )
+}
+
+class TransferActions(
+    val onStart: (move: Boolean) -> Unit = {},
+    val onTarget: (Account) -> Unit = {},
+    val onFolder: (String) -> Unit = {},
+    val onConfirm: () -> Unit = {},
+    val onDismiss: () -> Unit = {},
+)
+
+private fun transferErrorText(reason: TransferException.Reason): Int = when (reason) {
+    TransferException.Reason.NOT_ALLOWED -> R.string.transfer_error_not_allowed
+    TransferException.Reason.SOURCE_UNAVAILABLE -> R.string.transfer_error_source
+    TransferException.Reason.TARGET_FAILED -> R.string.transfer_error_target
+    TransferException.Reason.DELETE_FAILED -> R.string.transfer_error_delete
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -133,9 +184,11 @@ fun BookDetailContent(
     onCancelEdit: () -> Unit,
     onFilter: ((String) -> Unit)? = null,
     onSaveShelves: (Set<Long>, String?) -> Unit = { _, _ -> },
+    transferActions: TransferActions = TransferActions(),
 ) {
     val book = state.book
     var shelfDialog by remember { mutableStateOf(false) }
+    var menu by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -145,6 +198,28 @@ fun BookDetailContent(
                     if (book?.editable == true) {
                         IconButton(onClick = onStartEdit, modifier = Modifier.testTag("edit_book")) {
                             Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.book_edit))
+                        }
+                    }
+                    if (book != null && book.downloadable && state.transferTargets.isNotEmpty()) {
+                        Box {
+                            IconButton(onClick = { menu = true }, modifier = Modifier.testTag("book_menu")) {
+                                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.book_more))
+                            }
+                            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.book_copy_to)) },
+                                    onClick = { menu = false; transferActions.onStart(false) },
+                                    modifier = Modifier.testTag("copy_to"),
+                                )
+                                // a book shared by another user is not ours to delete
+                                if (!book.shared) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.book_move_to)) },
+                                        onClick = { menu = false; transferActions.onStart(true) },
+                                        modifier = Modifier.testTag("move_to"),
+                                    )
+                                }
+                            }
                         }
                     }
                 },
@@ -291,6 +366,8 @@ fun BookDetailContent(
         )
     }
 
+    state.transfer?.let { TransferDialog(it, book, state.transferTargets, transferActions) }
+
     state.editing?.let { form ->
         EditBookDialog(form, state.editError, state.genreSuggestions, state.tagSuggestions, onFormChange, onSaveEdit, onCancelEdit)
     }
@@ -329,6 +406,75 @@ private fun ChipSection(title: String, items: List<String>, onClick: ((String) -
             items.forEach { item -> AssistChip(onClick = { onClick?.invoke(item) }, label = { Text(item) }) }
         }
     }
+}
+
+/** Target account (and library folder of a Nextcloud account) for copying or moving the book. */
+@Composable
+private fun TransferDialog(ui: TransferUiState, book: LibraryBook?, targets: List<Account>, actions: TransferActions) {
+    AlertDialog(
+        onDismissRequest = actions.onDismiss,
+        title = { Text(stringResource(if (ui.move) R.string.transfer_title_move else R.string.transfer_title_copy)) },
+        text = {
+            if (ui.running) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(Modifier.padding(end = 16.dp))
+                    Text(stringResource(if (ui.move) R.string.transfer_running_move else R.string.transfer_running_copy))
+                }
+                return@AlertDialog
+            }
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(stringResource(R.string.transfer_target), style = MaterialTheme.typography.labelLarge)
+                targets.forEach { account ->
+                    Row(
+                        Modifier.fillMaxWidth().clickable { actions.onTarget(account) }.testTag("target_${account.id}"),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = ui.targetId == account.id, onClick = { actions.onTarget(account) })
+                        Column {
+                            Text(account.title(), style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                if (account.local) stringResource(R.string.account_local_folder, localFolderLabel(account.serverUrl)) else account.serverLabel(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+                val folders = ui.folders
+                if (ui.targetId != null && folders == null) {
+                    CircularProgressIndicator(Modifier.padding(8.dp).width(24.dp).aspectRatio(1f), strokeWidth = 2.dp)
+                } else if (folders != null && folders.size > 1) {
+                    Text(stringResource(R.string.transfer_folder), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 8.dp))
+                    folders.forEach { folder ->
+                        Row(Modifier.fillMaxWidth().clickable { actions.onFolder(folder) }, verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(selected = ui.folder == folder, onClick = { actions.onFolder(folder) })
+                            Text(folder, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+                if (ui.move && book != null) {
+                    Text(
+                        stringResource(if (book.local) R.string.transfer_move_hint_local else R.string.transfer_move_hint_cloud),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            if (!ui.running) {
+                TextButton(
+                    onClick = actions.onConfirm,
+                    enabled = ui.targetId != null && ui.folders != null,
+                    modifier = Modifier.testTag("transfer_confirm"),
+                ) { Text(stringResource(if (ui.move) R.string.transfer_move else R.string.transfer_copy)) }
+            }
+        },
+        dismissButton = {
+            if (!ui.running) TextButton(onClick = actions.onDismiss) { Text(stringResource(R.string.action_cancel)) }
+        },
+    )
 }
 
 /** Manual shelves with checkboxes plus a field for a new shelf. */

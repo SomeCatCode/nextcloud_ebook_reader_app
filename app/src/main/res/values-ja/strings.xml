@@ -335,4 +335,24 @@
     <string name="local_error_duplicate">このフォルダーはすでにライブラリです。</string>
     <string name="local_error_failed">フォルダーを追加できませんでした。</string>
     <string name="book_local_file">この端末のファイル: %1$s</string>
+    <string name="book_more">その他</string>
+    <string name="book_copy_to">別のアカウントにコピー…</string>
+    <string name="book_move_to">別のアカウントに移動…</string>
+    <string name="transfer_title_copy">書籍をコピー</string>
+    <string name="transfer_title_move">書籍を移動</string>
+    <string name="transfer_target">移動先</string>
+    <string name="transfer_folder">ライブラリフォルダー</string>
+    <string name="transfer_copy">コピー</string>
+    <string name="transfer_move">移動</string>
+    <string name="transfer_move_hint_local">コピー後、ファイルはこの端末から削除されます。</string>
+    <string name="transfer_move_hint_cloud">コピー後、ファイルはサーバーから削除されます（Nextcloud のごみ箱に移動します）。</string>
+    <string name="transfer_running_copy">コピー中… 大きな書籍は時間がかかることがあります。</string>
+    <string name="transfer_running_move">移動中… 大きな書籍は時間がかかることがあります。</string>
+    <string name="transfer_done_copy">%1$s にコピーしました。</string>
+    <string name="transfer_done_move">%1$s に移動しました。</string>
+    <string name="transfer_state_missing">読書の進捗とハイライトはまだ引き継げませんでした。</string>
+    <string name="transfer_error_not_allowed">この書籍はコピーも移動もできません。</string>
+    <string name="transfer_error_source">書籍ファイルを読み込めませんでした。接続またはフォルダーを確認してください。</string>
+    <string name="transfer_error_target">移動先のアカウントに書籍を保存できませんでした。</string>
+    <string name="transfer_error_delete">書籍はコピーされましたが、元のファイルを削除できませんでした。</string>
 </resources>

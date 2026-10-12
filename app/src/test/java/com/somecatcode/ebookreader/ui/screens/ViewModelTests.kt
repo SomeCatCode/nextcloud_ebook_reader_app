@@ -507,6 +507,38 @@ class ViewModelTests {
     }
 
     @Test
+    fun bookDetail_copiesToTheOnlyOtherAccountAndReportsMoves() = runTest(dispatcher) {
+        val library = FakeLibraryRepository(listOf(book(1, "Dune")))
+        val transfer = com.somecatcode.ebookreader.ui.FakeBookTransfer()
+        val local = com.somecatcode.ebookreader.data.account.Account("loc", "content://tree/x", "", "", "Phone", null, null, null, local = true)
+        val accounts = kotlinx.coroutines.flow.MutableStateFlow(listOf(account("acc1", "Alice"), local))
+        val vm = BookDetailViewModel(BookKey("acc1", 1), library, FakeEditRepository(), FakeDownloadRepository(), null, accounts, transfer)
+        backgroundScope.launch { vm.state.collect {} }
+        val events = mutableListOf<TransferEvent>()
+        backgroundScope.launch { vm.transferEvents.collect { events += it } }
+        advanceUntilIdle()
+        assertEquals(listOf("loc"), vm.state.value.transferTargets.map { it.id })
+
+        vm.startTransfer(move = false)
+        advanceUntilIdle()
+        val ui = vm.state.value.transfer!!
+        assertEquals("loc", ui.targetId)
+        assertEquals("a local library has no folders to pick", emptyList<String>(), ui.folders)
+        vm.confirmTransfer()
+        advanceUntilIdle()
+        assertEquals(Triple(BookKey("acc1", 1), "loc", false), transfer.calls.single())
+        assertEquals(TransferEvent.Done("Phone", move = false, stateCopied = true), events.single())
+        assertNull(vm.state.value.transfer)
+
+        transfer.fail = com.somecatcode.ebookreader.data.transfer.TransferException(com.somecatcode.ebookreader.data.transfer.TransferException.Reason.DELETE_FAILED)
+        vm.startTransfer(move = true)
+        advanceUntilIdle()
+        vm.confirmTransfer()
+        advanceUntilIdle()
+        assertEquals(TransferEvent.Failed(com.somecatcode.ebookreader.data.transfer.TransferException.Reason.DELETE_FAILED), events.last())
+    }
+
+    @Test
     fun bookDetail_notEditableCannotStartEdit() = runTest(dispatcher) {
         val library = FakeLibraryRepository(listOf(book(1, "Dune", editable = false)))
         val vm = BookDetailViewModel(BookKey("acc1", 1), library, FakeEditRepository(), FakeDownloadRepository())

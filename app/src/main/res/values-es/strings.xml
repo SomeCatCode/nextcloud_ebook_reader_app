@@ -339,4 +339,24 @@
     <string name="local_error_duplicate">Esta carpeta ya es una biblioteca.</string>
     <string name="local_error_failed">No se pudo añadir la carpeta.</string>
     <string name="book_local_file">Archivo en este dispositivo: %1$s</string>
+    <string name="book_more">Más</string>
+    <string name="book_copy_to">Copiar a otra cuenta…</string>
+    <string name="book_move_to">Mover a otra cuenta…</string>
+    <string name="transfer_title_copy">Copiar libro</string>
+    <string name="transfer_title_move">Mover libro</string>
+    <string name="transfer_target">A</string>
+    <string name="transfer_folder">Carpeta de la biblioteca</string>
+    <string name="transfer_copy">Copiar</string>
+    <string name="transfer_move">Mover</string>
+    <string name="transfer_move_hint_local">Después de copiarlo, el archivo se elimina de este dispositivo.</string>
+    <string name="transfer_move_hint_cloud">Después de copiarlo, el archivo se elimina del servidor (va a la papelera de Nextcloud).</string>
+    <string name="transfer_running_copy">Copiando… Los libros grandes pueden tardar un poco.</string>
+    <string name="transfer_running_move">Moviendo… Los libros grandes pueden tardar un poco.</string>
+    <string name="transfer_done_copy">Copiado a %1$s.</string>
+    <string name="transfer_done_move">Movido a %1$s.</string>
+    <string name="transfer_state_missing">Todavía no se pudieron llevar el progreso de lectura ni los resaltados.</string>
+    <string name="transfer_error_not_allowed">Este libro no se puede copiar ni mover.</string>
+    <string name="transfer_error_source">No se pudo leer el archivo del libro. Comprueba la conexión o la carpeta.</string>
+    <string name="transfer_error_target">No se pudo guardar el libro en la cuenta de destino.</string>
+    <string name="transfer_error_delete">El libro se copió, pero no se pudo eliminar el original.</string>
 </resources>

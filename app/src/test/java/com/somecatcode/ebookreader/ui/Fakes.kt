@@ -1,5 +1,8 @@
 package com.somecatcode.ebookreader.ui
 
+import com.somecatcode.ebookreader.data.transfer.TransferResult
+import com.somecatcode.ebookreader.data.transfer.TransferException
+import com.somecatcode.ebookreader.data.transfer.BookTransfer
 import com.somecatcode.ebookreader.data.local.BookFile
 import com.somecatcode.ebookreader.data.local.LocalLibrary
 import android.content.Context
@@ -332,6 +335,18 @@ class FakeContainer(
     override val database: AppDatabase get() = error("not used in UI tests")
     override val downloadManager: DownloadManager get() = error("not used in UI tests")
     override val localLibrary: LocalLibrary = FakeLocalLibrary()
+    override val bookTransfer: BookTransfer = FakeBookTransfer()
+}
+
+class FakeBookTransfer(var fail: TransferException? = null) : BookTransfer {
+    val calls = mutableListOf<Triple<BookKey, String, Boolean>>()
+    var folderList = listOf("/Books")
+    override suspend fun folders(accountId: String): List<String> = folderList
+    override suspend fun transfer(source: BookKey, targetAccountId: String, folder: String?, move: Boolean): TransferResult {
+        calls += Triple(source, targetAccountId, move)
+        fail?.let { throw it }
+        return TransferResult(BookKey(targetAccountId, 99), stateCopied = true)
+    }
 }
 
 class FakeLocalLibrary : LocalLibrary {
@@ -341,4 +356,6 @@ class FakeLocalLibrary : LocalLibrary {
     override suspend fun bookFile(key: BookKey): BookFile? = null
     override fun coverFile(accountId: String, fileId: Long): java.io.File? = null
     override suspend fun forget(accountId: String) = Unit
+    override suspend fun importFile(accountId: String, fileName: String, write: (java.io.OutputStream) -> Unit): BookKey = error("not used")
+    override suspend fun deleteBook(key: BookKey) = Unit
 }

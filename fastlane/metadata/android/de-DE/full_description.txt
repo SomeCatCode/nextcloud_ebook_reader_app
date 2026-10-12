@@ -1,6 +1,17 @@
-Lies deine E-Books und Comics direkt aus deiner eigenen Nextcloud, unterwegs und offline.
+Lies deine E-Books und Comics aus einem Ordner auf deinem Gerät oder direkt aus deiner eigenen Nextcloud, unterwegs und offline.
 
-Die App verbindet sich mit deinem Nextcloud-Server, auf dem die App „E-Book Reader“ läuft. Deine Bibliothek, Regale, Serien und dein Lesefortschritt sind auf allen Geräten und im Browser synchron.
+Die App funktioniert auch ganz ohne Server: Wähle einfach einen Ordner auf dem Handy oder der SD-Karte, und die App baut daraus deine Bibliothek mit Titeln, Autoren, Serien und Covern. Wer eine Nextcloud mit der App „E-Book Reader“ hat, verbindet sie zusätzlich und hat Bibliothek, Regale, Serien und Lesefortschritt auf allen Geräten und im Browser synchron.
+
+OHNE SERVER: LOKALE ORDNER
+• Ein oder mehrere Ordner auf dem Gerät als eigene Bibliotheken, inklusive Unterordnern
+• Titel, Autoren, Serien, Beschreibung und Cover werden aus EPUB, FB2 und CBZ gelesen
+• Lesestand, Markierungen und Notizen bleiben auf dem Gerät
+• Keine Speicherberechtigung nötig: die App sieht nur die Ordner, die du freigibst
+
+KOPIEREN UND VERSCHIEBEN
+• Bücher in ein anderes Konto kopieren, z. B. vom Handy-Ordner in deine Nextcloud oder umgekehrt
+• Oder verschieben: kopieren und das Original danach löschen
+• Lesestand und Markierungen ziehen mit um
 
 BIBLIOTHEK
 • EPUB, MOBI, AZW3, FB2 sowie Comics als CBZ, CBR, CB7 und CBT
@@ -23,13 +34,13 @@ OFFLINE
 • Downloads auf Wunsch nur im WLAN
 
 MEHRERE KONTEN
-• Mehrere Nextcloud-Konten, getrennt oder als gemeinsame Bibliothek
+• Mehrere Nextcloud-Konten und lokale Ordner, getrennt oder als gemeinsame Bibliothek
 • Sichere Anmeldung über den Browser (Nextcloud Login Flow); dein Passwort sieht die App nie
 
 DATENSCHUTZ
-Keine Werbung, kein Tracking, keine Analyse. Deine Daten fließen ausschließlich zwischen deinem Gerät und deinem eigenen Nextcloud-Server.
+Keine Werbung, kein Tracking, keine Analyse. Lokale Bibliotheken bleiben auf deinem Gerät; mit Nextcloud fließen deine Daten ausschließlich zwischen deinem Gerät und deinem eigenen Server.
 
-VORAUSSETZUNG
-Ein Nextcloud-Server mit der App „E-Book Reader“ ab Version 0.7.0 (im Nextcloud-App-Store bzw. auf GitHub). Ohne diese Server-App funktioniert die App nicht.
+NEXTCLOUD (OPTIONAL)
+Für Sync, Regale und das Lesen im Browser: ein Nextcloud-Server mit der App „E-Book Reader“ ab Version 0.7.0 (im Nextcloud-App-Store bzw. auf GitHub). Für lokale Ordner brauchst du keinen Server.
 
 Inoffizielle App, nicht mit der Nextcloud GmbH verbunden. Nextcloud ist eine Marke der Nextcloud GmbH.

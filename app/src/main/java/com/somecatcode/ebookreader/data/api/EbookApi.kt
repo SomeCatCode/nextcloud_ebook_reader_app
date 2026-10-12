@@ -132,6 +132,23 @@ interface EbookApi {
     /** Authenticated raw HTTP access for covers, WebDAV and the reader request proxy. */
     val http: AuthenticatedHttp
 
+    // ---- Files (WebDAV) -------------------------------------------------------------------------------
+
+    /** Library folders of the user (`GET /settings`, `libraryFolders`), e.g. `/Books`; new books go there. */
+    suspend fun libraryFolders(): List<String>
+
+    /** True when [path] (user relative) exists (`HEAD` on WebDAV). */
+    suspend fun fileExists(userId: String, path: String): Boolean
+
+    /**
+     * Uploads a file to [path] (`PUT` on WebDAV, existing files are replaced). [content] is opened once
+     * and closed afterwards. Returns the Nextcloud file id from `OC-FileId`, null when the server sent none.
+     */
+    suspend fun uploadFile(userId: String, path: String, length: Long, contentType: String, content: () -> java.io.InputStream): Long?
+
+    /** Deletes [path] (`DELETE` on WebDAV: the file goes to the Nextcloud trash bin). */
+    suspend fun deleteFile(userId: String, path: String)
+
     // ---- Account -----------------------------------------------------------------------------------
 
     /** `DELETE /ocs/v2.php/core/apppassword` - revokes the app password used by this client (logout). */
