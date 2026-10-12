@@ -5,6 +5,8 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+## 0.4.0 – 2026-10-12
+
 ### Hinzugefügt
 - **Lokale Bibliotheken:** Die App funktioniert jetzt auch ohne Server. Unter „Konto hinzufügen“ → „Ordner auf diesem Gerät“ wird ein Ordner (inkl. Unterordnern, auch auf der SD-Karte) zur eigenen Bibliothek; jeder Ordner ist ein eigenes Konto. Titel, Autoren, Serie, Beschreibung, Sprache, Verlag, ISBN, Genres und Cover werden aus EPUB, FB2/FBZ und CBZ gelesen, sonst gilt der Dateiname. Lesestand, Markierungen, Bewertung und Bearbeitungen bleiben auf dem Gerät. „Neu einlesen“ (bzw. Synchronisieren) nimmt neue und geänderte Dateien auf und entfernt gelöschte. Keine Speicherberechtigung nötig (Android-Ordnerauswahl). Beim Entfernen bleiben die Dateien im Ordner erhalten.
 - **Kopieren und Verschieben zwischen Konten:** In den Buchdetails über „⋮“ → „In anderes Konto kopieren/verschieben“, in jede Richtung (lokal ↔ Nextcloud, Nextcloud ↔ Nextcloud). Bei Nextcloud-Zielen wählbarer Bibliotheksordner, belegte Dateinamen bekommen „(2)“. Lesestand, Status, Bewertung und Markierungen ziehen mit. Verschieben löscht das Original erst nach erfolgreicher Kopie (Nextcloud: in den Papierkorb); Bücher, die andere mit dir teilen, lassen sich nur kopieren.
