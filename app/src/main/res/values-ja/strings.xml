@@ -24,7 +24,7 @@
     <!-- Accounts -->
     <string name="accounts_add">アカウントを追加</string>
     <string name="accounts_empty_title">アカウントがありません</string>
-    <string name="accounts_empty_body">Nextcloud サーバーにログインすると、電子書籍ライブラリが表示されます。</string>
+    <string name="accounts_empty_body">Nextcloud サーバーにログインするか、この端末のフォルダーを追加すると、電子書籍が表示されます。</string>
     <string name="account_last_sync">最終同期: %1$s</string>
     <string name="account_never_synced">まだ同期されていません</string>
     <string name="account_sign_in_again">再ログイン</string>
@@ -66,7 +66,7 @@
 
     <!-- Library -->
     <string name="library_welcome_title">E-Book Reader へようこそ</string>
-    <string name="library_welcome_body">Nextcloud アカウントを追加して、電子書籍の閲覧、ダウンロード、読書ができます。これは非公式アプリであり、Nextcloud GmbH とは関係ありません。</string>
+    <string name="library_welcome_body">この端末の電子書籍フォルダー、または Nextcloud アカウントを追加して、ライブラリを閲覧・ダウンロード・読書できます。これは非公式アプリであり、Nextcloud GmbH とは関係ありません。</string>
     <string name="library_all_accounts">すべてのアカウント</string>
     <string name="library_tab_books">書籍</string>
     <string name="library_tab_shelves">本棚</string>
@@ -322,4 +322,17 @@
     <string name="folders_up">1 つ上へ</string>
     <string name="folders_empty">このフォルダーは空です</string>
     <string name="folders_path">フォルダーのパス</string>
+    <string name="accounts_add_nextcloud">Nextcloud アカウント</string>
+    <string name="accounts_add_nextcloud_hint">E-Book Reader アプリのある Nextcloud サーバー上のライブラリ。端末間で同期されます。</string>
+    <string name="accounts_add_local">この端末のフォルダー</string>
+    <string name="accounts_add_local_hint">スマートフォンや SD カードのフォルダーにある電子書籍。サーバー不要で、すべてこの端末に保存されます。</string>
+    <string name="account_local_folder">ローカルフォルダー: %1$s</string>
+    <string name="account_last_scan">最終読み込み: %1$s</string>
+    <string name="account_rescan">再読み込み</string>
+    <string name="status_folder_unavailable">フォルダーを読み込めません。移動・削除されたか、SD カードが取り外されていませんか？</string>
+    <string name="banner_folder_unavailable">ローカルフォルダーを読み込めません。保存済みのライブラリを表示しています。</string>
+    <string name="remove_local_body">ライブラリ「%1$s」を読書の進捗やハイライトとともにアプリから削除します。フォルダー内の電子書籍ファイルは削除されません。</string>
+    <string name="local_error_duplicate">このフォルダーはすでにライブラリです。</string>
+    <string name="local_error_failed">フォルダーを追加できませんでした。</string>
+    <string name="book_local_file">この端末のファイル: %1$s</string>
 </resources>

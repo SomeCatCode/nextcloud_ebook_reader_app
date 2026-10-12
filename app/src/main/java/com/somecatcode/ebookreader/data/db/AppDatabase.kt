@@ -20,7 +20,7 @@ import androidx.room.RoomDatabase
         PendingEditEntity::class,
         AnnotationEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -37,3 +37,6 @@ abstract class AppDatabase : RoomDatabase() {
         const val FILE_NAME = "ebookreader.db"
     }
 }
+
+/** True for a local library ([AccountKind.LOCAL]): no server, local changes are never uploaded. */
+suspend fun AppDatabase.isLocalAccount(accountId: String): Boolean = accountDao().kind(accountId) == AccountKind.LOCAL

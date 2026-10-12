@@ -1,5 +1,7 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import com.somecatcode.ebookreader.data.local.LocalLibrary
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -31,7 +33,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class AccountStatus { OK, SYNCING, OFFLINE, AUTH_EXPIRED, APP_UNAVAILABLE, ERROR }
+enum class AccountStatus { OK, SYNCING, OFFLINE, AUTH_EXPIRED, APP_UNAVAILABLE, FOLDER_UNAVAILABLE, ERROR }
 
 data class AccountRow(val account: Account, val status: AccountStatus)
 
@@ -56,7 +58,11 @@ data class AccountsUiState(
     val removing: Boolean = false,
     /** Shown after removal when the app password could not be revoked on the server. */
     val revokeFailedHint: Boolean = false,
+    /** Adding a local folder failed (null = no error). */
+    val localError: LocalFolderError? = null,
 )
+
+enum class LocalFolderError { DUPLICATE, FAILED }
 
 sealed interface AccountsEvent {
     /** Open the Login Flow v2 URL in the browser. */
@@ -69,6 +75,7 @@ class AccountsViewModel(
     private val loginFlowClient: LoginFlowClient,
     private val apiClientFactory: ApiClientFactory,
     private val syncEngine: SyncEngine,
+    private val localLibrary: LocalLibrary? = null,
     private val pollIntervalMs: Long = 2_000,
     private val pollTimeoutMs: Long = 20 * 60_000,
 ) : ViewModel() {
@@ -78,6 +85,7 @@ class AccountsViewModel(
     private val removing = MutableStateFlow(false)
     private val revokeFailedHint = MutableStateFlow(false)
     private val credentialsMissing = MutableStateFlow<Set<String>>(emptySet())
+    private val localError = MutableStateFlow<LocalFolderError?>(null)
     private var addJob: Job? = null
     private var lastLoginUrl: String? = null
 
@@ -89,15 +97,15 @@ class AccountsViewModel(
     }
 
     val state: StateFlow<AccountsUiState> = combine(
-        rows, addFlow, removeCandidate, removing, revokeFailedHint,
-    ) { rows, add, candidate, isRemoving, hint ->
-        AccountsUiState(rows, true, add, candidate, isRemoving, hint)
+        rows, addFlow, removeCandidate, removing, combine(revokeFailedHint, localError, ::Pair),
+    ) { rows, add, candidate, isRemoving, (hint, local) ->
+        AccountsUiState(rows, true, add, candidate, isRemoving, hint, local)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountsUiState())
 
     init {
         viewModelScope.launch {
             accountStore.accounts.collect { accounts ->
-                credentialsMissing.value = accounts.filter { accountStore.credentials(it.id) == null }.map { it.id }.toSet()
+                credentialsMissing.value = accounts.filter { !it.local && accountStore.credentials(it.id) == null }.map { it.id }.toSet()
             }
         }
     }
@@ -109,6 +117,7 @@ class AccountsViewModel(
             SyncError.UNAUTHORIZED -> AccountStatus.AUTH_EXPIRED
             SyncError.APP_UNAVAILABLE -> AccountStatus.APP_UNAVAILABLE
             SyncError.OFFLINE -> AccountStatus.OFFLINE
+            SyncError.FOLDER_UNAVAILABLE -> AccountStatus.FOLDER_UNAVAILABLE
             SyncError.SERVER, SyncError.UNKNOWN -> AccountStatus.ERROR
         }
         else -> AccountStatus.OK
@@ -118,6 +127,29 @@ class AccountsViewModel(
 
     fun showAddAccount() {
         addFlow.value = AddFlowState()
+    }
+
+    /** A folder was picked in the system folder picker: it becomes a local library and is read at once. */
+    fun addLocalFolder(treeUri: Uri) {
+        val library = localLibrary ?: return
+        viewModelScope.launch {
+            try {
+                val account = library.addFolder(treeUri)
+                syncEngine.requestSync(account.id)
+                eventChannel.send(AccountsEvent.AccountAdded(account.id))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: AccountAlreadyExistsException) {
+                localError.value = LocalFolderError.DUPLICATE
+            } catch (e: Exception) {
+                Log.w(TAG, "Adding a local folder failed: ${e::class.simpleName}: ${e.message}")
+                localError.value = LocalFolderError.FAILED
+            }
+        }
+    }
+
+    fun dismissLocalError() {
+        localError.value = null
     }
 
     fun showRelogin(account: Account) {
@@ -292,7 +324,8 @@ class AccountsViewModel(
         if (removing.value) return
         removing.value = true
         viewModelScope.launch {
-            val revoked = runCatching { apiClientFactory.forAccount(account.id).revokeAppPassword() }.isSuccess
+            // a local library has no app password; its files stay where they are
+            val revoked = account.local || runCatching { apiClientFactory.forAccount(account.id).revokeAppPassword() }.isSuccess
             accountStore.remove(account.id)
             removing.value = false
             removeCandidate.value = null

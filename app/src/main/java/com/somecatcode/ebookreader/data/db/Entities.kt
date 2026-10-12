@@ -13,12 +13,23 @@ import androidx.room.PrimaryKey
  * Timestamps are milliseconds since epoch.
  */
 
+/** Kinds of [AccountEntity.kind]. */
+object AccountKind {
+    const val NEXTCLOUD = "nextcloud"
+
+    /** A folder on the device (Storage Access Framework tree); no server, nothing is uploaded. */
+    const val LOCAL = "local"
+}
+
 /** Persisted account. The app password is NOT stored here (see AccountStore). */
 @Entity(tableName = "account")
 data class AccountEntity(
     /** Local random UUID; stable even if the server URL changes. */
     @PrimaryKey val id: String,
-    /** Base URL without trailing slash, e.g. `https://cloud.example.org/nextcloud`. */
+    /**
+     * Base URL without trailing slash, e.g. `https://cloud.example.org/nextcloud`. Local accounts: the
+     * `content://` tree URI of the folder.
+     */
     val serverUrl: String,
     val loginName: String,
     /** Nextcloud user id (used in WebDAV paths); may differ from the login name. */
@@ -31,6 +42,8 @@ data class AccountEntity(
     val lastSyncCursor: String?,
     val lastSyncAt: Long?,
     val createdAt: Long,
+    /** [AccountKind]. */
+    @ColumnInfo(defaultValue = AccountKind.NEXTCLOUD) val kind: String = AccountKind.NEXTCLOUD,
 )
 
 @Entity(
@@ -86,6 +99,8 @@ data class BookEntity(
     val owner: String? = null,
     /** Own book shared through the app with other users (server 0.10.0+). */
     @ColumnInfo(defaultValue = "0") val sharedOut: Boolean = false,
+    /** Local accounts: `content://` document URI of the file; null for Nextcloud books. */
+    val localUri: String? = null,
 )
 
 /** Genre or tag of a book. */

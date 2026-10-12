@@ -154,11 +154,12 @@ internal fun BookEntity.toLibraryBook(
     editable = editable,
     downloadable = downloadable,
     percentage = progress?.percentage,
-    offline = download?.offlineState() ?: OfflineState(null),
+    offline = if (localUri != null) OfflineState(DownloadState.DONE, size, size) else download?.offlineState() ?: OfflineState(null),
     hasPendingEdit = hasPendingEdit,
     shared = shared,
     owner = owner,
     sharedOut = sharedOut,
+    local = localUri != null,
 )
 
 /** Manual shelf memberships and smart shelf queries of the shown accounts, keyed by (accountId, shelfId). */

@@ -24,7 +24,7 @@
     <!-- Accounts -->
     <string name="accounts_add">Add account</string>
     <string name="accounts_empty_title">No accounts yet</string>
-    <string name="accounts_empty_body">Sign in to your Nextcloud server to see your e-book library.</string>
+    <string name="accounts_empty_body">Sign in to your Nextcloud server or add a folder on this device to see your e-books.</string>
     <string name="account_last_sync">Last sync: %1$s</string>
     <string name="account_never_synced">Not synced yet</string>
     <string name="account_sign_in_again">Sign in again</string>
@@ -66,7 +66,7 @@
 
     <!-- Library -->
     <string name="library_welcome_title">Welcome to E-Book Reader</string>
-    <string name="library_welcome_body">Add your Nextcloud account to browse, download and read your e-books. This is an unofficial app, not affiliated with Nextcloud GmbH.</string>
+    <string name="library_welcome_body">Add a folder with e-books on this device, or your Nextcloud account to browse, download and read your library everywhere. This is an unofficial app, not affiliated with Nextcloud GmbH.</string>
     <string name="library_all_accounts">All accounts</string>
     <string name="library_tab_books">Books</string>
     <string name="library_tab_shelves">Shelves</string>
@@ -324,4 +324,17 @@
     <string name="folders_up">Up one level</string>
     <string name="folders_empty">This folder is empty</string>
     <string name="folders_path">Folder path</string>
+    <string name="accounts_add_nextcloud">Nextcloud account</string>
+    <string name="accounts_add_nextcloud_hint">Your library on a Nextcloud server with the E-Book Reader app, synced across devices.</string>
+    <string name="accounts_add_local">Folder on this device</string>
+    <string name="accounts_add_local_hint">E-books in a folder on the phone or SD card. Works without a server; everything stays on this device.</string>
+    <string name="account_local_folder">Local folder: %1$s</string>
+    <string name="account_last_scan">Last read: %1$s</string>
+    <string name="account_rescan">Read again</string>
+    <string name="status_folder_unavailable">The folder cannot be read. Was it moved or deleted, or is the SD card missing?</string>
+    <string name="banner_folder_unavailable">A local folder cannot be read. Showing the saved library.</string>
+    <string name="remove_local_body">The library %1$s is removed from the app, including reading progress and highlights. The e-book files in the folder are not deleted.</string>
+    <string name="local_error_duplicate">This folder is already a library.</string>
+    <string name="local_error_failed">The folder could not be added.</string>
+    <string name="book_local_file">File on this device: %1$s</string>
 </resources>

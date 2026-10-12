@@ -24,7 +24,7 @@
     <!-- Accounts -->
     <string name="accounts_add">Añadir cuenta</string>
     <string name="accounts_empty_title">Aún no hay cuentas</string>
-    <string name="accounts_empty_body">Inicia sesión en tu servidor Nextcloud para ver tu biblioteca de libros electrónicos.</string>
+    <string name="accounts_empty_body">Inicia sesión en tu servidor Nextcloud o añade una carpeta de este dispositivo para ver tus libros electrónicos.</string>
     <string name="account_last_sync">Última sincronización: %1$s</string>
     <string name="account_never_synced">Aún no sincronizada</string>
     <string name="account_sign_in_again">Volver a iniciar sesión</string>
@@ -66,7 +66,7 @@
 
     <!-- Library -->
     <string name="library_welcome_title">Te damos la bienvenida a E-Book Reader</string>
-    <string name="library_welcome_body">Añade tu cuenta de Nextcloud para explorar, descargar y leer tus libros electrónicos. Esta es una app no oficial, sin relación con Nextcloud GmbH.</string>
+    <string name="library_welcome_body">Añade una carpeta con libros electrónicos de este dispositivo, o tu cuenta de Nextcloud para explorar, descargar y leer tu biblioteca en todas partes. Esta es una app no oficial, sin relación con Nextcloud GmbH.</string>
     <string name="library_all_accounts">Todas las cuentas</string>
     <string name="library_tab_books">Libros</string>
     <string name="library_tab_shelves">Estanterías</string>
@@ -326,4 +326,17 @@
     <string name="folders_up">Subir un nivel</string>
     <string name="folders_empty">Esta carpeta está vacía</string>
     <string name="folders_path">Ruta de la carpeta</string>
+    <string name="accounts_add_nextcloud">Cuenta de Nextcloud</string>
+    <string name="accounts_add_nextcloud_hint">Tu biblioteca en un servidor Nextcloud con la app E-Book Reader, sincronizada entre dispositivos.</string>
+    <string name="accounts_add_local">Carpeta en este dispositivo</string>
+    <string name="accounts_add_local_hint">Libros electrónicos en una carpeta del teléfono o la tarjeta SD. Funciona sin servidor; todo se queda en este dispositivo.</string>
+    <string name="account_local_folder">Carpeta local: %1$s</string>
+    <string name="account_last_scan">Última lectura: %1$s</string>
+    <string name="account_rescan">Volver a leer</string>
+    <string name="status_folder_unavailable">No se puede leer la carpeta. ¿Se movió o eliminó, o falta la tarjeta SD?</string>
+    <string name="banner_folder_unavailable">No se puede leer una carpeta local. Se muestra la biblioteca guardada.</string>
+    <string name="remove_local_body">La biblioteca %1$s se quita de la app, con el progreso de lectura y los resaltados. Los archivos de la carpeta no se eliminan.</string>
+    <string name="local_error_duplicate">Esta carpeta ya es una biblioteca.</string>
+    <string name="local_error_failed">No se pudo añadir la carpeta.</string>
+    <string name="book_local_file">Archivo en este dispositivo: %1$s</string>
 </resources>

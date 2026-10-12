@@ -1,5 +1,7 @@
 package com.somecatcode.ebookreader
 
+import com.somecatcode.ebookreader.data.local.LocalLibraryImpl
+import com.somecatcode.ebookreader.data.local.LocalLibrary
 import android.content.Context
 import android.os.Build
 import androidx.datastore.core.DataStore
@@ -76,6 +78,7 @@ interface AppContainer {
     val settingsRepository: SettingsRepository
     val syncEngine: SyncEngine
     val downloadManager: DownloadManager
+    val localLibrary: LocalLibrary
 }
 
 /** Production container with the real data layer (W-DATA). */
@@ -120,6 +123,7 @@ class DefaultAppContainer(override val appContext: Context) : AppContainer {
             credentialsDir = File(appContext.noBackupFilesDir, "credentials"),
             booksRoot = { downloadStorage.root },
             beforeRemove = { id ->
+                localLibrary.forget(id)
                 runCatching {
                     workManager.cancelUniqueWork("sync-$id")
                     workManager.cancelUniqueWork("push-$id")
@@ -143,7 +147,13 @@ class DefaultAppContainer(override val appContext: Context) : AppContainer {
     override val shelfRepository: ShelfRepository by lazy { ShelfRepositoryImpl(database, apiClientFactory) }
     override val settingsRepository: SettingsRepository by lazy { SettingsRepositoryImpl(settingsStore) }
     override val syncEngine: SyncEngine by lazy {
-        SyncEngineImpl(database, apiClientFactory, editRepository, progressRepository, annotationRepository, downloadManager, { workManager }, appScope)
+        SyncEngineImpl(
+            database, apiClientFactory, editRepository, progressRepository, annotationRepository, downloadManager, { workManager }, appScope,
+            localScan = localLibrary::scan,
+        )
+    }
+    override val localLibrary: LocalLibrary by lazy {
+        LocalLibraryImpl(appContext, database, { accountStore }, File(appContext.filesDir, "local_covers"))
     }
     override val downloadManager: DownloadManager by lazy {
         DownloadManagerImpl(database, apiClientFactory, settingsRepository, downloadStorage, { workManager })

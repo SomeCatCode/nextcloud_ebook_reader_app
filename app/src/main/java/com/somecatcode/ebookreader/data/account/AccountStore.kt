@@ -40,6 +40,12 @@ interface AccountStore {
     /** Persists metadata and encrypted password; returns the new account (random UUID id). Rejects duplicates (same server URL + user id) with [AccountAlreadyExistsException]. */
     suspend fun add(account: NewAccount): Account
 
+    /**
+     * Adds a local library for the folder [folderUri] (a `content://` tree URI the caller holds a persistable
+     * permission for). Rejects a folder that is already a library with [AccountAlreadyExistsException].
+     */
+    suspend fun addLocal(folderUri: String, name: String): Account
+
     /** Replaces the app password after a re-login (account id, data and downloads are kept). */
     suspend fun updateCredentials(accountId: String, credentials: Credentials)
 
@@ -63,6 +69,8 @@ data class Account(
     val serverVersion: String?,
     val appVersion: String?,
     val lastSyncAt: Long?,
+    /** Local library: [serverUrl] is the folder's tree URI, [displayName] its name; no credentials. */
+    val local: Boolean = false,
 )
 
 class AccountAlreadyExistsException(val existing: Account) : Exception("Account already exists")

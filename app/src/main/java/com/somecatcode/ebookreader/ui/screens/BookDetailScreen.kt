@@ -212,7 +212,14 @@ fun BookDetailContent(
                     ),
                 )
             }
-            if (!book.downloadable) {
+            if (book.local) {
+                Text(
+                    stringResource(R.string.book_local_file, book.path),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.testTag("local_file"),
+                )
+            } else if (!book.downloadable) {
                 Text(stringResource(R.string.book_view_only), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 OfflineRow(book, onToggleOffline, onRetryDownload)
@@ -239,7 +246,8 @@ fun BookDetailContent(
 
             if (book.genres.isNotEmpty()) ChipSection(stringResource(R.string.book_genres), book.genres, onFilter?.let { f -> { f("genre:$it") } })
             if (book.tags.isNotEmpty()) ChipSection(stringResource(R.string.book_tags), book.tags, onFilter?.let { f -> { f("tag:$it") } })
-            Column {
+            // shelves are server objects: local libraries have none
+            if (!book.local) Column {
                 Text(stringResource(R.string.book_in_shelves), style = MaterialTheme.typography.labelLarge)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
                     state.manualShelves.filter { it.key.shelfId in state.inShelves }.forEach { shelf ->

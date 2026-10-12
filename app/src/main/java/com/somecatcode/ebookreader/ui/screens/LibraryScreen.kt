@@ -353,6 +353,7 @@ private fun LibraryBannerView(banner: LibraryBanner, onRetry: () -> Unit, onOpen
             stringResource(R.string.banner_server_error), isError = true,
             actionLabel = stringResource(R.string.action_retry), onAction = onRetry,
         )
+        LibraryBanner.FolderUnavailable -> MessageBanner(stringResource(R.string.banner_folder_unavailable))
         is LibraryBanner.ServerOutdated -> MessageBanner(
             stringResource(
                 R.string.banner_server_outdated,

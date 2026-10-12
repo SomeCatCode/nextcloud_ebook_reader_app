@@ -4,10 +4,9 @@ import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import java.io.ByteArrayInputStream
-import java.io.File
+import com.somecatcode.ebookreader.data.local.BookFile
 import java.io.IOException
 import java.io.InputStream
-import java.io.RandomAccessFile
 import java.util.Locale
 
 /**
@@ -16,11 +15,12 @@ import java.util.Locale
  * to the server through a [ReaderBackend] that adds the authentication.
  *
  * @param backendFor creates the backend for the bound book (online mode); null = no account/server
- * @param localFile the finished offline copy of the bound book or null (called on the WebView IO thread)
+ * @param localFile the file of the bound book on the device (finished offline copy or a file of a local
+ * library) or null (called on the WebView IO thread)
  */
 class ReaderRequestProxyImpl(
     private val backendFor: (accountId: String, fileId: Long) -> ReaderBackend?,
-    private val localFile: (accountId: String, fileId: Long) -> File?,
+    private val localFile: (accountId: String, fileId: Long) -> BookFile?,
 ) : ReaderRequestProxy {
 
     private data class Binding(val accountId: String, val fileId: Long, val online: Boolean)
@@ -110,14 +110,18 @@ class ReaderRequestProxyImpl(
         if (resource != ReaderResource.Book) {
             return error(404)
         }
-        val file = localFile(bound.accountId, bound.fileId)?.takeIf { it.isFile } ?: return error(404)
-        val length = file.length()
+        val file = try {
+            localFile(bound.accountId, bound.fileId)
+        } catch (_: Exception) {
+            null
+        } ?: return error(404)
+        val length = file.length
         val mime = mimeFor(file.name)
         val base = hashMapOf("Accept-Ranges" to "bytes", "Cache-Control" to "no-store")
         return when (val range = parseRange(rangeHeader, length)) {
             RangeResult.None -> {
                 base["Content-Length"] = length.toString()
-                WebResourceResponse(mime, null, 200, "OK", base, FileSliceStream(file, 0, length))
+                WebResourceResponse(mime, null, 200, "OK", base, file.open(0, length))
             }
             RangeResult.Unsatisfiable -> {
                 base["Content-Range"] = "bytes */$length"
@@ -127,7 +131,7 @@ class ReaderRequestProxyImpl(
                 val size = range.end - range.start + 1
                 base["Content-Length"] = size.toString()
                 base["Content-Range"] = "bytes ${range.start}-${range.end}/$length"
-                WebResourceResponse(mime, null, 206, "Partial Content", base, FileSliceStream(file, range.start, size))
+                WebResourceResponse(mime, null, 206, "Partial Content", base, file.open(range.start, size))
             }
         }
     }
@@ -212,30 +216,5 @@ class ReaderRequestProxyImpl(
             if (start >= length) return RangeResult.Unsatisfiable
             return RangeResult.Satisfiable(start, minOf(end, length - 1))
         }
-    }
-}
-
-/** Reads [length] bytes of [file] from [start]; the file handle closes with the stream. */
-private class FileSliceStream(file: File, start: Long, private var remaining: Long) : InputStream() {
-    private val raf = RandomAccessFile(file, "r").also { it.seek(start) }
-
-    override fun read(): Int {
-        if (remaining <= 0) return -1
-        val b = raf.read()
-        if (b >= 0) remaining--
-        return b
-    }
-
-    override fun read(b: ByteArray, off: Int, len: Int): Int {
-        if (remaining <= 0) return -1
-        val n = raf.read(b, off, minOf(len.toLong(), remaining).toInt())
-        if (n > 0) remaining -= n
-        return n
-    }
-
-    override fun available(): Int = minOf(remaining, Int.MAX_VALUE.toLong()).toInt()
-
-    override fun close() {
-        raf.close()
     }
 }

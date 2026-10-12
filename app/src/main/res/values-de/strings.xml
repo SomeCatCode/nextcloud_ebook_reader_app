@@ -24,7 +24,7 @@
     <!-- Konten -->
     <string name="accounts_add">Konto hinzufügen</string>
     <string name="accounts_empty_title">Noch keine Konten</string>
-    <string name="accounts_empty_body">Melde dich an deinem Nextcloud-Server an, um deine E-Book-Bibliothek zu sehen.</string>
+    <string name="accounts_empty_body">Melde dich an deinem Nextcloud-Server an oder füge einen Ordner auf diesem Gerät hinzu, um deine E-Books zu sehen.</string>
     <string name="account_last_sync">Letzte Synchronisierung: %1$s</string>
     <string name="account_never_synced">Noch nicht synchronisiert</string>
     <string name="account_sign_in_again">Neu anmelden</string>
@@ -66,7 +66,7 @@
 
     <!-- Bibliothek -->
     <string name="library_welcome_title">Willkommen beim E-Book Reader</string>
-    <string name="library_welcome_body">Füge dein Nextcloud-Konto hinzu, um deine E-Books zu durchsuchen, herunterzuladen und zu lesen. Dies ist eine inoffizielle App ohne Verbindung zur Nextcloud GmbH.</string>
+    <string name="library_welcome_body">Füge einen Ordner mit E-Books auf diesem Gerät hinzu oder dein Nextcloud-Konto, um deine Bibliothek überall zu durchsuchen, herunterzuladen und zu lesen. Dies ist eine inoffizielle App ohne Verbindung zur Nextcloud GmbH.</string>
     <string name="library_all_accounts">Alle Konten</string>
     <string name="library_tab_books">Bücher</string>
     <string name="library_tab_shelves">Regale</string>
@@ -324,4 +324,17 @@
     <string name="folders_up">Eine Ebene nach oben</string>
     <string name="folders_empty">Dieser Ordner ist leer</string>
     <string name="folders_path">Ordnerpfad</string>
+    <string name="accounts_add_nextcloud">Nextcloud-Konto</string>
+    <string name="accounts_add_nextcloud_hint">Deine Bibliothek auf einem Nextcloud-Server mit der App „E-Book Reader“, synchron auf allen Geräten.</string>
+    <string name="accounts_add_local">Ordner auf diesem Gerät</string>
+    <string name="accounts_add_local_hint">E-Books in einem Ordner auf dem Handy oder der SD-Karte. Funktioniert ohne Server, alles bleibt auf diesem Gerät.</string>
+    <string name="account_local_folder">Lokaler Ordner: %1$s</string>
+    <string name="account_last_scan">Zuletzt eingelesen: %1$s</string>
+    <string name="account_rescan">Neu einlesen</string>
+    <string name="status_folder_unavailable">Der Ordner lässt sich nicht lesen. Wurde er verschoben oder gelöscht, oder fehlt die SD-Karte?</string>
+    <string name="banner_folder_unavailable">Ein lokaler Ordner lässt sich nicht lesen. Die gespeicherte Bibliothek wird angezeigt.</string>
+    <string name="remove_local_body">Die Bibliothek %1$s wird aus der App entfernt, samt Lesestand und Markierungen. Die E-Book-Dateien im Ordner werden nicht gelöscht.</string>
+    <string name="local_error_duplicate">Dieser Ordner ist bereits eine Bibliothek.</string>
+    <string name="local_error_failed">Der Ordner konnte nicht hinzugefügt werden.</string>
+    <string name="book_local_file">Datei auf diesem Gerät: %1$s</string>
 </resources>

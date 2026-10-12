@@ -52,8 +52,13 @@ class CoverFetcher(
     private val data: CoverRequest,
     private val api: suspend (accountId: String) -> EbookApi,
     private val dir: File,
+    /** Extracted cover of a book of a local library (no server). */
+    private val localCover: (accountId: String, fileId: Long) -> File? = { _, _ -> null },
 ) : Fetcher {
     override suspend fun fetch(): FetchResult {
+        localCover(data.accountId, data.fileId)?.let { local ->
+            return SourceFetchResult(ImageSource(local.toOkioPath(), FileSystem.SYSTEM), null, DataSource.DISK)
+        }
         val file = File(dir, data.cacheKey.hashCode().toUInt().toString(16) + "_${data.accountId.take(8)}_${data.fileId}")
         if (!file.exists()) {
             val client = api(data.accountId)
@@ -75,7 +80,7 @@ class CoverFetcher(
 
     class Factory(private val container: AppContainer, private val cacheDir: File) : Fetcher.Factory<CoverRequest> {
         override fun create(data: CoverRequest, options: Options, imageLoader: ImageLoader): Fetcher =
-            CoverFetcher(data, { container.apiClientFactory.forAccount(it) }, cacheDir)
+            CoverFetcher(data, { container.apiClientFactory.forAccount(it) }, cacheDir, container.localLibrary::coverFile)
     }
 
     object CoverKeyer : Keyer<CoverRequest> {
