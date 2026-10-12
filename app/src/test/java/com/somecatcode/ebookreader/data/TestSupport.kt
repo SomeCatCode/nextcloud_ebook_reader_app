@@ -10,6 +10,7 @@ import com.somecatcode.ebookreader.data.api.ApiClientFactory
 import com.somecatcode.ebookreader.data.api.EbookApi
 import com.somecatcode.ebookreader.data.api.EbookApiImpl
 import com.somecatcode.ebookreader.data.db.AccountEntity
+import com.somecatcode.ebookreader.data.db.AccountKind
 import com.somecatcode.ebookreader.data.db.AppDatabase
 import com.somecatcode.ebookreader.data.db.PinnedBy
 import com.somecatcode.ebookreader.data.download.DownloadManager
@@ -131,6 +132,7 @@ class FakeAccountStore(private val accountsList: List<Account> = emptyList()) : 
     override suspend fun list() = accountsList
     override suspend fun get(accountId: String) = accountsList.firstOrNull { it.id == accountId }
     override suspend fun add(account: NewAccount): Account = error("not needed")
+    override suspend fun addLocal(folderUri: String, name: String): Account = error("not needed")
     override suspend fun updateCredentials(accountId: String, credentials: Credentials) {}
     override suspend fun credentials(accountId: String) = Credentials("alice", "secret-app-pw")
     override suspend fun remove(accountId: String) {}
@@ -139,8 +141,8 @@ class FakeAccountStore(private val accountsList: List<Account> = emptyList()) : 
 fun newDatabase(context: Context): AppDatabase =
     Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).allowMainThreadQueries().build()
 
-suspend fun AppDatabase.addAccount(id: String = "acc1", userId: String = "alice", cursor: String? = null): AccountEntity {
-    val entity = AccountEntity(id, "https://cloud.example.org", "alice", userId, "Alice", "31.0", null, cursor, null, 1)
+suspend fun AppDatabase.addAccount(id: String = "acc1", userId: String = "alice", cursor: String? = null, kind: String = AccountKind.NEXTCLOUD): AccountEntity {
+    val entity = AccountEntity(id, "https://cloud.example.org", "alice", userId, "Alice", "31.0", null, cursor, null, 1, kind)
     accountDao().upsert(entity)
     return entity
 }

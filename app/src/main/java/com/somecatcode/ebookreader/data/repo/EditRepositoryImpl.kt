@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.data.repo
 
+import com.somecatcode.ebookreader.data.db.isLocalAccount
 import androidx.room.withTransaction
 import com.somecatcode.ebookreader.data.api.ApiClientFactory
 import com.somecatcode.ebookreader.data.api.ApiException
@@ -51,6 +52,7 @@ class EditRepositoryImpl(
 
     override suspend fun editMetadata(key: BookKey, patch: MetadataPatch) {
         if (patch.fields.isEmpty()) return
+        val local = db.isLocalAccount(key.accountId)
         db.withTransaction {
             val book = db.bookDao().get(key.accountId, key.fileId) ?: return@withTransaction
             db.bookDao().upsertAll(listOf(applyMetadata(book, patch.fields)))
@@ -60,9 +62,10 @@ class EditRepositoryImpl(
                 patch.fields["tags"]?.let { replaceTags(tags, key, TAG_TAG, it) }
                 db.bookTagDao().replaceForBook(key.accountId, key.fileId, tags)
             }
-            mergePending(key, KIND_METADATA, patch.fields)
+            // local libraries keep edits in the app (the book file is not changed)
+            if (!local) mergePending(key, KIND_METADATA, patch.fields)
         }
-        scheduler.schedule(key.accountId)
+        if (!local) scheduler.schedule(key.accountId)
     }
 
     override suspend fun editAppData(key: BookKey, patch: AppDataPatch) {
@@ -70,6 +73,7 @@ class EditRepositoryImpl(
         if (patch.setRating) fields["rating"] = patch.rating?.let { JsonPrimitive(it.coerceIn(0, 5)) } ?: JsonNull
         patch.readStatus?.let { fields["readStatus"] = JsonPrimitive(it.wire()) }
         if (fields.isEmpty()) return
+        val local = db.isLocalAccount(key.accountId)
         db.withTransaction {
             val book = db.bookDao().get(key.accountId, key.fileId) ?: return@withTransaction
             val rating = if (patch.setRating) patch.rating?.coerceIn(0, 5) else book.rating
@@ -83,9 +87,9 @@ class EditRepositoryImpl(
                 ReadStatus.UNREAD -> db.progressDao().deleteForBooks(key.accountId, listOf(key.fileId))
                 else -> Unit
             }
-            mergePending(key, KIND_APP_DATA, fields)
+            if (!local) mergePending(key, KIND_APP_DATA, fields)
         }
-        scheduler.schedule(key.accountId)
+        if (!local) scheduler.schedule(key.accountId)
     }
 
     override suspend fun flushPending(accountId: String) = flushLock.withLock {

@@ -44,5 +44,16 @@ val MIGRATION_2_3: Migration = object : Migration(2, 3) {
     }
 }
 
+/**
+ * Version 4: local libraries. `account.kind` (`nextcloud` for every existing account) and the document
+ * URI of a book in a local folder (`book.localUri`, null for Nextcloud books).
+ */
+val MIGRATION_3_4: Migration = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `account` ADD COLUMN `kind` TEXT NOT NULL DEFAULT 'nextcloud'")
+        db.execSQL("ALTER TABLE `book` ADD COLUMN `localUri` TEXT")
+    }
+}
+
 /** All migrations, registered by the database builder. */
-val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)

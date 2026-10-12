@@ -4,6 +4,7 @@ import com.somecatcode.ebookreader.R
 import com.somecatcode.ebookreader.data.api.ApiException
 import com.somecatcode.ebookreader.data.api.AppDataPatch
 import com.somecatcode.ebookreader.data.api.Locations
+import com.somecatcode.ebookreader.data.api.LoginFlowResult
 import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.api.ServerCompatibility
@@ -122,6 +123,32 @@ class ViewModelTests {
         assertEquals(listOf<String?>("new"), sync.requested)
         val first = vm.events.first()
         assertEquals(AccountsEvent.OpenBrowser("https://cloud.example.org/login/flow"), first)
+    }
+
+    @Test
+    fun addAccount_pollingPausesInTheBackgroundAndSurvivesNetworkErrors() = runTest(dispatcher) {
+        val store = FakeAccountStore()
+        val login = FakeLoginFlowClient().apply { result = null }
+        val vm = accountsVm(store = store, login = login)
+        backgroundScope.launch { vm.state.collect {} }
+        vm.showAddAccount()
+        vm.onServerInputChange("cloud.example.org")
+        vm.startLogin()
+        advanceTimeBy(5)
+        vm.onForeground(false) // the browser is in front
+        advanceTimeBy(1_000)
+        val pollsBefore = login.polls
+        advanceTimeBy(1_000)
+        assertEquals("no polling while the app is in the background", pollsBefore, login.polls)
+        assertEquals(AddStage.WAITING, vm.state.value.addFlow?.stage)
+
+        // back in the app: the first polls still fail (network not yet allowed), then the result comes
+        login.failingPolls = 6
+        login.result = LoginFlowResult("https://cloud.example.org", "alice", "app-password")
+        vm.onForeground(true)
+        advanceUntilIdle()
+        assertEquals("https://cloud.example.org", store.added?.serverUrl)
+        assertNull(vm.state.value.addFlow)
     }
 
     @Test
@@ -504,6 +531,38 @@ class ViewModelTests {
             listOf(AppDataPatch(setRating = true, rating = 5), AppDataPatch(setRating = true, rating = null), AppDataPatch(readStatus = ReadStatus.FINISHED)),
             edits.appDataEdits.map { it.second },
         )
+    }
+
+    @Test
+    fun bookDetail_copiesToTheOnlyOtherAccountAndReportsMoves() = runTest(dispatcher) {
+        val library = FakeLibraryRepository(listOf(book(1, "Dune")))
+        val transfer = com.somecatcode.ebookreader.ui.FakeBookTransfer()
+        val local = com.somecatcode.ebookreader.data.account.Account("loc", "content://tree/x", "", "", "Phone", null, null, null, local = true)
+        val accounts = kotlinx.coroutines.flow.MutableStateFlow(listOf(account("acc1", "Alice"), local))
+        val vm = BookDetailViewModel(BookKey("acc1", 1), library, FakeEditRepository(), FakeDownloadRepository(), null, accounts, transfer)
+        backgroundScope.launch { vm.state.collect {} }
+        val events = mutableListOf<TransferEvent>()
+        backgroundScope.launch { vm.transferEvents.collect { events += it } }
+        advanceUntilIdle()
+        assertEquals(listOf("loc"), vm.state.value.transferTargets.map { it.id })
+
+        vm.startTransfer(move = false)
+        advanceUntilIdle()
+        val ui = vm.state.value.transfer!!
+        assertEquals("loc", ui.targetId)
+        assertEquals("a local library has no folders to pick", emptyList<String>(), ui.folders)
+        vm.confirmTransfer()
+        advanceUntilIdle()
+        assertEquals(Triple(BookKey("acc1", 1), "loc", false), transfer.calls.single())
+        assertEquals(TransferEvent.Done("Phone", move = false, stateCopied = true), events.single())
+        assertNull(vm.state.value.transfer)
+
+        transfer.fail = com.somecatcode.ebookreader.data.transfer.TransferException(com.somecatcode.ebookreader.data.transfer.TransferException.Reason.DELETE_FAILED)
+        vm.startTransfer(move = true)
+        advanceUntilIdle()
+        vm.confirmTransfer()
+        advanceUntilIdle()
+        assertEquals(TransferEvent.Failed(com.somecatcode.ebookreader.data.transfer.TransferException.Reason.DELETE_FAILED), events.last())
     }
 
     @Test

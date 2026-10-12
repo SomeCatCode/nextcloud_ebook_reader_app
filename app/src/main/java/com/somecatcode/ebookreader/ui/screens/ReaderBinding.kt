@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import com.somecatcode.ebookreader.data.local.asBookFile
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -35,7 +36,12 @@ fun createReaderHost(context: Context, container: AppContainer, key: BookKey): R
                 EbookApiReaderBackend(api, fileId, account.userId, book.path)
             }
         },
-        localFile = { accountId, fileId -> runBlocking { container.downloadRepository.localFile(BookKey(accountId, fileId)) } },
+        localFile = { accountId, fileId ->
+            runBlocking {
+                val key = BookKey(accountId, fileId)
+                container.localLibrary.bookFile(key) ?: container.downloadRepository.localFile(key)?.asBookFile()
+            }
+        },
     )
     return BindingReaderHost(ReaderHostImpl(proxy), key)
 }

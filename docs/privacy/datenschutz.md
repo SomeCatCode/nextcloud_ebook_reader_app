@@ -1,6 +1,6 @@
 # Datenschutzerklärung für die Android-App „E-Book Reader“ (SomeCatCode)
 
-Stand: 5. Oktober 2026
+Stand: 12. Oktober 2026
 
 ## 1. Verantwortlicher
 
@@ -10,7 +10,7 @@ E-Mail: it@wasmitleder.de
 
 ## 2. Kurzfassung
 
-Die App ist ein Lese-Client für einen **Nextcloud-Server, den du selbst einträgst**. Der Entwickler betreibt keinen eigenen Server für die App und erhält **keinerlei Daten** von dir oder deinem Gerät. Die App enthält **keine Werbung, kein Tracking, keine Analyse- und keine Absturzberichtsdienste**.
+Die App liest E-Books aus **Ordnern auf deinem Gerät, die du selbst auswählst**, und optional von einem **Nextcloud-Server, den du selbst einträgst**. Der Entwickler betreibt keinen eigenen Server für die App und erhält **keinerlei Daten** von dir oder deinem Gerät. Die App enthält **keine Werbung, kein Tracking, keine Analyse- und keine Absturzberichtsdienste**.
 
 ## 3. Welche Daten die App verarbeitet
 
@@ -19,6 +19,7 @@ Damit die App funktioniert, verarbeitet sie auf deinem Gerät:
 - **Zugangsdaten:** Adresse deines Nextcloud-Servers, Benutzername und ein App-Passwort. Das App-Passwort erzeugt dein Server bei der Anmeldung über den Browser (Nextcloud Login Flow). Es wird mit dem Android-Schlüsselspeicher (Android Keystore) verschlüsselt auf dem Gerät gespeichert. Dein eigentliches Nextcloud-Passwort sieht die App nie.
 - **Bibliotheksdaten:** Titel, Autoren, Serien, Genres, Tags, Cover und weitere Angaben zu deinen Büchern sowie deine Regale.
 - **Buchdateien**, die du zum Offline-Lesen herunterlädst. Sie liegen im app-eigenen Speicher.
+- **Lokale Ordner:** Fügst du einen Ordner als Bibliothek hinzu, liest die App die Buchdateien darin (über die Android-Ordnerauswahl, nur dieser Ordner). Titel, Cover und weitere Angaben, Lesestand und Markierungen dieser Bibliothek bleiben ausschließlich auf dem Gerät. Nur wenn du ein Buch ausdrücklich in ein Nextcloud-Konto kopierst oder verschiebst, werden die Datei, ihr Lesestand und ihre Markierungen an diesen Server übertragen.
 - **Lesedaten:** Lesefortschritt, Lesestatus, Bewertungen, Markierungen und Notizen sowie ein frei wählbarer Gerätename (Standard: Gerätemodell), der beim Lesefortschritt mitgeschickt wird, damit du auf anderen Geräten siehst, wo du gelesen hast.
 - **Einstellungen** der App, z. B. Design und Reader-Einstellungen. Sie bleiben nur auf dem Gerät.
 
@@ -42,7 +43,7 @@ Die App greift nicht auf Standort, Kontakte, Kamera, Mikrofon oder deine sonstig
 
 Alle Daten bleiben auf dem Gerät, bis du sie löschst:
 
-- **„Konto entfernen“** in der App löscht alle lokalen Daten dieses Kontos, also Bibliothek, heruntergeladene Bücher und Zugangsdaten, und widerruft das App-Passwort auf deinem Server.
+- **„Konto entfernen“** in der App löscht alle lokalen Daten dieses Kontos, also Bibliothek, heruntergeladene Bücher und Zugangsdaten, und widerruft das App-Passwort auf deinem Server. Bei einem lokalen Ordner werden Bibliothek, Lesestand und Markierungen gelöscht und der Ordnerzugriff zurückgegeben; die Buchdateien im Ordner bleiben erhalten.
 - **Deinstallieren** der App löscht alle lokalen Daten.
 - Heruntergeladene Bücher kannst du jederzeit unter „Downloads“ löschen.
 

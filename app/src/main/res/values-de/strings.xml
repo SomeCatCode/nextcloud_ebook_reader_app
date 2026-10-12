@@ -24,7 +24,7 @@
     <!-- Konten -->
     <string name="accounts_add">Konto hinzufügen</string>
     <string name="accounts_empty_title">Noch keine Konten</string>
-    <string name="accounts_empty_body">Melde dich an deinem Nextcloud-Server an, um deine E-Book-Bibliothek zu sehen.</string>
+    <string name="accounts_empty_body">Melde dich an deinem Nextcloud-Server an oder füge einen Ordner auf diesem Gerät hinzu, um deine E-Books zu sehen.</string>
     <string name="account_last_sync">Letzte Synchronisierung: %1$s</string>
     <string name="account_never_synced">Noch nicht synchronisiert</string>
     <string name="account_sign_in_again">Neu anmelden</string>
@@ -66,7 +66,7 @@
 
     <!-- Bibliothek -->
     <string name="library_welcome_title">Willkommen beim E-Book Reader</string>
-    <string name="library_welcome_body">Füge dein Nextcloud-Konto hinzu, um deine E-Books zu durchsuchen, herunterzuladen und zu lesen. Dies ist eine inoffizielle App ohne Verbindung zur Nextcloud GmbH.</string>
+    <string name="library_welcome_body">Füge einen Ordner mit E-Books auf diesem Gerät hinzu oder dein Nextcloud-Konto, um deine Bibliothek überall zu durchsuchen, herunterzuladen und zu lesen. Dies ist eine inoffizielle App ohne Verbindung zur Nextcloud GmbH.</string>
     <string name="library_all_accounts">Alle Konten</string>
     <string name="library_tab_books">Bücher</string>
     <string name="library_tab_shelves">Regale</string>
@@ -324,4 +324,54 @@
     <string name="folders_up">Eine Ebene nach oben</string>
     <string name="folders_empty">Dieser Ordner ist leer</string>
     <string name="folders_path">Ordnerpfad</string>
+    <string name="accounts_add_nextcloud">Nextcloud-Konto</string>
+    <string name="accounts_add_nextcloud_hint">Deine Bibliothek auf einem Nextcloud-Server mit der App „E-Book Reader“, synchron auf allen Geräten.</string>
+    <string name="accounts_add_local">Ordner auf diesem Gerät</string>
+    <string name="accounts_add_local_hint">E-Books in einem Ordner auf dem Handy oder der SD-Karte. Funktioniert ohne Server, alles bleibt auf diesem Gerät.</string>
+    <string name="account_local_folder">Lokaler Ordner: %1$s</string>
+    <string name="account_last_scan">Zuletzt eingelesen: %1$s</string>
+    <string name="account_rescan">Neu einlesen</string>
+    <string name="status_folder_unavailable">Der Ordner lässt sich nicht lesen. Wurde er verschoben oder gelöscht, oder fehlt die SD-Karte?</string>
+    <string name="banner_folder_unavailable">Ein lokaler Ordner lässt sich nicht lesen. Die gespeicherte Bibliothek wird angezeigt.</string>
+    <string name="remove_local_body">Die Bibliothek %1$s wird aus der App entfernt, samt Lesestand und Markierungen. Die E-Book-Dateien im Ordner werden nicht gelöscht.</string>
+    <string name="local_error_duplicate">Dieser Ordner ist bereits eine Bibliothek.</string>
+    <string name="local_error_failed">Der Ordner konnte nicht hinzugefügt werden.</string>
+    <string name="book_local_file">Datei auf diesem Gerät: %1$s</string>
+    <string name="book_more">Mehr</string>
+    <string name="book_copy_to">In anderes Konto kopieren…</string>
+    <string name="book_move_to">In anderes Konto verschieben…</string>
+    <string name="transfer_title_copy">Buch kopieren</string>
+    <string name="transfer_title_move">Buch verschieben</string>
+    <string name="transfer_target">Nach</string>
+    <string name="transfer_folder">Bibliotheksordner</string>
+    <string name="transfer_copy">Kopieren</string>
+    <string name="transfer_move">Verschieben</string>
+    <string name="transfer_move_hint_local">Nach dem Kopieren wird die Datei auf diesem Gerät gelöscht.</string>
+    <string name="transfer_move_hint_cloud">Nach dem Kopieren wird die Datei auf dem Server gelöscht (sie landet im Nextcloud-Papierkorb).</string>
+    <string name="transfer_running_copy">Wird kopiert … Große Bücher können etwas dauern.</string>
+    <string name="transfer_running_move">Wird verschoben … Große Bücher können etwas dauern.</string>
+    <string name="transfer_done_copy">Nach %1$s kopiert.</string>
+    <string name="transfer_done_move">Nach %1$s verschoben.</string>
+    <string name="transfer_state_missing">Lesestand und Markierungen konnten noch nicht übernommen werden.</string>
+    <string name="transfer_error_not_allowed">Dieses Buch kann nicht kopiert oder verschoben werden.</string>
+    <string name="transfer_error_source">Die Buchdatei konnte nicht gelesen werden. Prüfe die Verbindung bzw. den Ordner.</string>
+    <string name="transfer_error_target">Das Buch konnte im Zielkonto nicht gespeichert werden.</string>
+    <string name="transfer_error_delete">Das Buch wurde kopiert, aber das Original konnte nicht gelöscht werden.</string>
+    <string name="guide_skip">Überspringen</string>
+    <string name="guide_next">Weiter</string>
+    <string name="guide_later">Später</string>
+    <string name="guide_done">Fertig</string>
+    <string name="guide_add_library">Bibliothek hinzufügen</string>
+    <string name="guide_welcome_title">Willkommen</string>
+    <string name="guide_welcome_body">Lies deine E-Books und Comics: aus einem Ordner auf diesem Gerät oder aus deiner eigenen Nextcloud.\n\nDiese kurze Anleitung zeigt dir, wie es geht. Du findest sie später jederzeit in den Einstellungen.</string>
+    <string name="guide_library_title">Bibliothek einrichten</string>
+    <string name="guide_library_body">Unter „Konten“ → „Konto hinzufügen“ hast du zwei Möglichkeiten:\n\n• Ordner auf diesem Gerät: Wähle einen Ordner mit E-Books (auch Unterordner und SD-Karte). Die App liest ihn ein, ganz ohne Server.\n\n• Nextcloud-Konto: Melde dich im Browser an. Auf deinem Server muss die App „E-Book Reader“ installiert sein.\n\nDu kannst beliebig viele Ordner und Konten hinzufügen.</string>
+    <string name="guide_browse_title">Bücher finden</string>
+    <string name="guide_browse_body">• Oben in der Bibliothek suchen, filtern und sortieren.\n\n• Reiter für Bücher, Serien und Ordner (mit Nextcloud auch Regale).\n\n• Tippe auf ein Buch für Details, Bewertung und Lesestatus.\n\n• Nach unten ziehen liest Ordner neu ein und synchronisiert Konten.</string>
+    <string name="guide_read_title">Lesen</string>
+    <string name="guide_read_body">• Links/rechts tippen oder wischen: umblättern.\n\n• Mitte antippen oder nach oben wischen: Menü mit Fortschrittsregler.\n\n• Nach unten wischen: Buch schließen, die Position wird gespeichert.\n\n• Text lange drücken: markieren oder Notiz anlegen.</string>
+    <string name="guide_move_title">Offline, kopieren und verschieben</string>
+    <string name="guide_move_body">• Nextcloud-Bücher in den Buchdetails offline verfügbar machen.\n\n• Buchdetails → ⋮: Buch in ein anderes Konto kopieren oder verschieben, z. B. vom Handy-Ordner in deine Nextcloud.\n\n• Lesestand und Markierungen ziehen mit.</string>
+    <string name="settings_guide">Anleitung</string>
+    <string name="settings_guide_hint">Bibliothek einrichten, lesen, Bücher verschieben</string>
 </resources>

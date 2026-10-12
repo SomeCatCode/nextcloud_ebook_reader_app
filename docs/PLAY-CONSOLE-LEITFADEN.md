@@ -86,7 +86,7 @@ Der Spendenlink ist keine Anzeige. Er ist im Play-Build aber ohnehin nicht entha
 | Können Nutzer miteinander interagieren oder Inhalte austauschen (Chat, Sprache, Bilder teilen)? | **Nein** | In der App gibt es weder Chat noch Teilen. |
 | Teilt die App den Standort mit anderen Nutzern? | **Nein** | |
 | Können Nutzer digitale Waren kaufen? | **Nein** | |
-| Uneingeschränkter Internetzugang (eingebauter Browser)? | **Nein** | Die App verbindet sich nur mit dem eingetragenen Server. Links in Büchern öffnen sich nach Rückfrage im Systembrowser. |
+| Uneingeschränkter Internetzugang (eingebauter Browser)? | **Nein** | Die App verbindet sich nur mit eingetragenen Nextcloud-Servern; lokale Ordner brauchen kein Netz. Links in Büchern öffnen sich nach Rückfrage im Systembrowser. |
 | Ist die App ein Webbrowser oder eine Suchmaschine? | **Nein** | |
 
 **Erwartetes Ergebnis:** USK „ab 0“ / PEGI 3 / „Jedes Alter“. Das ist korrekt: Bewertet wird die App, nicht die privaten Dateien, die jemand selbst hineinlädt.

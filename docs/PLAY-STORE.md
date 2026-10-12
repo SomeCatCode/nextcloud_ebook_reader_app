@@ -41,7 +41,7 @@ Leitfaden für die Google Play Console, zugeschnitten auf diese App: ein **Clien
 |---|---|---|
 | App-Name | max. 30 Zeichen | „SomeCat Reader“ (Zusatz „für Nextcloud“ in der Kurzbeschreibung) |
 | Kurzbeschreibung | max. 80 Zeichen | „E-Books & Comics aus deiner Nextcloud lesen – offline, mit Lesestand-Sync.“ |
-| Vollständige Beschreibung | max. 4000 Zeichen | Funktionen, Voraussetzung **„Benötigt eine Nextcloud mit der App E-Book Reader ab 0.5.0“**, Hinweis „inoffiziell“, Datenschutz-Kurzfassung |
+| Vollständige Beschreibung | max. 4000 Zeichen | Funktionen, Hinweis **„funktioniert auch ohne Server mit Ordnern auf dem Gerät; Nextcloud mit der App E-Book Reader ab 0.7.0 optional“**, Hinweis „inoffiziell“, Datenschutz-Kurzfassung |
 | App-Symbol | 512 × 512 PNG, 32 Bit | eigenes Logo, ohne Nextcloud-Logo |
 | Feature-Grafik | 1024 × 500 | Pflicht |
 | Screenshots | mind. 2 fürs Smartphone (16:9 oder 9:16), besser 4–8; für Tablets 7" und 10" separat, wenn die App bei Tablets gut sichtbar sein soll | mit **gemeinfreien Büchern** (Project Gutenberg, Standard Ebooks), keine urheberrechtlich geschützten Cover |
@@ -75,7 +75,7 @@ URL zur `PRIVACY.md`, siehe Abschnitt 6. Ohne sie lässt sich nichts veröffentl
 - **Kategorie:** „Referenz, Nachrichten oder Bildung“, oder falls angeboten „Dienstprogramm/Produktivität“.
 - Die App liefert **keine eigenen Inhalte**. Sie zeigt nur Dateien vom Server der Nutzerin oder des Nutzers, vergleichbar mit einem Datei-Viewer.
 - **Austausch zwischen Nutzern** (Chat, Teilen, öffentliche Inhalte): **Nein**. Es gibt keine Interaktion mit anderen Nutzern in der App.
-- **Uneingeschränkter Internetzugriff / Webbrowser:** Nein. Die App verbindet sich nur mit dem angegebenen Server, externe Links in Büchern öffnen sich erst nach Rückfrage im Systembrowser.
+- **Uneingeschränkter Internetzugriff / Webbrowser:** Nein. Die App verbindet sich nur mit den angegebenen Nextcloud-Servern (lokale Ordner brauchen kein Netz), externe Links in Büchern öffnen sich erst nach Rückfrage im Systembrowser.
 - **Ergebnis:** voraussichtlich USK 0 bzw. PEGI 3 / „Jedes Alter“. Das ist korrekt, weil die Einstufung den Inhalt der App selbst bewertet, nicht die privaten Dateien.
 
 ### 3.5 Zielgruppe und Inhalte

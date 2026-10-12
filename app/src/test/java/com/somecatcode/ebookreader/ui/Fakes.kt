@@ -1,5 +1,10 @@
 package com.somecatcode.ebookreader.ui
 
+import com.somecatcode.ebookreader.data.transfer.TransferResult
+import com.somecatcode.ebookreader.data.transfer.TransferException
+import com.somecatcode.ebookreader.data.transfer.BookTransfer
+import com.somecatcode.ebookreader.data.local.BookFile
+import com.somecatcode.ebookreader.data.local.LocalLibrary
 import android.content.Context
 import com.somecatcode.ebookreader.AppContainer
 import com.somecatcode.ebookreader.data.account.Account
@@ -112,6 +117,10 @@ class FakeAccountStore(initial: List<Account> = emptyList(), private val missing
         added = account
         return Account("new", account.serverUrl, account.loginName, account.userId, account.displayName, account.serverVersion, account.appVersion, null)
             .also { state.value += it }
+    }
+    override suspend fun addLocal(folderUri: String, name: String): Account {
+        state.value.firstOrNull { it.local && it.serverUrl == folderUri }?.let { throw AccountAlreadyExistsException(it) }
+        return Account("local-${state.value.size}", folderUri, "", "", name, null, null, null, local = true).also { state.value += it }
     }
     override suspend fun updateCredentials(accountId: String, credentials: Credentials) { updatedCredentials = accountId to credentials }
     override suspend fun credentials(accountId: String) = if (accountId in missingCredentials) null else Credentials("u", "p")
@@ -279,7 +288,17 @@ class FakeLoginFlowClient : LoginFlowClient {
         startError?.let { throw it }
         return LoginFlowStart(LoginFlowPoll("t", "$serverInput/poll"), "$serverInput/login/flow")
     }
-    override suspend fun pollOnce(poll: LoginFlowPoll): LoginFlowResult? = result
+    var polls = 0
+    /** The next polls fail with a network error (e.g. background network blocked). */
+    var failingPolls = 0
+    override suspend fun pollOnce(poll: LoginFlowPoll): LoginFlowResult? {
+        polls++
+        if (failingPolls > 0) {
+            failingPolls--
+            throw com.somecatcode.ebookreader.data.api.ApiException.Network(java.io.IOException("blocked"))
+        }
+        return result
+    }
 }
 
 /** [EbookApi] stub answering only what the account flow needs; everything else throws. */
@@ -325,4 +344,28 @@ class FakeContainer(
     override val httpClient: OkHttpClient get() = error("not used in UI tests")
     override val database: AppDatabase get() = error("not used in UI tests")
     override val downloadManager: DownloadManager get() = error("not used in UI tests")
+    override val localLibrary: LocalLibrary = FakeLocalLibrary()
+    override val bookTransfer: BookTransfer = FakeBookTransfer()
+}
+
+class FakeBookTransfer(var fail: TransferException? = null) : BookTransfer {
+    val calls = mutableListOf<Triple<BookKey, String, Boolean>>()
+    var folderList = listOf("/Books")
+    override suspend fun folders(accountId: String): List<String> = folderList
+    override suspend fun transfer(source: BookKey, targetAccountId: String, folder: String?, move: Boolean): TransferResult {
+        calls += Triple(source, targetAccountId, move)
+        fail?.let { throw it }
+        return TransferResult(BookKey(targetAccountId, 99), stateCopied = true)
+    }
+}
+
+class FakeLocalLibrary : LocalLibrary {
+    val scanned = mutableListOf<String>()
+    override suspend fun addFolder(treeUri: android.net.Uri): Account = error("not used in UI tests")
+    override suspend fun scan(accountId: String): Int { scanned += accountId; return 0 }
+    override suspend fun bookFile(key: BookKey): BookFile? = null
+    override fun coverFile(accountId: String, fileId: Long): java.io.File? = null
+    override suspend fun forget(accountId: String) = Unit
+    override suspend fun importFile(accountId: String, fileName: String, write: (java.io.OutputStream) -> Unit): BookKey = error("not used")
+    override suspend fun deleteBook(key: BookKey) = Unit
 }

@@ -1,1 +1,1 @@
-Read e-books & comics from your Nextcloud – offline, with reading sync.
+Read e-books & comics from folders on your device or your own Nextcloud.

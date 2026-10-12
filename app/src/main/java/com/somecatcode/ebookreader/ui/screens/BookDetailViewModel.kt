@@ -1,5 +1,10 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.NonCancellable
+import com.somecatcode.ebookreader.data.transfer.TransferException
+import com.somecatcode.ebookreader.data.transfer.BookTransfer
+import com.somecatcode.ebookreader.data.account.Account
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.somecatcode.ebookreader.data.api.AppDataPatch
@@ -110,7 +115,24 @@ data class BookDetailUiState(
     val manualShelves: List<ShelfInfo> = emptyList(),
     /** Ids of the manual shelves containing the book. */
     val inShelves: Set<Long> = emptySet(),
+    /** Accounts the book can be copied or moved to (all others). */
+    val transferTargets: List<Account> = emptyList(),
+    val transfer: TransferUiState? = null,
 )
+
+/** Copy/move dialog. [folders] of the selected Nextcloud account, null while loading. */
+data class TransferUiState(
+    val move: Boolean,
+    val targetId: String? = null,
+    val folders: List<String>? = emptyList(),
+    val folder: String? = null,
+    val running: Boolean = false,
+)
+
+sealed interface TransferEvent {
+    data class Done(val targetName: String, val move: Boolean, val stateCopied: Boolean) : TransferEvent
+    data class Failed(val reason: TransferException.Reason) : TransferEvent
+}
 
 class BookDetailViewModel(
     val key: BookKey,
@@ -118,7 +140,12 @@ class BookDetailViewModel(
     private val edits: EditRepository,
     private val downloads: DownloadRepository,
     private val shelves: ShelfRepository? = null,
+    accounts: Flow<List<Account>> = flowOf(emptyList()),
+    private val bookTransfer: BookTransfer? = null,
 ) : ViewModel() {
+
+    private val transfer = MutableStateFlow<TransferUiState?>(null)
+    private val targets = accounts.map { list -> list.filter { it.id != key.accountId } }
 
     private val editing = MutableStateFlow<BookEditForm?>(null)
     private val editError = MutableStateFlow<EditError?>(null)
@@ -133,6 +160,7 @@ class BookDetailViewModel(
     ) { book, form, error, genres, tags ->
         BookDetailUiState(true, book, form, error, genres, tags)
     }.combine(shelfState) { st, (list, member) -> st.copy(manualShelves = list, inShelves = member) }
+        .combine(combine(targets, transfer, ::Pair)) { st, (t, tr) -> st.copy(transferTargets = t, transfer = tr) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BookDetailUiState())
 
     private val messageChannel = Channel<Int>(Channel.BUFFERED)
@@ -156,6 +184,56 @@ class BookDetailViewModel(
             } catch (e: Exception) {
                 messageChannel.trySend(shelfErrorMessage(e))
             }
+        }
+    }
+
+    private val transferChannel = Channel<TransferEvent>(Channel.BUFFERED)
+
+    /** Results of copy/move for a snackbar (a finished move also leaves the screen). */
+    val transferEvents: Flow<TransferEvent> = transferChannel.receiveAsFlow()
+
+    fun startTransfer(move: Boolean) {
+        if (bookTransfer == null) return
+        transfer.value = TransferUiState(move)
+        state.value.transferTargets.singleOrNull()?.let(::selectTarget)
+    }
+
+    fun dismissTransfer() {
+        if (transfer.value?.running != true) transfer.value = null
+    }
+
+    fun selectTarget(account: Account) {
+        val t = bookTransfer ?: return
+        transfer.update { it?.copy(targetId = account.id, folders = if (account.local) emptyList() else null, folder = null) }
+        if (account.local) return
+        viewModelScope.launch {
+            val folders = t.folders(account.id)
+            transfer.update { s -> if (s?.targetId == account.id) s.copy(folders = folders, folder = folders.firstOrNull()) else s }
+        }
+    }
+
+    fun selectFolder(folder: String) = transfer.update { it?.copy(folder = folder) }
+
+    fun confirmTransfer() {
+        val t = bookTransfer ?: return
+        val ui = transfer.value ?: return
+        val target = state.value.transferTargets.firstOrNull { it.id == ui.targetId } ?: return
+        if (ui.running) return
+        transfer.value = ui.copy(running = true)
+        viewModelScope.launch {
+            // the copy finishes even if the screen is left meanwhile
+            val event = withContext(NonCancellable) {
+                try {
+                    val result = t.transfer(key, target.id, ui.folder, ui.move)
+                    TransferEvent.Done(target.displayName?.takeIf { it.isNotBlank() } ?: target.loginName, ui.move, result.stateCopied)
+                } catch (e: TransferException) {
+                    TransferEvent.Failed(e.reason)
+                } catch (e: Exception) {
+                    TransferEvent.Failed(TransferException.Reason.TARGET_FAILED)
+                }
+            }
+            transfer.value = null
+            transferChannel.send(event)
         }
     }
 

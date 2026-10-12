@@ -20,6 +20,7 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.somecatcode.ebookreader.data.account.Account
 import com.somecatcode.ebookreader.data.api.AppDataPatch
 import com.somecatcode.ebookreader.data.api.Locations
 import com.somecatcode.ebookreader.data.api.Locator
@@ -81,12 +82,28 @@ class ScreenTests {
     // ---- accounts ---------------------------------------------------------------------------------
 
     @Test
+    fun localLibrary_showsFolderAndRescanInsteadOfServerDetails() {
+        val local = Account("loc", "content://com.android.externalstorage.documents/tree/primary%3ABooks%2FComics", "", "", "Comics", null, null, 1000, local = true)
+        val c = container(accounts = FakeAccountStore(listOf(local)))
+        show(c) { AccountsScreen(onBack = {}) }
+        compose.onNodeWithText("Local folder: Books/Comics").assertIsDisplayed()
+        compose.onNodeWithText("Read again").performClick()
+        assertEquals(listOf("loc"), c.syncEngine.requested)
+        compose.onNodeWithTag("versions_loc").assertDoesNotExist()
+        compose.onNodeWithText("Remove").performClick()
+        compose.onNodeWithText("The e-book files in the folder are not deleted.", substring = true).assertIsDisplayed()
+    }
+
+    @Test
     fun addAccount_validatesAddressThenShowsWaitingStateWithCancel() {
         val c = container(accounts = FakeAccountStore())
         show(c) { AccountsScreen(onBack = {}) }
         compose.onNodeWithText("No accounts yet").assertIsDisplayed()
 
         compose.onNodeWithTag("add_account").performClick()
+        // first the kind: Nextcloud or a folder on the device
+        compose.onNodeWithTag("add_local").assertIsDisplayed()
+        compose.onNodeWithTag("add_nextcloud").performClick()
         compose.onNodeWithTag("server_input").performTextInput("http://plain.example.org")
         compose.onNodeWithTag("sign_in").performClick()
         compose.onNodeWithText("Enter a valid HTTPS address, for example cloud.example.org.").assertIsDisplayed()

@@ -1,14 +1,15 @@
 # E-Book Reader für Android
 
-Android-App als Begleiter der Nextcloud-App **E-Book Reader** ([`SomeCatCode/nextcloud_ebook_reader`](https://github.com/SomeCatCode/nextcloud_ebook_reader)). Sie meldet sich per Login Flow v2 (App-Passwort, kein Passwort in der App) bei einer oder mehreren Nextclouds an, synchronisiert die Bibliothek und den Lesestand und liest alle Formate des Servers (EPUB, MOBI, AZW3, FB2, FBZ, CBZ, CBR, CB7, CBT) mit demselben Reader-Kern wie im Web – online oder offline.
+E-Book- und Comic-Reader für Android (EPUB, MOBI, AZW3, FB2, FBZ, CBZ, CBR, CB7, CBT) mit demselben Reader-Kern wie die Nextcloud-App **E-Book Reader** ([`SomeCatCode/nextcloud_ebook_reader`](https://github.com/SomeCatCode/nextcloud_ebook_reader)). Die App funktioniert **eigenständig** und optional **mit Nextcloud**:
 
-> Status: **Phase 0** (Grundgerüst). Die App startet mit Platzhalter-Bildschirmen; Konten, Sync, Downloads, Reader und Bearbeiten folgen laut [PLAN.md](PLAN.md).
+- **Lokale Ordner:** Jeder Ordner auf dem Gerät (über die Android-Ordnerauswahl, ohne Speicherberechtigung) ist eine eigene Bibliothek. Die App liest Titel, Autoren, Serien, Beschreibung und Cover aus den Dateien; Lesestand und Markierungen bleiben auf dem Gerät.
+- **Nextcloud:** Anmeldung per Login Flow v2 (App-Passwort, kein Passwort in der App) bei einer oder mehreren Nextclouds, Sync von Bibliothek, Regalen, Lesestand und Markierungen, online lesen oder offline.
+- **Kopieren und Verschieben** von Büchern zwischen allen Konten (lokal ↔ Nextcloud, Nextcloud ↔ Nextcloud), samt Lesestand und Markierungen.
 
 ## Voraussetzungen
 
 - Android 8.0 (API 26) oder neuer
-- Eine Nextcloud mit der App **E-Book Reader ≥ 0.5.0** (ältere Versionen werden in der App gemeldet)
-- HTTPS (HTTP wird in v1 nicht unterstützt)
+- Optional: eine Nextcloud mit der App **E-Book Reader ≥ 0.5.0** (ältere Versionen werden in der App gemeldet), nur über HTTPS
 
 ## Bauen
 
@@ -35,7 +36,7 @@ Siehe [PLAN.md](PLAN.md) (Abschnitt 6) und die technischen Verträge in [docs/CO
 
 ## Datenschutz
 
-Keine Analyse, kein Tracking, keine Drittanbieter-SDKs mit Datenerhebung. App-Passwörter liegen verschlüsselt (Android Keystore, AES-GCM) nur auf dem Gerät.
+Keine Analyse, kein Tracking, keine Drittanbieter-SDKs mit Datenerhebung. Lokale Bibliotheken verlassen das Gerät nie (außer beim Kopieren in ein Nextcloud-Konto). App-Passwörter liegen verschlüsselt (Android Keystore, AES-GCM) nur auf dem Gerät.
 
 ## Lizenz
 

@@ -1,6 +1,6 @@
 # Política de privacidad de la app Android «E-Book Reader» (SomeCatCode)
 
-Última actualización: 5 de octubre de 2026
+Última actualización: 12 de octubre de 2026
 
 ## 1. Responsable
 
@@ -10,7 +10,7 @@ Correo electrónico: it@wasmitleder.de
 
 ## 2. Resumen
 
-La app es un cliente de lectura para un **servidor Nextcloud que introduces tú**. El desarrollador no opera ningún servidor para la app y **no recibe ningún dato** tuyo ni de tu dispositivo. La app **no contiene anuncios, seguimiento, analíticas ni informes de errores**.
+La app lee libros electrónicos de **carpetas de tu dispositivo que eliges tú** y, opcionalmente, de un **servidor Nextcloud que introduces tú**. El desarrollador no opera ningún servidor para la app y **no recibe ningún dato** tuyo ni de tu dispositivo. La app **no contiene anuncios, seguimiento, analíticas ni informes de errores**.
 
 ## 3. Datos que trata la app
 
@@ -19,6 +19,7 @@ Para funcionar, la app trata en tu dispositivo:
 - **Credenciales:** la dirección de tu servidor Nextcloud, tu nombre de usuario y una contraseña de aplicación. Tu servidor crea esa contraseña cuando inicias sesión en el navegador (Nextcloud Login Flow). Se guarda cifrada con el Android Keystore. La app nunca ve tu contraseña real de Nextcloud.
 - **Datos de la biblioteca:** títulos, autores, series, géneros, etiquetas, portadas y otros datos de tus libros, y tus estanterías.
 - **Archivos de libros** que descargas para leer sin conexión. Se guardan en el almacenamiento privado de la app.
+- **Carpetas locales:** si añades una carpeta como biblioteca, la app lee los archivos de libros que contiene (mediante el selector de carpetas de Android, solo esa carpeta). Los títulos, las portadas y demás datos, el progreso de lectura y los resaltados de esa biblioteca se quedan solo en el dispositivo. Solo cuando copias o mueves expresamente un libro a una cuenta de Nextcloud se envían a ese servidor el archivo, su progreso de lectura y sus resaltados.
 - **Datos de lectura:** progreso y estado de lectura, valoraciones, resaltados y notas, y un nombre de dispositivo a tu elección (por defecto, el modelo del dispositivo). Ese nombre se envía junto con el progreso para que en otros dispositivos veas dónde te quedaste.
 - **Ajustes de la app**, como el tema y la configuración del lector. Se quedan en el dispositivo.
 
@@ -42,7 +43,7 @@ La app no accede a tu ubicación, contactos, cámara, micrófono ni a tus demás
 
 Todos los datos permanecen en el dispositivo hasta que los eliminas:
 
-- **«Eliminar cuenta»** en la app borra todos los datos locales de esa cuenta (biblioteca, libros descargados y credenciales) y revoca la contraseña de aplicación en tu servidor.
+- **«Eliminar cuenta»** en la app borra todos los datos locales de esa cuenta (biblioteca, libros descargados y credenciales) y revoca la contraseña de aplicación en tu servidor. En una carpeta local se borran la biblioteca, el progreso de lectura y los resaltados y se devuelve el acceso a la carpeta; los archivos de libros de la carpeta se conservan.
 - **Desinstalar** la app borra todos los datos locales.
 - Puedes borrar los libros descargados en cualquier momento en «Descargas».
 

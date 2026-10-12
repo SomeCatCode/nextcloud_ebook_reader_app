@@ -24,7 +24,7 @@
     <!-- Accounts -->
     <string name="accounts_add">Add account</string>
     <string name="accounts_empty_title">No accounts yet</string>
-    <string name="accounts_empty_body">Sign in to your Nextcloud server to see your e-book library.</string>
+    <string name="accounts_empty_body">Sign in to your Nextcloud server or add a folder on this device to see your e-books.</string>
     <string name="account_last_sync">Last sync: %1$s</string>
     <string name="account_never_synced">Not synced yet</string>
     <string name="account_sign_in_again">Sign in again</string>
@@ -66,7 +66,7 @@
 
     <!-- Library -->
     <string name="library_welcome_title">Welcome to E-Book Reader</string>
-    <string name="library_welcome_body">Add your Nextcloud account to browse, download and read your e-books. This is an unofficial app, not affiliated with Nextcloud GmbH.</string>
+    <string name="library_welcome_body">Add a folder with e-books on this device, or your Nextcloud account to browse, download and read your library everywhere. This is an unofficial app, not affiliated with Nextcloud GmbH.</string>
     <string name="library_all_accounts">All accounts</string>
     <string name="library_tab_books">Books</string>
     <string name="library_tab_shelves">Shelves</string>
@@ -324,4 +324,54 @@
     <string name="folders_up">Up one level</string>
     <string name="folders_empty">This folder is empty</string>
     <string name="folders_path">Folder path</string>
+    <string name="accounts_add_nextcloud">Nextcloud account</string>
+    <string name="accounts_add_nextcloud_hint">Your library on a Nextcloud server with the E-Book Reader app, synced across devices.</string>
+    <string name="accounts_add_local">Folder on this device</string>
+    <string name="accounts_add_local_hint">E-books in a folder on the phone or SD card. Works without a server; everything stays on this device.</string>
+    <string name="account_local_folder">Local folder: %1$s</string>
+    <string name="account_last_scan">Last read: %1$s</string>
+    <string name="account_rescan">Read again</string>
+    <string name="status_folder_unavailable">The folder cannot be read. Was it moved or deleted, or is the SD card missing?</string>
+    <string name="banner_folder_unavailable">A local folder cannot be read. Showing the saved library.</string>
+    <string name="remove_local_body">The library %1$s is removed from the app, including reading progress and highlights. The e-book files in the folder are not deleted.</string>
+    <string name="local_error_duplicate">This folder is already a library.</string>
+    <string name="local_error_failed">The folder could not be added.</string>
+    <string name="book_local_file">File on this device: %1$s</string>
+    <string name="book_more">More</string>
+    <string name="book_copy_to">Copy to another account…</string>
+    <string name="book_move_to">Move to another account…</string>
+    <string name="transfer_title_copy">Copy book</string>
+    <string name="transfer_title_move">Move book</string>
+    <string name="transfer_target">To</string>
+    <string name="transfer_folder">Library folder</string>
+    <string name="transfer_copy">Copy</string>
+    <string name="transfer_move">Move</string>
+    <string name="transfer_move_hint_local">After copying, the file is deleted from this device.</string>
+    <string name="transfer_move_hint_cloud">After copying, the file is deleted on the server (it goes to the Nextcloud trash bin).</string>
+    <string name="transfer_running_copy">Copying… Large books can take a while.</string>
+    <string name="transfer_running_move">Moving… Large books can take a while.</string>
+    <string name="transfer_done_copy">Copied to %1$s.</string>
+    <string name="transfer_done_move">Moved to %1$s.</string>
+    <string name="transfer_state_missing">Reading progress and highlights could not be taken along yet.</string>
+    <string name="transfer_error_not_allowed">This book cannot be copied or moved.</string>
+    <string name="transfer_error_source">The book file could not be read. Check the connection or the folder.</string>
+    <string name="transfer_error_target">The book could not be saved in the target account.</string>
+    <string name="transfer_error_delete">The book was copied, but the original could not be deleted.</string>
+    <string name="guide_skip">Skip</string>
+    <string name="guide_next">Next</string>
+    <string name="guide_later">Later</string>
+    <string name="guide_done">Done</string>
+    <string name="guide_add_library">Add library</string>
+    <string name="guide_welcome_title">Welcome</string>
+    <string name="guide_welcome_body">Read your e-books and comics: from a folder on this device or from your own Nextcloud.\n\nThis short guide shows how it works. You can open it again later in the settings.</string>
+    <string name="guide_library_title">Set up your library</string>
+    <string name="guide_library_body">Under "Accounts" → "Add account" you have two options:\n\n• Folder on this device: pick a folder with e-books (sub-folders and SD card too). The app reads it, no server needed.\n\n• Nextcloud account: sign in through the browser. Your server needs the "E-Book Reader" app.\n\nYou can add as many folders and accounts as you like.</string>
+    <string name="guide_browse_title">Find books</string>
+    <string name="guide_browse_body">• Search, filter and sort at the top of the library.\n\n• Tabs for books, series and folders (and shelves with Nextcloud).\n\n• Tap a book for details, rating and reading status.\n\n• Pull down to read folders again and sync accounts.</string>
+    <string name="guide_read_title">Read</string>
+    <string name="guide_read_body">• Tap or swipe left/right to turn the page.\n\n• Tap the middle or swipe up for the menu with the progress slider.\n\n• Swipe down to close the book; your position is saved.\n\n• Long press text to highlight it or add a note.</string>
+    <string name="guide_move_title">Offline, copy and move</string>
+    <string name="guide_move_body">• Make Nextcloud books available offline in their details.\n\n• Book details → ⋮: copy or move a book to another account, e.g. from a folder on your phone to your Nextcloud.\n\n• Reading progress and highlights come along.</string>
+    <string name="settings_guide">Introduction</string>
+    <string name="settings_guide_hint">How to add a library, read and move books</string>
 </resources>

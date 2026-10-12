@@ -19,6 +19,9 @@ interface AccountDao {
     @Query("SELECT * FROM account WHERE id = :id")
     suspend fun get(id: String): AccountEntity?
 
+    @Query("SELECT kind FROM account WHERE id = :id")
+    suspend fun kind(id: String): String?
+
     @Upsert
     suspend fun upsert(account: AccountEntity)
 
@@ -100,6 +103,9 @@ interface BookDao {
 
     @Query("SELECT COUNT(*) FROM book WHERE accountId = :accountId AND deleted = 0")
     suspend fun count(accountId: String): Int
+
+    @Query("SELECT * FROM book WHERE accountId = :accountId AND path = :path AND deleted = 0 LIMIT 1")
+    suspend fun byPath(accountId: String, path: String): BookEntity?
 }
 
 data class SeriesSummary(
