@@ -26,6 +26,8 @@ import okhttp3.Request
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.security.DigestInputStream
+import java.security.MessageDigest
 import java.util.UUID
 
 /** Result of a copy or move. [stateCopied] = reading progress and highlights went along. */
@@ -86,7 +88,7 @@ class BookTransferImpl(
         val file = openSource(book, sourceAccount.kind, sourceAccount.userId)
         val newKey = try {
             if (target.kind == AccountKind.LOCAL) {
-                localLibrary.importFile(targetAccountId, fileName) { out -> file.open(0, file.length).use { it.copyTo(out) } }
+                importVerified(targetAccountId, fileName, file)
             } else {
                 upload(targetAccountId, target.userId, folder, fileName, file)
             }
@@ -137,12 +139,27 @@ class BookTransferImpl(
             override val name = book.path.substringAfterLast('/')
             override val length = book.size
             override fun open(offset: Long, count: Long): InputStream {
-                val response = api.http.execute(Request.Builder().url(url).get().build())
+                val request = Request.Builder().url(url).get()
+                if (offset > 0) request.header("Range", "bytes=$offset-")
+                val response = api.http.execute(request.build())
                 if (!response.isSuccessful) {
                     response.close()
                     throw IOException("Download HTTP ${response.code}")
                 }
-                return object : FilterInputStream(response.body.byteStream()) {
+                val body = response.body.byteStream()
+                // a server without Range support sends the whole file: skip to the offset
+                if (offset > 0 && response.code != 206) {
+                    var left = offset
+                    while (left > 0) {
+                        val skipped = body.skip(left)
+                        if (skipped <= 0) {
+                            response.close()
+                            throw IOException("Cannot skip to $offset")
+                        }
+                        left -= skipped
+                    }
+                }
+                return object : FilterInputStream(body) {
                     override fun close() {
                         super.close()
                         response.close()
@@ -150,6 +167,30 @@ class BookTransferImpl(
                 }
             }
         }
+    }
+
+    // ---- local target ----------------------------------------------------------------------------
+
+    /**
+     * Writes the book into the local library and reads the new file back: size and SHA-256 must match
+     * what was read from the source, otherwise the copy is deleted and the transfer fails.
+     */
+    private suspend fun importVerified(accountId: String, fileName: String, file: BookFile): BookKey {
+        val digest = MessageDigest.getInstance("SHA-256")
+        var written = 0L
+        // CompleteStream resumes a dropped download and fails instead of leaving a truncated copy
+        val key = localLibrary.importFile(accountId, fileName) { out ->
+            DigestInputStream(CompleteStream(file), digest).use { input -> written = input.copyTo(out) }
+        }
+        val expected = digest.digest()
+        val copy = localLibrary.bookFile(key)
+        val ok = written == file.length && copy != null && copy.length == file.length &&
+            withContext(Dispatchers.IO) { sha256(copy).contentEquals(expected) }
+        if (!ok) {
+            runCatching { localLibrary.deleteBook(key) }
+            throw TransferException(TransferException.Reason.TARGET_FAILED, cause = IOException("Copy differs from the original ($fileName)"))
+        }
+        return key
     }
 
     // ---- Nextcloud target ------------------------------------------------------------------------
@@ -160,7 +201,13 @@ class BookTransferImpl(
         val dir = folder?.let(::normalizeFolder) ?: api.libraryFolders().firstOrNull()?.let(::normalizeFolder) ?: "/"
         val path = freePath(dir, fileName) { api.fileExists(userId, it) }
         val fileId = withContext(Dispatchers.IO) {
-            api.uploadFile(userId, path, file.length, ReaderRequestProxyImpl.mimeFor(fileName)) { file.open(0, file.length) }
+            api.uploadFile(userId, path, file.length, ReaderRequestProxyImpl.mimeFor(fileName)) { CompleteStream(file) }
+        }
+        // the server must hold exactly as many bytes as the original; otherwise remove the broken upload
+        val stored = runCatching { api.fileSize(userId, path) }.getOrNull()
+        if (stored != null && stored != file.length) {
+            runCatching { api.deleteFile(userId, path) }
+            throw TransferException(TransferException.Reason.TARGET_FAILED, cause = IOException("Upload has $stored of ${file.length} bytes"))
         }
         // the server indexes new files at once (large ones in a background job): pick the book up with a sync
         repeat(INDEX_ATTEMPTS) { attempt ->
@@ -244,5 +291,19 @@ class BookTransferImpl(
         }
 
         private const val MAX_NAMES = 50
+
+        /** SHA-256 of the whole file. */
+        internal fun sha256(file: BookFile): ByteArray {
+            val digest = MessageDigest.getInstance("SHA-256")
+            file.open(0, file.length).use { input ->
+                val buffer = ByteArray(64 * 1024)
+                while (true) {
+                    val n = input.read(buffer)
+                    if (n < 0) break
+                    digest.update(buffer, 0, n)
+                }
+            }
+            return digest.digest()
+        }
     }
 }
