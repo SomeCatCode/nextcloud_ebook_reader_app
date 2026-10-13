@@ -142,6 +142,7 @@ class BookDetailViewModel(
     private val shelves: ShelfRepository? = null,
     accounts: Flow<List<Account>> = flowOf(emptyList()),
     private val bookTransfer: BookTransfer? = null,
+    private val deleteLocalBook: (suspend (BookKey) -> Unit)? = null,
 ) : ViewModel() {
 
     private val transfer = MutableStateFlow<TransferUiState?>(null)
@@ -234,6 +235,28 @@ class BookDetailViewModel(
             }
             transfer.value = null
             transferChannel.send(event)
+        }
+    }
+
+    private val deleteChannel = Channel<Boolean>(Channel.BUFFERED)
+
+    /** Result of [deleteBook]: true = deleted (the screen closes), false = failed. */
+    val deleteEvents: Flow<Boolean> = deleteChannel.receiveAsFlow()
+
+    /** Deletes the file of a book in a local library (the folder on the device) and forgets the book. */
+    fun deleteBook() {
+        val delete = deleteLocalBook ?: return
+        if (state.value.book?.local != true) return
+        viewModelScope.launch {
+            val ok = withContext(NonCancellable) {
+                try {
+                    delete(key)
+                    true
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            deleteChannel.send(ok)
         }
     }
 

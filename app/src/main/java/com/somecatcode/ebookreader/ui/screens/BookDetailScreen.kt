@@ -95,7 +95,10 @@ fun BookDetailScreen(
 ) {
     val key = BookKey(accountId, fileId)
     val vm = containerViewModel(key = "book/$accountId/$fileId") { c ->
-        BookDetailViewModel(key, c.libraryRepository, c.editRepository, c.downloadRepository, c.shelfRepository, c.accountStore.accounts, c.bookTransfer)
+        BookDetailViewModel(
+            key, c.libraryRepository, c.editRepository, c.downloadRepository, c.shelfRepository, c.accountStore.accounts, c.bookTransfer,
+            deleteLocalBook = c.localLibrary::deleteBook,
+        )
     }
     val state by vm.state.collectAsState()
     val snackbar = remember { SnackbarHostState() }
@@ -124,6 +127,18 @@ fun BookDetailScreen(
             }
         }
     }
+    LaunchedEffect(vm) {
+        vm.deleteEvents.collect { ok ->
+            val title = state.book?.title.orEmpty()
+            if (ok) {
+                // the book is gone: leave its page, a toast outlives the screen
+                Toast.makeText(context, resources.getString(R.string.book_deleted, title), Toast.LENGTH_LONG).show()
+                onBack()
+            } else {
+                snackbar.showSnackbar(resources.getString(R.string.book_delete_failed))
+            }
+        }
+    }
     val gate = rememberDownloadGate()
     BookDetailContent(
         state = state,
@@ -141,6 +156,7 @@ fun BookDetailScreen(
         onCancelEdit = vm::cancelEdit,
         onFilter = onFilter,
         onSaveShelves = vm::saveShelves,
+        onDelete = vm::deleteBook,
         transferActions = TransferActions(
             onStart = vm::startTransfer,
             onTarget = vm::selectTarget,
@@ -185,10 +201,15 @@ fun BookDetailContent(
     onFilter: ((String) -> Unit)? = null,
     onSaveShelves: (Set<Long>, String?) -> Unit = { _, _ -> },
     transferActions: TransferActions = TransferActions(),
+    onDelete: (() -> Unit)? = null,
 ) {
     val book = state.book
     var shelfDialog by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
+    // only files of a local library: they are the user's own files in a folder on the device
+    val canDelete = book != null && book.local && onDelete != null
+    val canTransfer = book != null && book.downloadable && state.transferTargets.isNotEmpty()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -200,23 +221,32 @@ fun BookDetailContent(
                             Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.book_edit))
                         }
                     }
-                    if (book != null && book.downloadable && state.transferTargets.isNotEmpty()) {
+                    if (book != null && (canTransfer || canDelete)) {
                         Box {
                             IconButton(onClick = { menu = true }, modifier = Modifier.testTag("book_menu")) {
                                 Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.book_more))
                             }
                             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.book_copy_to)) },
-                                    onClick = { menu = false; transferActions.onStart(false) },
-                                    modifier = Modifier.testTag("copy_to"),
-                                )
-                                // a book shared by another user is not ours to delete
-                                if (!book.shared) {
+                                if (canTransfer) {
                                     DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.book_move_to)) },
-                                        onClick = { menu = false; transferActions.onStart(true) },
-                                        modifier = Modifier.testTag("move_to"),
+                                        text = { Text(stringResource(R.string.book_copy_to)) },
+                                        onClick = { menu = false; transferActions.onStart(false) },
+                                        modifier = Modifier.testTag("copy_to"),
+                                    )
+                                    // a book shared by another user is not ours to delete
+                                    if (!book.shared) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.book_move_to)) },
+                                            onClick = { menu = false; transferActions.onStart(true) },
+                                            modifier = Modifier.testTag("move_to"),
+                                        )
+                                    }
+                                }
+                                if (canDelete) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.book_delete)) },
+                                        onClick = { menu = false; confirmDelete = true },
+                                        modifier = Modifier.testTag("delete_book"),
                                     )
                                 }
                             }
@@ -227,6 +257,15 @@ fun BookDetailContent(
         },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
+        if (confirmDelete && book != null && onDelete != null) {
+            com.somecatcode.ebookreader.ui.components.ConfirmDialog(
+                title = stringResource(R.string.book_delete),
+                text = stringResource(R.string.book_delete_confirm, book.title),
+                confirmLabel = stringResource(R.string.book_delete_action),
+                onConfirm = { confirmDelete = false; onDelete() },
+                onDismiss = { confirmDelete = false },
+            )
+        }
         if (book == null) {
             if (state.loaded) EmptyState(stringResource(R.string.book_not_found), Modifier.padding(padding))
             return@Scaffold

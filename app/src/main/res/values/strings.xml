@@ -376,4 +376,9 @@
     <string name="guide_move_body">• Make Nextcloud books available offline in their details.\n\n• Book details → ⋮: copy or move a book to another account, e.g. from a folder on your phone to your Nextcloud.\n\n• Reading progress and highlights come along.</string>
     <string name="settings_guide">Introduction</string>
     <string name="settings_guide_hint">How to add a library, read and move books</string>
+    <string name="book_delete">Delete book</string>
+    <string name="book_delete_action">Delete</string>
+    <string name="book_delete_confirm">Delete “%1$s”? The file is removed from the folder on this device. Reading progress and highlights are lost.</string>
+    <string name="book_deleted">“%1$s” deleted</string>
+    <string name="book_delete_failed">The book could not be deleted.</string>
 </resources>

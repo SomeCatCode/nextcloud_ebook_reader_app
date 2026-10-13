@@ -378,4 +378,9 @@
     <string name="guide_move_body">• Rendez les livres Nextcloud disponibles hors ligne dans leurs détails.\n\n• Détails du livre → ⋮ : copiez ou déplacez un livre vers un autre compte, par exemple d’un dossier de votre téléphone vers votre Nextcloud.\n\n• La progression de lecture et les surlignages suivent.</string>
     <string name="settings_guide">Introduction</string>
     <string name="settings_guide_hint">Comment ajouter une bibliothèque, lire et déplacer des livres</string>
+    <string name="book_delete">Supprimer le livre</string>
+    <string name="book_delete_action">Supprimer</string>
+    <string name="book_delete_confirm">Supprimer « %1$s » ? Le fichier est supprimé du dossier de cet appareil. La progression de lecture et les surlignages sont perdus.</string>
+    <string name="book_deleted">« %1$s » supprimé</string>
+    <string name="book_delete_failed">Impossible de supprimer le livre.</string>
 </resources>

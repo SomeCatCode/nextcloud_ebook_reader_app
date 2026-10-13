@@ -384,4 +384,9 @@
     <string name="guide_move_body">• أتِح كتب Nextcloud دون اتصال من صفحة تفاصيلها.\n\n• تفاصيل الكتاب ← ⋮: انسخ كتابًا أو انقله إلى حساب آخر، مثلًا من مجلد على هاتفك إلى Nextcloud.\n\n• ينتقل معه تقدّم القراءة والتمييزات.</string>
     <string name="settings_guide">مقدّمة</string>
     <string name="settings_guide_hint">كيفية إضافة مكتبة وقراءة الكتب ونقلها</string>
+    <string name="book_delete">حذف الكتاب</string>
+    <string name="book_delete_action">حذف</string>
+    <string name="book_delete_confirm">هل تريد حذف «%1$s»؟ سيُحذف الملف من المجلد على هذا الجهاز، وسيُفقد تقدم القراءة والتظليلات.</string>
+    <string name="book_deleted">تم حذف «%1$s»</string>
+    <string name="book_delete_failed">تعذّر حذف الكتاب.</string>
 </resources>

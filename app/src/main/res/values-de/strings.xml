@@ -376,4 +376,9 @@
     <string name="guide_move_body">• Nextcloud-Bücher in den Buchdetails offline verfügbar machen.\n\n• Buchdetails → ⋮: Buch in ein anderes Konto kopieren oder verschieben, z. B. vom Handy-Ordner in deine Nextcloud.\n\n• Lesestand und Markierungen ziehen mit.</string>
     <string name="settings_guide">Anleitung</string>
     <string name="settings_guide_hint">Bibliothek einrichten, lesen, Bücher verschieben</string>
+    <string name="book_delete">Buch löschen</string>
+    <string name="book_delete_action">Löschen</string>
+    <string name="book_delete_confirm">„%1$s“ löschen? Die Datei wird aus dem Ordner auf diesem Gerät entfernt. Lesestand und Markierungen gehen verloren.</string>
+    <string name="book_deleted">„%1$s“ gelöscht</string>
+    <string name="book_delete_failed">Das Buch konnte nicht gelöscht werden.</string>
 </resources>

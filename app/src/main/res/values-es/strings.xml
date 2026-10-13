@@ -378,4 +378,9 @@
     <string name="guide_move_body">• Guarda libros de Nextcloud para leer sin conexión desde sus detalles.\n\n• Detalles del libro → ⋮: copia o mueve un libro a otra cuenta, p. ej. de una carpeta del teléfono a tu Nextcloud.\n\n• El progreso de lectura y los resaltados se trasladan también.</string>
     <string name="settings_guide">Guía de inicio</string>
     <string name="settings_guide_hint">Configurar la biblioteca, leer y mover libros</string>
+    <string name="book_delete">Eliminar libro</string>
+    <string name="book_delete_action">Eliminar</string>
+    <string name="book_delete_confirm">¿Eliminar «%1$s»? El archivo se borra de la carpeta de este dispositivo. Se pierden el progreso de lectura y los resaltados.</string>
+    <string name="book_deleted">«%1$s» eliminado</string>
+    <string name="book_delete_failed">No se ha podido eliminar el libro.</string>
 </resources>
