@@ -389,4 +389,6 @@
     <string name="book_delete_confirm">هل تريد حذف «%1$s»؟ سيُحذف الملف من المجلد على هذا الجهاز، وسيُفقد تقدم القراءة والتظليلات.</string>
     <string name="book_deleted">تم حذف «%1$s»</string>
     <string name="book_delete_failed">تعذّر حذف الكتاب.</string>
+    <string name="transfer_error_space">لا توجد مساحة تخزين كافية على هذا الجهاز: يحتاج الكتاب إلى %1$s والمساحة الحرة %2$s (بالإضافة إلى احتياطي 50 ميغابايت).</string>
+    <string name="transfer_error_space_unknown">لا توجد مساحة تخزين كافية على هذا الجهاز.</string>
 </resources>

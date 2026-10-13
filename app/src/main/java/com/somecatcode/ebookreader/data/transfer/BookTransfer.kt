@@ -34,9 +34,15 @@ import java.util.UUID
 data class TransferResult(val target: BookKey, val stateCopied: Boolean)
 
 /** Why a transfer failed; [copied] = the copy exists (a move could not delete the original). */
-class TransferException(val reason: Reason, val copied: BookKey? = null, cause: Throwable? = null) :
-    Exception(reason.name, cause) {
-    enum class Reason { NOT_ALLOWED, SOURCE_UNAVAILABLE, TARGET_FAILED, DELETE_FAILED }
+class TransferException(
+    val reason: Reason,
+    val copied: BookKey? = null,
+    cause: Throwable? = null,
+    /** NO_SPACE: bytes the copy needs and bytes free on the target */
+    val needed: Long? = null,
+    val free: Long? = null,
+) : Exception(reason.name, cause) {
+    enum class Reason { NOT_ALLOWED, SOURCE_UNAVAILABLE, TARGET_FAILED, DELETE_FAILED, NO_SPACE }
 }
 
 /**
@@ -84,6 +90,13 @@ class BookTransferImpl(
             throw TransferException(TransferException.Reason.NOT_ALLOWED)
         }
         val fileName = book.path.substringAfterLast('/').ifBlank { "${book.title ?: "book"}.${book.format}" }
+        // check before downloading anything: a local target must have room for the book plus a reserve
+        if (target.kind == AccountKind.LOCAL) {
+            val free = runCatching { localLibrary.freeSpace(targetAccountId) }.getOrNull()
+            if (free != null && free < book.size + SPACE_RESERVE) {
+                throw TransferException(TransferException.Reason.NO_SPACE, needed = book.size, free = free)
+            }
+        }
 
         val file = openSource(book, sourceAccount.kind, sourceAccount.userId)
         val newKey = try {
@@ -274,6 +287,9 @@ class BookTransferImpl(
 
     companion object {
         private const val INDEX_ATTEMPTS = 4
+
+        /** Kept free on the device after a copy, so Android and other apps still have room. */
+        const val SPACE_RESERVE = 50L * 1024 * 1024
 
         /** `Books/` -> `/Books`, `` -> `/`. */
         fun normalizeFolder(folder: String): String = "/" + folder.trim().trim('/')

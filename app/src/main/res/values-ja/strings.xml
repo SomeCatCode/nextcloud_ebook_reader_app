@@ -379,4 +379,6 @@
     <string name="book_delete_confirm">「%1$s」を削除しますか？ファイルはこの端末のフォルダーから削除されます。読書の進捗とハイライトは失われます。</string>
     <string name="book_deleted">「%1$s」を削除しました</string>
     <string name="book_delete_failed">本を削除できませんでした。</string>
+    <string name="transfer_error_space">この端末の空き容量が不足しています。本には %1$s が必要ですが、空きは %2$s です（さらに 50 MB の予備が必要です）。</string>
+    <string name="transfer_error_space_unknown">この端末の空き容量が不足しています。</string>
 </resources>

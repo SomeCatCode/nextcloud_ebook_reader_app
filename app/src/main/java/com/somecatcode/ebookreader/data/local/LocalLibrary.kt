@@ -4,7 +4,9 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Environment
 import android.os.ParcelFileDescriptor
+import android.os.StatFs
 import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document
 import androidx.room.withTransaction
@@ -53,6 +55,9 @@ interface LocalLibrary {
 
     /** Deletes the file of a local book and the book with its progress and highlights. */
     suspend fun deleteBook(key: BookKey)
+
+    /** Free bytes on the storage that holds the folder of the library; null when unknown. */
+    suspend fun freeSpace(accountId: String): Long? = null
 }
 
 /** The folder of a local library cannot be read (deleted, SD card removed, permission revoked). */
@@ -206,6 +211,28 @@ class LocalLibraryImpl(
         BookKey(accountId, localFileId(docId))
     }
 
+    override suspend fun freeSpace(accountId: String): Long? = withContext(Dispatchers.IO) {
+        val account = db.accountDao().get(accountId) ?: return@withContext null
+        val tree = Uri.parse(account.serverUrl)
+        val docId = runCatching { DocumentsContract.getTreeDocumentId(tree) }.getOrNull() ?: return@withContext null
+        // 1) the provider's roots know the free space (some providers allow the query only to the system)
+        val fromRoots = runCatching {
+            resolver.query(
+                DocumentsContract.buildRootsUri(tree.authority ?: return@runCatching null),
+                arrayOf(DocumentsContract.Root.COLUMN_DOCUMENT_ID, DocumentsContract.Root.COLUMN_AVAILABLE_BYTES), null, null, null,
+            )?.use { c ->
+                var best: Pair<Int, Long>? = null
+                while (c.moveToNext()) {
+                    val rootDoc = c.getString(0) ?: continue
+                    if (c.isNull(1) || !docId.startsWith(rootDoc)) continue
+                    if (best == null || rootDoc.length > best.first) best = rootDoc.length to c.getLong(1)
+                }
+                best?.second
+            }
+        }.getOrNull()
+        fromRoots ?: storagePathOf(tree.authority, docId)?.let { path -> runCatching { StatFs(path).availableBytes }.getOrNull() }
+    }
+
     override suspend fun deleteBook(key: BookKey) = withContext(Dispatchers.IO) {
         val book = db.bookDao().get(key.accountId, key.fileId) ?: return@withContext
         val uri = Uri.parse(book.localUri ?: return@withContext)
@@ -345,5 +372,19 @@ private class ContentBookFile(
         override fun available(): Int = minOf(remaining, input.available().toLong()).toInt()
 
         override fun close() = input.close()
+    }
+}
+
+/**
+ * File system path of a folder of the system storage provider: `primary:Books` lies on the internal
+ * storage, `1234-ABCD:Books` on that SD card. Null for other providers.
+ */
+internal fun storagePathOf(authority: String?, docId: String): String? {
+    if (authority != "com.android.externalstorage.documents") return null
+    val volume = docId.substringBefore(':', "")
+    return when {
+        volume.isEmpty() -> null
+        volume == "primary" -> Environment.getExternalStorageDirectory().path
+        else -> "/storage/$volume"
     }
 }

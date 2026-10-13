@@ -123,7 +123,13 @@ fun BookDetailScreen(
                         snackbar.showSnackbar(text + extra)
                     }
                 }
-                is TransferEvent.Failed -> snackbar.showSnackbar(resources.getString(transferErrorText(event.reason)))
+                is TransferEvent.Failed -> snackbar.showSnackbar(
+                    if (event.reason == TransferException.Reason.NO_SPACE && event.needed != null && event.free != null) {
+                        resources.getString(R.string.transfer_error_space, formatBytes(context, event.needed), formatBytes(context, event.free))
+                    } else {
+                        resources.getString(transferErrorText(event.reason))
+                    },
+                )
             }
         }
     }
@@ -180,6 +186,7 @@ private fun transferErrorText(reason: TransferException.Reason): Int = when (rea
     TransferException.Reason.SOURCE_UNAVAILABLE -> R.string.transfer_error_source
     TransferException.Reason.TARGET_FAILED -> R.string.transfer_error_target
     TransferException.Reason.DELETE_FAILED -> R.string.transfer_error_delete
+    TransferException.Reason.NO_SPACE -> R.string.transfer_error_space_unknown
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)

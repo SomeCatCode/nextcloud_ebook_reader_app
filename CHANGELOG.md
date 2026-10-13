@@ -6,6 +6,8 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 ## [Unreleased]
 
 ### Hinzugefügt
+- **Lokale Bibliotheken: Bücher löschen.** In den Buchdetails über „⋮“ → „Buch löschen“ (mit Rückfrage). Die Datei wird aus dem Ordner auf dem Gerät entfernt, Lesestand und Markierungen ebenso. Bei Nextcloud-Konten gibt es den Eintrag nicht.
+- **Speicherplatz-Prüfung beim Kopieren/Verschieben auf das Gerät:** Vor dem Download prüft die App, ob im Zielordner genug Platz für das Buch plus 50 MB Reserve frei ist. Sonst bricht sie ab, bevor etwas geladen oder gelöscht wird, und nennt benötigten und freien Platz.
 - **Vier neue Sprachen:** Die App ist jetzt auch auf Französisch, Arabisch, Türkisch und Dari verfügbar (zusätzlich zu Deutsch, Englisch, Spanisch und Japanisch). Arabisch und Dari werden von rechts nach links dargestellt; die Lesegesten im Reader bleiben an den Bildschirmseiten ausgerichtet.
 - **Sprache einstellbar:** Einstellungen → „Sprache“ mit „Systemstandard“ und allen acht Sprachen, jede in ihrem eigenen Namen (Deutsch, English, Español, Français, 日本語, العربية, Türkçe, دری). Ohne Auswahl folgt die App der Systemsprache (nicht unterstützte Sprachen zeigen Englisch). Die Sprache erscheint auch in den Android-Systemeinstellungen unter „App-Sprachen“. Technisch über die AppCompat-Per-App-Sprache (MainActivity ist jetzt eine `AppCompatActivity`).
 - Datenschutzerklärung und Play-Store-Texte gibt es zusätzlich auf Französisch, Arabisch, Türkisch und Dari (`docs/privacy/`, `fastlane/metadata/android/`).

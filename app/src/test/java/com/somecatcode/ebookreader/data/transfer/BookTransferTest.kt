@@ -60,6 +60,10 @@ class BookTransferTest : DbTest() {
 
         /** Simulates a storage that changes a byte while writing. */
         var corruptWrite = false
+
+        /** Free bytes reported for the folder; null = unknown. */
+        var free: Long? = null
+        override suspend fun freeSpace(accountId: String): Long? = free
         val deleted = mutableListOf<BookKey>()
         override suspend fun addFolder(treeUri: android.net.Uri): Account = error("unused")
         override suspend fun scan(accountId: String) = 0
@@ -247,6 +251,29 @@ class BookTransferTest : DbTest() {
         }
         assertTrue("the broken upload is removed", dispatcher.requests.any { it.method == "DELETE" })
         assertTrue("the local original stays", local.deleted.isEmpty())
+    }
+
+    @Test
+    fun aLocalTargetWithoutEnoughSpaceFailsBeforeDownloading() = runBlocking {
+        db.bookDao().upsertAll(listOf(book(7, size = 100L * 1024 * 1024)))
+        local.free = 120L * 1024 * 1024 // less than the book plus the 50 MB reserve
+        try {
+            transfer.transfer(BookKey("acc1", 7), "loc", null, move = true)
+            fail("must fail without space")
+        } catch (e: TransferException) {
+            assertEquals(TransferException.Reason.NO_SPACE, e.reason)
+            assertEquals(100L * 1024 * 1024, e.needed)
+            assertEquals(120L * 1024 * 1024, e.free)
+        }
+        assertTrue("nothing downloaded or deleted", dispatcher.requests.none { it.method == "GET" || it.method == "DELETE" })
+        assertNull(local.imported)
+    }
+
+    @Test
+    fun storagePathsOfTheSystemProvider() {
+        assertEquals("/storage/1234-ABCD", com.somecatcode.ebookreader.data.local.storagePathOf("com.android.externalstorage.documents", "1234-ABCD:Books"))
+        assertNull(com.somecatcode.ebookreader.data.local.storagePathOf("com.other.provider", "primary:Books"))
+        assertNull(com.somecatcode.ebookreader.data.local.storagePathOf("com.android.externalstorage.documents", "nocolon"))
     }
 
     @Test

@@ -131,7 +131,7 @@ data class TransferUiState(
 
 sealed interface TransferEvent {
     data class Done(val targetName: String, val move: Boolean, val stateCopied: Boolean) : TransferEvent
-    data class Failed(val reason: TransferException.Reason) : TransferEvent
+    data class Failed(val reason: TransferException.Reason, val needed: Long? = null, val free: Long? = null) : TransferEvent
 }
 
 class BookDetailViewModel(
@@ -228,7 +228,7 @@ class BookDetailViewModel(
                     val result = t.transfer(key, target.id, ui.folder, ui.move)
                     TransferEvent.Done(target.displayName?.takeIf { it.isNotBlank() } ?: target.loginName, ui.move, result.stateCopied)
                 } catch (e: TransferException) {
-                    TransferEvent.Failed(e.reason)
+                    TransferEvent.Failed(e.reason, e.needed, e.free)
                 } catch (e: Exception) {
                     TransferEvent.Failed(TransferException.Reason.TARGET_FAILED)
                 }
