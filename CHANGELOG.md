@@ -5,6 +5,8 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+## 0.5.0 – 2026-10-13
+
 ### Hinzugefügt
 - **Lokale Bibliotheken: Bücher löschen.** In den Buchdetails über „⋮“ → „Buch löschen“ (mit Rückfrage). Die Datei wird aus dem Ordner auf dem Gerät entfernt, Lesestand und Markierungen ebenso. Bei Nextcloud-Konten gibt es den Eintrag nicht.
 - **Speicherplatz-Prüfung beim Kopieren/Verschieben auf das Gerät:** Vor dem Download prüft die App, ob im Zielordner genug Platz für das Buch plus 50 MB Reserve frei ist. Sonst bricht sie ab, bevor etwas geladen oder gelöscht wird, und nennt benötigten und freien Platz.
