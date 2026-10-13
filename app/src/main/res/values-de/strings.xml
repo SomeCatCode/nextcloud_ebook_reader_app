@@ -176,6 +176,8 @@
     <string name="settings_dynamic_color_hint">Farben aus dem Hintergrundbild verwenden (Android 12 und neuer).</string>
     <string name="settings_eink">E-Ink-Modus</string>
     <string name="settings_eink_hint">Hoher Kontrast, keine Animationen. Für E-Paper-Displays geeignet.</string>
+    <string name="settings_language">Sprache</string>
+    <string name="language_system_default">Systemstandard</string>
     <string name="settings_downloads">Downloads</string>
     <string name="settings_wifi_only">Nur per WLAN herunterladen</string>
     <string name="settings_wifi_only_hint">Schont das mobile Datenvolumen. Downloads warten, bis WLAN verfügbar ist.</string>

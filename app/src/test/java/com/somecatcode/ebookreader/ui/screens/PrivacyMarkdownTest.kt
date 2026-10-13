@@ -9,7 +9,18 @@ class PrivacyMarkdownTest {
         assertEquals("privacy/de.md", privacyAssetFor("de"))
         assertEquals("privacy/es.md", privacyAssetFor("ES"))
         assertEquals("privacy/ja.md", privacyAssetFor("ja"))
-        assertEquals("privacy/en.md", privacyAssetFor("fr"))
+        assertEquals("privacy/fr.md", privacyAssetFor("fr"))
+        assertEquals("privacy/ar.md", privacyAssetFor("ar"))
+        assertEquals("privacy/tr.md", privacyAssetFor("tr"))
+        assertEquals("privacy/en.md", privacyAssetFor("en"))
+        assertEquals("privacy/en.md", privacyAssetFor("it"))
+    }
+
+    @Test
+    fun dariHasItsOwnPrivacyPolicyButPlainPersianFallsBackToEnglish() {
+        assertEquals("privacy/fa-AF.md", privacyAssetFor("fa", "AF"))
+        assertEquals("privacy/en.md", privacyAssetFor("fa"))
+        assertEquals("privacy/en.md", privacyAssetFor("fa", "IR"))
     }
 
     @Test

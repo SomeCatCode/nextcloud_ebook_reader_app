@@ -11,7 +11,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.Role
+import com.somecatcode.ebookreader.ui.util.AppLanguage
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -72,7 +81,11 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
 fun SettingsScreen(onBack: () -> Unit, onOpenLicenses: () -> Unit = {}, onOpenPrivacy: () -> Unit = {}, onOpenGuide: () -> Unit = {}) {
     val vm = containerViewModel { c -> SettingsViewModel(c.settingsRepository) }
     val settings by vm.state.collectAsState()
-    SettingsContent(settings, onBack, vm::update, vm::updateReader, onOpenLicenses, onOpenPrivacy = onOpenPrivacy, onOpenGuide = onOpenGuide)
+    // The language lives in the per-app language API (AppCompatDelegate), not in DataStore; applying it recreates the activity.
+    SettingsContent(
+        settings, onBack, vm::update, vm::updateReader, onOpenLicenses, onOpenPrivacy = onOpenPrivacy, onOpenGuide = onOpenGuide,
+        language = remember { AppLanguage.current() }, onLanguageChange = AppLanguage::apply,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -86,12 +99,18 @@ fun SettingsContent(
     onOpenPrivacy: () -> Unit = {},
     donationUrl: String = DONATION_URL,
     onOpenGuide: () -> Unit = {},
+    language: AppLanguage = AppLanguage.SYSTEM,
+    onLanguageChange: (AppLanguage) -> Unit = {},
 ) {
+    var languageDialog by remember { mutableStateOf(false) }
     val reader = settings.readerSettings()
     val uriHandler = LocalUriHandler.current
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_settings)) }, navigationIcon = { BackButton(onBack) }) },
     ) { padding ->
+        if (languageDialog) {
+            LanguageDialog(language, onSelect = { languageDialog = false; if (it != language) onLanguageChange(it) }, onDismiss = { languageDialog = false })
+        }
         Column(Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
             SectionTitle(R.string.settings_appearance)
             Column(Modifier.padding(horizontal = 16.dp)) {
@@ -106,6 +125,10 @@ fun SettingsContent(
                         )
                     }
                 }
+            }
+            Column(Modifier.fillMaxWidth().clickable { languageDialog = true }.padding(horizontal = 16.dp, vertical = 12.dp).testTag("language")) {
+                Text(stringResource(R.string.settings_language), style = MaterialTheme.typography.bodyLarge)
+                Text(language.nativeName ?: stringResource(R.string.language_system_default), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 SwitchRow(R.string.settings_dynamic_color, R.string.settings_dynamic_color_hint, settings.dynamicColor, "dynamic_color") { v -> onUpdate { it.copy(dynamicColor = v) } }
@@ -179,6 +202,30 @@ fun SettingsContent(
     }
 }
 
+/** Radio list with "System default" and every language in its own name. */
+@Composable
+private fun LanguageDialog(selected: AppLanguage, onSelect: (AppLanguage) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_language)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()).selectableGroup()) {
+                for (option in AppLanguage.entries) {
+                    Row(
+                        Modifier.fillMaxWidth().selectable(selected = option == selected, role = Role.RadioButton, onClick = { onSelect(option) })
+                            .padding(vertical = 4.dp).testTag("language_${option.tag.ifEmpty { "system" }}"),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = option == selected, onClick = null)
+                        Text(option.nativeName ?: stringResource(R.string.language_system_default), Modifier.padding(start = 12.dp), style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
+}
+
 @Composable
 private fun SectionTitle(title: Int) {
     HorizontalDivider(Modifier.padding(top = 12.dp))
@@ -220,10 +267,17 @@ fun LicensesScreen(onBack: () -> Unit) {
     }
 }
 
-/** Asset file of the privacy policy for a language: German, Spanish and Japanese have their own text, all others English. */
-internal fun privacyAssetFor(language: String): String = when (language.lowercase()) {
-    "de", "es", "ja" -> "privacy/${language.lowercase()}.md"
-    else -> "privacy/en.md"
+/**
+ * Asset file of the privacy policy for a language: German, English, Spanish, French, Japanese, Arabic and Turkish have
+ * their own text, Dari only for Persian with region AF (plain "fa" is Iranian Persian), everything else gets English.
+ */
+internal fun privacyAssetFor(language: String, country: String = ""): String {
+    val lang = language.lowercase()
+    return when {
+        lang in setOf("de", "es", "ja", "fr", "ar", "tr") -> "privacy/$lang.md"
+        lang == "fa" && country.equals("AF", ignoreCase = true) -> "privacy/fa-AF.md"
+        else -> "privacy/en.md"
+    }
 }
 
 /** Privacy policy (docs/privacy, bundled as assets/privacy/<language>.md) in the app language. */
@@ -231,9 +285,10 @@ internal fun privacyAssetFor(language: String): String = when (language.lowercas
 @Composable
 fun PrivacyScreen(onBack: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val language = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language
-    val text = remember(language) {
-        runCatching { context.assets.open(privacyAssetFor(language)).bufferedReader().use { it.readText() } }
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val language = locale.language
+    val text = remember(language, locale.country) {
+        runCatching { context.assets.open(privacyAssetFor(language, locale.country)).bufferedReader().use { it.readText() } }
             .recoverCatching { context.assets.open(privacyAssetFor("en")).bufferedReader().use { it.readText() } }
             .getOrDefault("")
     }

@@ -1,0 +1,46 @@
+E-kitaplarınızı ve çizgi romanlarınızı cihazınızdaki bir klasörden veya doğrudan kendi Nextcloud’unuzdan, yolda ve çevrimdışı okuyun.
+
+Uygulama hiçbir sunucu olmadan da çalışır: telefonunuzdan veya SD kartınızdan bir klasör seçmeniz yeterli; uygulama başlıklar, yazarlar, seriler ve kapaklarla kütüphanenizi oluşturur. “E-Book Reader” uygulamasının kurulu olduğu bir Nextcloud’unuz varsa onu da bağlayın ve kütüphanenizi, raflarınızı, serilerinizi ve okuma konumunuzu cihazlarınız ve tarayıcı arasında eşitleyin.
+
+SUNUCU GEREKMEZ: YEREL KLASÖRLER
+• Cihazdaki bir veya daha fazla klasör ayrı kütüphaneler olarak, alt klasörler dahil
+• Başlıklar, yazarlar, seriler, açıklama ve kapak EPUB, FB2 ve CBZ dosyalarından okunur
+• Okuma konumu, vurgular ve notlar cihazda kalır
+• Depolama izni yok: uygulama yalnızca seçtiğiniz klasörleri görür
+
+KOPYALA VE TAŞI
+• Kitapları başka bir hesaba kopyalayın, örneğin telefondaki bir klasörden Nextcloud’unuza veya tersine
+• Ya da taşıyın: kopyalayın, ardından orijinali silin
+• Okuma konumu ve vurgular da birlikte gelir
+
+KÜTÜPHANE
+• EPUB, MOBI, AZW3, FB2 ve CBZ, CBR, CB7 ile CBT biçiminde çizgi romanlar
+• Izgara ve liste görünümü, arama, sıralama, “Okumaya devam et”
+• Web’dekine benzer filtreler: ağaç olarak türler ve etiketler, yazarlar, seriler, biçimler, eksik üst veriler; terimleri dahil etme veya hariç tutma
+• Biten kitapları gizleme, okuma durumu ve puanlar
+• Raflar ve akıllı raflar oluşturup yönetme, seriler cilt sırasına göre
+
+OKUMA
+• Açık, sepya ve koyu temalar, yazı tipi boyutu, satır aralığı ve kenar boşlukları olan rahat bir okuyucu
+• Sayfalı veya kaydırmalı, içindekiler, dokunma bölgeleri, sayfa çevirmek için ses tuşları
+• Yakınlaştırmalı (sıkıştırma, çift dokunma) çizgi romanlar, çift sayfa görünümü ve manga için sağdan sola okuma
+• Web uygulamasıyla eşitlenen vurgular ve notlar
+• Okuma konumu otomatik eşitlenir; başka bir cihaz daha ilerideyse uygulama size sorar
+• Yüksek karşıtlıklı ve animasyonsuz e-ink modu
+
+ÇEVRİMDIŞI
+• Kitapları, rafların tamamını veya serileri çevrimdışı kullanılabilir yapın
+• Sabitlenen seri ve rafların yeni ciltleri otomatik indirilir
+• İsterseniz indirmeler yalnızca Wi-Fi ile
+
+BİRDEN ÇOK HESAP
+• Birden çok Nextcloud hesabı ve yerel klasör; ayrı ayrı veya tek bir birleşik kütüphane olarak
+• Tarayıcı üzerinden güvenli oturum açma (Nextcloud Login Flow); uygulama parolanızı asla görmez
+
+GİZLİLİK
+Reklam yok, izleme yok, analiz yok. Yerel kütüphaneler cihazınızda kalır; Nextcloud ile verileriniz yalnızca cihazınız ile kendi sunucunuz arasında dolaşır.
+
+NEXTCLOUD (İSTEĞE BAĞLI)
+Eşitleme, raflar ve tarayıcıda okuma için: “E-Book Reader” uygulamasının 0.7.0 veya daha yeni sürümünün kurulu olduğu bir Nextcloud sunucusu (Nextcloud App Store veya GitHub). Yerel klasörler için sunucu gerekmez.
+
+Resmî olmayan uygulama, Nextcloud GmbH ile bağlantısı yoktur. Nextcloud, Nextcloud GmbH’nin ticari markasıdır.

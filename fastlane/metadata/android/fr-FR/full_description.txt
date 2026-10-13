@@ -1,0 +1,46 @@
+Lisez vos livres numériques et bandes dessinées depuis un dossier de votre appareil ou directement depuis votre propre Nextcloud, en déplacement et hors ligne.
+
+L’application fonctionne aussi sans aucun serveur : choisissez simplement un dossier sur votre téléphone ou votre carte SD, et l’application construit votre bibliothèque avec les titres, auteurs, séries et couvertures. Si vous avez un Nextcloud avec l’application « E-Book Reader », connectez-le aussi et gardez votre bibliothèque, vos étagères, vos séries et votre position de lecture synchronisées entre vos appareils et le navigateur.
+
+SANS SERVEUR : DOSSIERS LOCAUX
+• Un ou plusieurs dossiers de l’appareil comme bibliothèques distinctes, sous-dossiers inclus
+• Titres, auteurs, séries, description et couverture lus depuis les fichiers EPUB, FB2 et CBZ
+• Position de lecture, surlignages et notes conservés sur l’appareil
+• Aucune autorisation de stockage : l’application ne voit que les dossiers que vous choisissez
+
+COPIER ET DÉPLACER
+• Copiez des livres vers un autre compte, par exemple d’un dossier du téléphone vers votre Nextcloud, ou l’inverse
+• Ou déplacez-les : copie, puis suppression de l’original
+• La position de lecture et les surlignages suivent
+
+BIBLIOTHÈQUE
+• EPUB, MOBI, AZW3, FB2 et bandes dessinées au format CBZ, CBR, CB7 et CBT
+• Vue en grille et en liste, recherche, tri, « Continuer la lecture »
+• Filtres comme sur le web : genres et étiquettes en arborescence, auteurs, séries, formats, métadonnées manquantes ; inclusion ou exclusion de termes
+• Masquer les livres terminés, statut de lecture et notes
+• Créez et gérez des étagères et des étagères intelligentes, séries classées par tome
+
+LECTURE
+• Lecteur confortable avec thèmes clair, sépia et sombre, taille de police, interligne et marges
+• Mode paginé ou défilement, table des matières, zones tactiles, touches de volume pour tourner les pages
+• Bandes dessinées avec zoom (pincement, double toucher), doubles pages et lecture de droite à gauche pour les mangas
+• Surlignages et notes, synchronisés avec l’application web
+• La position de lecture se synchronise automatiquement ; si un autre appareil est plus avancé, l’application vous le propose
+• Mode e-ink avec contraste élevé et sans animations
+
+HORS LIGNE
+• Rendez disponibles hors ligne des livres, des étagères entières ou des séries
+• Les nouveaux tomes des séries et étagères épinglées sont téléchargés automatiquement
+• Téléchargements en Wi-Fi uniquement, si vous le souhaitez
+
+PLUSIEURS COMPTES
+• Plusieurs comptes Nextcloud et dossiers locaux, séparés ou réunis en une seule bibliothèque
+• Connexion sécurisée via le navigateur (Nextcloud Login Flow) ; l’application ne voit jamais votre mot de passe
+
+CONFIDENTIALITÉ
+Aucune publicité, aucun suivi, aucune analyse. Les bibliothèques locales restent sur votre appareil ; avec Nextcloud, vos données ne circulent qu’entre votre appareil et votre propre serveur.
+
+NEXTCLOUD (FACULTATIF)
+Pour la synchronisation, les étagères et la lecture dans le navigateur : un serveur Nextcloud avec l’application « E-Book Reader » version 0.7.0 ou ultérieure (Nextcloud App Store ou GitHub). Les dossiers locaux ne nécessitent aucun serveur.
+
+Application non officielle, sans lien avec Nextcloud GmbH. Nextcloud est une marque de Nextcloud GmbH.

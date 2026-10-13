@@ -5,6 +5,12 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Hinzugefügt
+- **Vier neue Sprachen:** Die App ist jetzt auch auf Französisch, Arabisch, Türkisch und Dari verfügbar (zusätzlich zu Deutsch, Englisch, Spanisch und Japanisch). Arabisch und Dari werden von rechts nach links dargestellt; die Lesegesten im Reader bleiben an den Bildschirmseiten ausgerichtet.
+- **Sprache einstellbar:** Einstellungen → „Sprache“ mit „Systemstandard“ und allen acht Sprachen, jede in ihrem eigenen Namen (Deutsch, English, Español, Français, 日本語, العربية, Türkçe, دری). Ohne Auswahl folgt die App der Systemsprache (nicht unterstützte Sprachen zeigen Englisch). Die Sprache erscheint auch in den Android-Systemeinstellungen unter „App-Sprachen“. Technisch über die AppCompat-Per-App-Sprache (MainActivity ist jetzt eine `AppCompatActivity`).
+- Datenschutzerklärung und Play-Store-Texte gibt es zusätzlich auf Französisch, Arabisch, Türkisch und Dari (`docs/privacy/`, `fastlane/metadata/android/`).
+- Test, der prüft, dass alle Übersetzungen exakt dieselben String-Namen und Platzhalter wie die englischen Texte haben.
+
 ### Geändert
 - Einstellungen: Der Eintrag „Datenschutzerklärung“ zeigt nur noch den Titel und öffnet die Erklärung direkt in der App (wie „Lizenzen von Drittanbietern“), in der App-Sprache (Deutsch, Englisch, Spanisch, Japanisch; sonst Englisch). Quelle sind die Texte unter `docs/privacy/`, der Build kopiert sie in die App.
 

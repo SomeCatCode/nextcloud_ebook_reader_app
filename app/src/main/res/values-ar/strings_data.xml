@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="data_channel_name">المزامنة والتنزيلات</string>
+    <string name="data_channel_description">يظهر أثناء مزامنة المكتبة أو تنزيل الكتب الكبيرة.</string>
+    <string name="data_notification_downloading">جارٍ تنزيل الكتاب</string>
+    <string name="data_notification_syncing">جارٍ مزامنة المكتبة</string>
+</resources>
