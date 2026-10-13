@@ -5,6 +5,23 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+## 0.5.0 – 2026-10-13
+
+### Hinzugefügt
+- **Lokale Bibliotheken: Bücher löschen.** In den Buchdetails über „⋮“ → „Buch löschen“ (mit Rückfrage). Die Datei wird aus dem Ordner auf dem Gerät entfernt, Lesestand und Markierungen ebenso. Bei Nextcloud-Konten gibt es den Eintrag nicht.
+- **Speicherplatz-Prüfung beim Kopieren/Verschieben auf das Gerät:** Vor dem Download prüft die App, ob im Zielordner genug Platz für das Buch plus 50 MB Reserve frei ist. Sonst bricht sie ab, bevor etwas geladen oder gelöscht wird, und nennt benötigten und freien Platz.
+- **Vier neue Sprachen:** Die App ist jetzt auch auf Französisch, Arabisch, Türkisch und Dari verfügbar (zusätzlich zu Deutsch, Englisch, Spanisch und Japanisch). Arabisch und Dari werden von rechts nach links dargestellt; die Lesegesten im Reader bleiben an den Bildschirmseiten ausgerichtet.
+- **Sprache einstellbar:** Einstellungen → „Sprache“ mit „Systemstandard“ und allen acht Sprachen, jede in ihrem eigenen Namen (Deutsch, English, Español, Français, 日本語, العربية, Türkçe, دری). Ohne Auswahl folgt die App der Systemsprache (nicht unterstützte Sprachen zeigen Englisch). Die Sprache erscheint auch in den Android-Systemeinstellungen unter „App-Sprachen“. Technisch über die AppCompat-Per-App-Sprache (MainActivity ist jetzt eine `AppCompatActivity`).
+- Datenschutzerklärung und Play-Store-Texte gibt es zusätzlich auf Französisch, Arabisch, Türkisch und Dari (`docs/privacy/`, `fastlane/metadata/android/`).
+- Test, der prüft, dass alle Übersetzungen exakt dieselben String-Namen und Platzhalter wie die englischen Texte haben.
+
+### Geändert
+- Einstellungen: Der Eintrag „Datenschutzerklärung“ zeigt nur noch den Titel und öffnet die Erklärung direkt in der App (wie „Lizenzen von Drittanbietern“), in der App-Sprache (Deutsch, Englisch, Spanisch, Japanisch; sonst Englisch). Quelle sind die Texte unter `docs/privacy/`, der Build kopiert sie in die App.
+
+### Behoben
+- **Kopieren/Verschieben zwischen Konten:** Brach der Download vom Nextcloud-Server unterwegs ab, entstand im lokalen Ordner eine abgeschnittene Datei ohne Fehlermeldung (z. B. eine CBZ mit 51 statt 147 MB: kein Cover, ließ sich nicht öffnen). Die App setzt einen abgebrochenen Download jetzt an der richtigen Stelle fort (HTTP-Range) und prüft jede Kopie: Bei lokalen Zielen müssen Dateigröße und SHA-256-Prüfsumme mit dem Original übereinstimmen, bei Nextcloud-Zielen die Dateigröße auf dem Server. Stimmt etwas nicht, wird die Kopie gelöscht, das Original bleibt erhalten (auch beim Verschieben) und die App meldet einen Fehler.
+- „Weiterlesen“ zeigt nur noch begonnene Bücher mit dem Lesestatus „Wird gelesen“ und einem Fortschritt über 0 %; Bücher mit „Ungelesen“ erscheinen dort nicht mehr (wie in der Web-App).
+
 ## 0.4.0 – 2026-10-12
 
 ### Hinzugefügt

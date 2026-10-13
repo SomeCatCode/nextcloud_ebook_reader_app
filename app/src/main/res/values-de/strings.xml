@@ -176,6 +176,8 @@
     <string name="settings_dynamic_color_hint">Farben aus dem Hintergrundbild verwenden (Android 12 und neuer).</string>
     <string name="settings_eink">E-Ink-Modus</string>
     <string name="settings_eink_hint">Hoher Kontrast, keine Animationen. Für E-Paper-Displays geeignet.</string>
+    <string name="settings_language">Sprache</string>
+    <string name="language_system_default">Systemstandard</string>
     <string name="settings_downloads">Downloads</string>
     <string name="settings_wifi_only">Nur per WLAN herunterladen</string>
     <string name="settings_wifi_only_hint">Schont das mobile Datenvolumen. Downloads warten, bis WLAN verfügbar ist.</string>
@@ -374,4 +376,11 @@
     <string name="guide_move_body">• Nextcloud-Bücher in den Buchdetails offline verfügbar machen.\n\n• Buchdetails → ⋮: Buch in ein anderes Konto kopieren oder verschieben, z. B. vom Handy-Ordner in deine Nextcloud.\n\n• Lesestand und Markierungen ziehen mit.</string>
     <string name="settings_guide">Anleitung</string>
     <string name="settings_guide_hint">Bibliothek einrichten, lesen, Bücher verschieben</string>
+    <string name="book_delete">Buch löschen</string>
+    <string name="book_delete_action">Löschen</string>
+    <string name="book_delete_confirm">„%1$s“ löschen? Die Datei wird aus dem Ordner auf diesem Gerät entfernt. Lesestand und Markierungen gehen verloren.</string>
+    <string name="book_deleted">„%1$s“ gelöscht</string>
+    <string name="book_delete_failed">Das Buch konnte nicht gelöscht werden.</string>
+    <string name="transfer_error_space">Nicht genug Speicherplatz auf diesem Gerät: Das Buch braucht %1$s, frei sind %2$s (dazu eine Reserve von 50 MB).</string>
+    <string name="transfer_error_space_unknown">Nicht genug Speicherplatz auf diesem Gerät.</string>
 </resources>

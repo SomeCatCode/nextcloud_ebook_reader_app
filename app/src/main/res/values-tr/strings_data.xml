@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="data_channel_name">Eşitleme ve indirmeler</string>
+    <string name="data_channel_description">Kütüphane eşitlenirken veya büyük kitaplar indirilirken gösterilir.</string>
+    <string name="data_notification_downloading">Kitap indiriliyor</string>
+    <string name="data_notification_syncing">Kütüphane eşitleniyor</string>
+</resources>

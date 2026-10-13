@@ -176,6 +176,8 @@
     <string name="settings_dynamic_color_hint">Use the colors of your wallpaper (Android 12 and newer).</string>
     <string name="settings_eink">E-ink mode</string>
     <string name="settings_eink_hint">High contrast, no animations. Suited for e-paper displays.</string>
+    <string name="settings_language">Language</string>
+    <string name="language_system_default">System default</string>
     <string name="settings_downloads">Downloads</string>
     <string name="settings_wifi_only">Download only on Wi-Fi</string>
     <string name="settings_wifi_only_hint">Saves mobile data. Downloads wait until Wi-Fi is available.</string>
@@ -374,4 +376,11 @@
     <string name="guide_move_body">• Make Nextcloud books available offline in their details.\n\n• Book details → ⋮: copy or move a book to another account, e.g. from a folder on your phone to your Nextcloud.\n\n• Reading progress and highlights come along.</string>
     <string name="settings_guide">Introduction</string>
     <string name="settings_guide_hint">How to add a library, read and move books</string>
+    <string name="book_delete">Delete book</string>
+    <string name="book_delete_action">Delete</string>
+    <string name="book_delete_confirm">Delete “%1$s”? The file is removed from the folder on this device. Reading progress and highlights are lost.</string>
+    <string name="book_deleted">“%1$s” deleted</string>
+    <string name="book_delete_failed">The book could not be deleted.</string>
+    <string name="transfer_error_space">Not enough storage on this device: the book needs %1$s, %2$s are free (plus a reserve of 50 MB).</string>
+    <string name="transfer_error_space_unknown">Not enough storage on this device.</string>
 </resources>

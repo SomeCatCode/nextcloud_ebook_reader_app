@@ -57,18 +57,28 @@ class BookTransferTest : DbTest() {
     private inner class FakeLocal : LocalLibrary {
         var imported: ByteArray? = null
         var importedName: String? = null
+
+        /** Simulates a storage that changes a byte while writing. */
+        var corruptWrite = false
+
+        /** Free bytes reported for the folder; null = unknown. */
+        var free: Long? = null
+        override suspend fun freeSpace(accountId: String): Long? = free
         val deleted = mutableListOf<BookKey>()
         override suspend fun addFolder(treeUri: android.net.Uri): Account = error("unused")
         override suspend fun scan(accountId: String) = 0
         override suspend fun bookFile(key: BookKey): BookFile? = if (key.accountId != "loc") null else object : BookFile {
+            // the imported copy (book 500) is read back from what was written
+            private val bytes = if (key.fileId == 500L) imported ?: ByteArray(0) else content
             override val name = "x.epub"
-            override val length = content.size.toLong()
-            override fun open(offset: Long, count: Long): InputStream = ByteArrayInputStream(content, offset.toInt(), count.toInt())
+            override val length = bytes.size.toLong()
+            override fun open(offset: Long, count: Long): InputStream = ByteArrayInputStream(bytes, offset.toInt(), count.toInt())
         }
         override fun coverFile(accountId: String, fileId: Long): File? = null
         override suspend fun forget(accountId: String) = Unit
         override suspend fun importFile(accountId: String, fileName: String, write: (OutputStream) -> Unit): BookKey {
             imported = ByteArrayOutputStream().also(write).toByteArray()
+                .also { if (corruptWrite) it[0] = (it[0] + 1).toByte() }
             importedName = fileName
             db.bookDao().upsertAll(listOf(book(500, accountId = accountId).copy(localUri = "content://x/500")))
             return BookKey(accountId, 500)
@@ -168,7 +178,7 @@ class BookTransferTest : DbTest() {
 
     @Test
     fun moveFromNextcloudToLocalDownloadsImportsAndDeletesOnTheServer() = runBlocking {
-        db.bookDao().upsertAll(listOf(book(7)))
+        db.bookDao().upsertAll(listOf(book(7, size = content.size.toLong())))
         db.progressDao().upsert(ProgressEntity("acc1", 7, """{"href":"c1.xhtml"}""", 0.6, "Web", 100, 101, false))
         dispatcher.on("GET", "/remote.php/dav/files/alice/Books/7.epub") { MockResponse().setBody(okio.Buffer().write(content)) }
         dispatcher.on("DELETE", "/remote.php/dav/files/alice/Books/7.epub") { MockResponse().setResponseCode(204) }
@@ -193,6 +203,77 @@ class BookTransferTest : DbTest() {
             assertEquals(TransferException.Reason.NOT_ALLOWED, e.reason)
         }
         assertTrue(dispatcher.requests.none { it.method == "DELETE" })
+    }
+
+    @Test
+    fun aTruncatedDownloadFailsInsteadOfLeavingAShortCopy() = runBlocking {
+        // the server claims 1000 bytes but every response ends after 13
+        db.bookDao().upsertAll(listOf(book(7, size = 1000)))
+        dispatcher.on("GET", "/remote.php/dav/files/alice/Books/7.epub") { MockResponse().setBody(okio.Buffer().write(content)) }
+        try {
+            transfer.transfer(BookKey("acc1", 7), "loc", null, move = true)
+            fail("a short copy must fail")
+        } catch (e: TransferException) {
+            assertEquals(TransferException.Reason.TARGET_FAILED, e.reason)
+        }
+        assertNull("nothing imported", db.bookDao().get("loc", 500))
+        assertTrue("the original stays on the server", dispatcher.requests.none { it.method == "DELETE" })
+    }
+
+    @Test
+    fun aCopyWithADifferentChecksumIsDeletedAndFails() = runBlocking {
+        db.bookDao().upsertAll(listOf(book(7, size = content.size.toLong())))
+        dispatcher.on("GET", "/remote.php/dav/files/alice/Books/7.epub") { MockResponse().setBody(okio.Buffer().write(content)) }
+        local.corruptWrite = true
+        try {
+            transfer.transfer(BookKey("acc1", 7), "loc", null, move = true)
+            fail("a corrupted copy must fail")
+        } catch (e: TransferException) {
+            assertEquals(TransferException.Reason.TARGET_FAILED, e.reason)
+        }
+        assertEquals(listOf(BookKey("loc", 500)), local.deleted)
+        assertTrue("the original stays on the server", dispatcher.requests.none { it.method == "DELETE" })
+    }
+
+    @Test
+    fun anUploadWithTheWrongSizeIsRemovedAndFails() = runBlocking {
+        localBookWithState()
+        // before the upload the name is free (404), afterwards the server reports a short file
+        dispatcher.on("HEAD", "/remote.php/dav/files/alice/Books/x%20(2).epub") {
+            if (sync.indexed) MockResponse().setResponseCode(200).setHeader("Content-Length", "5") else MockResponse().setResponseCode(404)
+        }
+        dispatcher.on("DELETE", "/remote.php/dav/files/alice/Books/x%20(2).epub") { MockResponse().setResponseCode(204) }
+        try {
+            transfer.transfer(BookKey("loc", 9), "acc1", null, move = true)
+            fail("a short upload must fail")
+        } catch (e: TransferException) {
+            assertEquals(TransferException.Reason.TARGET_FAILED, e.reason)
+        }
+        assertTrue("the broken upload is removed", dispatcher.requests.any { it.method == "DELETE" })
+        assertTrue("the local original stays", local.deleted.isEmpty())
+    }
+
+    @Test
+    fun aLocalTargetWithoutEnoughSpaceFailsBeforeDownloading() = runBlocking {
+        db.bookDao().upsertAll(listOf(book(7, size = 100L * 1024 * 1024)))
+        local.free = 120L * 1024 * 1024 // less than the book plus the 50 MB reserve
+        try {
+            transfer.transfer(BookKey("acc1", 7), "loc", null, move = true)
+            fail("must fail without space")
+        } catch (e: TransferException) {
+            assertEquals(TransferException.Reason.NO_SPACE, e.reason)
+            assertEquals(100L * 1024 * 1024, e.needed)
+            assertEquals(120L * 1024 * 1024, e.free)
+        }
+        assertTrue("nothing downloaded or deleted", dispatcher.requests.none { it.method == "GET" || it.method == "DELETE" })
+        assertNull(local.imported)
+    }
+
+    @Test
+    fun storagePathsOfTheSystemProvider() {
+        assertEquals("/storage/1234-ABCD", com.somecatcode.ebookreader.data.local.storagePathOf("com.android.externalstorage.documents", "1234-ABCD:Books"))
+        assertNull(com.somecatcode.ebookreader.data.local.storagePathOf("com.other.provider", "primary:Books"))
+        assertNull(com.somecatcode.ebookreader.data.local.storagePathOf("com.android.externalstorage.documents", "nocolon"))
     }
 
     @Test

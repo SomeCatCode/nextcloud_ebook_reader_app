@@ -12,6 +12,7 @@ object Routes {
     const val DOWNLOADS = "downloads"
     const val SETTINGS = "settings"
     const val LICENSES = "licenses"
+    const val PRIVACY = "privacy"
 
     /** Introduction (first start, or from the settings). */
     const val GUIDE = "guide"

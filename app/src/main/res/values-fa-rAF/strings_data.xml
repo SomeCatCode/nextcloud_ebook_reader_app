@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="data_channel_name">همگام‌سازی و دانلودها</string>
+    <string name="data_channel_description">هنگام همگام‌سازی کتابخانه یا دانلود کتاب‌های بزرگ نمایش داده می‌شود.</string>
+    <string name="data_notification_downloading">در حال دانلود کتاب</string>
+    <string name="data_notification_syncing">در حال همگام‌سازی کتابخانه</string>
+</resources>

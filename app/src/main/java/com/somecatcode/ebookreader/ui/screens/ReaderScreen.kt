@@ -46,6 +46,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -448,6 +451,8 @@ private fun GestureHint(onDismiss: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             GestureLabel(Icons.Filled.KeyboardArrowUp, stringResource(R.string.reader_gesture_up))
+            // Gestures act on physical screen sides, so this row must not mirror in right-to-left languages.
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Row(Modifier.weight(1f).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 GestureLabel(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.reader_gesture_prev), Modifier.weight(0.3f))
                 Column(Modifier.weight(0.4f), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -455,6 +460,7 @@ private fun GestureHint(onDismiss: () -> Unit) {
                     GestureLabel(Icons.Filled.TouchApp, stringResource(R.string.reader_gesture_center), Modifier.padding(top = 16.dp))
                 }
                 GestureLabel(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.reader_gesture_next), Modifier.weight(0.3f))
+            }
             }
             GestureLabel(Icons.Filled.KeyboardArrowDown, stringResource(R.string.reader_gesture_down))
             Button(onClick = onDismiss, modifier = Modifier.padding(top = 16.dp).testTag("reader_gesture_ok")) {

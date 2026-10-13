@@ -566,6 +566,28 @@ class ViewModelTests {
     }
 
     @Test
+    fun bookDetail_deletesOnlyBooksOfALocalLibrary() = runTest(dispatcher) {
+        val deleted = mutableListOf<BookKey>()
+        val library = FakeLibraryRepository(listOf(book(1, "Local", accountId = "loc").copy(local = true), book(2, "Remote")))
+        val local = BookDetailViewModel(BookKey("loc", 1), library, FakeEditRepository(), FakeDownloadRepository(), deleteLocalBook = { deleted += it })
+        val remote = BookDetailViewModel(BookKey("acc1", 2), library, FakeEditRepository(), FakeDownloadRepository(), deleteLocalBook = { deleted += it })
+        val events = mutableListOf<Boolean>()
+        backgroundScope.launch { local.state.collect {} }
+        backgroundScope.launch { remote.state.collect {} }
+        backgroundScope.launch { local.deleteEvents.collect { events += it } }
+        advanceUntilIdle()
+
+        remote.deleteBook()
+        advanceUntilIdle()
+        assertTrue("a Nextcloud book is not deleted here", deleted.isEmpty())
+
+        local.deleteBook()
+        advanceUntilIdle()
+        assertEquals(listOf(BookKey("loc", 1)), deleted)
+        assertEquals(listOf(true), events)
+    }
+
+    @Test
     fun bookDetail_notEditableCannotStartEdit() = runTest(dispatcher) {
         val library = FakeLibraryRepository(listOf(book(1, "Dune", editable = false)))
         val vm = BookDetailViewModel(BookKey("acc1", 1), library, FakeEditRepository(), FakeDownloadRepository())

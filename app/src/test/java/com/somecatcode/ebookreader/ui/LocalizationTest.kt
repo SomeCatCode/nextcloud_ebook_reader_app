@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.somecatcode.ebookreader.R
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
@@ -46,5 +47,33 @@ class LocalizationTest {
         assertEquals("1 冊", res.getQuantityString(R.plurals.books_count, 1, 1))
         assertEquals("5 冊", res.getQuantityString(R.plurals.books_count, 5, 5))
         assertEquals("同期とダウンロード", res.getString(R.string.data_channel_name))
+    }
+
+    @Test
+    @Config(qualifiers = "fr")
+    fun frenchResolves() = assertDiffersFromEnglish()
+
+    @Test
+    @Config(qualifiers = "ar")
+    fun arabicResolves() = assertDiffersFromEnglish()
+
+    @Test
+    @Config(qualifiers = "tr")
+    fun turkishResolves() = assertDiffersFromEnglish()
+
+    @Test
+    @Config(qualifiers = "fa-rAF")
+    fun dariResolves() = assertDiffersFromEnglish()
+
+    @Test
+    @Config(qualifiers = "it")
+    fun unsupportedLanguageFallsBackToEnglish() {
+        assertEquals("Library", context.getString(R.string.nav_library))
+    }
+
+    private fun assertDiffersFromEnglish() {
+        val title = context.getString(R.string.nav_library)
+        assertTrue(title.isNotBlank() && title != "Library")
+        assertTrue(context.getString(R.string.settings_language) != "Language")
     }
 }

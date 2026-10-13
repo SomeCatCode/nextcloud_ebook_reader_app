@@ -140,6 +140,9 @@ interface EbookApi {
     /** True when [path] (user relative) exists (`HEAD` on WebDAV). */
     suspend fun fileExists(userId: String, path: String): Boolean
 
+    /** Size of the file at [path] in bytes (`HEAD` on WebDAV, `Content-Length`); null when unknown or missing. */
+    suspend fun fileSize(userId: String, path: String): Long?
+
     /**
      * Uploads a file to [path] (`PUT` on WebDAV, existing files are replaced). [content] is opened once
      * and closed afterwards. Returns the Nextcloud file id from `OC-FileId`, null when the server sent none.
