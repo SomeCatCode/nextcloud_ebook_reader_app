@@ -176,6 +176,8 @@
     <string name="settings_dynamic_color_hint">Use the colors of your wallpaper (Android 12 and newer).</string>
     <string name="settings_eink">E-ink mode</string>
     <string name="settings_eink_hint">High contrast, no animations. Suited for e-paper displays.</string>
+    <string name="settings_language">Language</string>
+    <string name="language_system_default">System default</string>
     <string name="settings_downloads">Downloads</string>
     <string name="settings_wifi_only">Download only on Wi-Fi</string>
     <string name="settings_wifi_only_hint">Saves mobile data. Downloads wait until Wi-Fi is available.</string>

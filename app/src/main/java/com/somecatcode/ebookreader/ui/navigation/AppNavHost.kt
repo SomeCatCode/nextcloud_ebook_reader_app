@@ -146,11 +146,15 @@ fun AppNavHost(modifier: Modifier = Modifier, showGuideOnFirstStart: Boolean = t
             SettingsScreen(
                 onBack = { nav.popBackStack() },
                 onOpenLicenses = { nav.navigate(Routes.LICENSES) },
+                onOpenPrivacy = { nav.navigate(Routes.PRIVACY) },
                 onOpenGuide = { nav.navigate(Routes.GUIDE) },
             )
         }
         composable(Routes.LICENSES) {
             com.somecatcode.ebookreader.ui.screens.LicensesScreen(onBack = { nav.popBackStack() })
+        }
+        composable(Routes.PRIVACY) {
+            com.somecatcode.ebookreader.ui.screens.PrivacyScreen(onBack = { nav.popBackStack() })
         }
     }
 }

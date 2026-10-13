@@ -1,7 +1,7 @@
 package com.somecatcode.ebookreader
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -17,7 +17,7 @@ import com.somecatcode.ebookreader.ui.theme.EbookReaderTheme
 import com.somecatcode.ebookreader.ui.util.LocalAppContainer
 
 /** Single activity of the app: edge-to-edge Compose host with the navigation graph. */
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)

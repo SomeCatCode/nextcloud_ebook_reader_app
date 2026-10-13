@@ -11,7 +11,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.Role
+import com.somecatcode.ebookreader.ui.util.AppLanguage
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +39,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -38,8 +52,8 @@ import com.somecatcode.ebookreader.R
 import com.somecatcode.ebookreader.data.repo.AppSettings
 import com.somecatcode.ebookreader.data.repo.SettingsRepository
 import com.somecatcode.ebookreader.reader.ReaderSettings
-import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.components.BackButton
+import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 import com.somecatcode.ebookreader.ui.util.readerSettings
 import com.somecatcode.ebookreader.ui.util.withReaderSettings
@@ -48,7 +62,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-const val PRIVACY_POLICY_URL = "https://github.com/SomeCatCode/nextcloud_ebook_reader_app/blob/main/PRIVACY.md"
 
 /** Donation link; empty in the Google Play build (see app/build.gradle.kts), then the entry is hidden. */
 val DONATION_URL: String get() = BuildConfig.DONATION_URL
@@ -65,10 +78,14 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
 
 /** App settings (theme, e-ink, downloads, device name, reader defaults, about). */
 @Composable
-fun SettingsScreen(onBack: () -> Unit, onOpenLicenses: () -> Unit = {}, onOpenGuide: () -> Unit = {}) {
+fun SettingsScreen(onBack: () -> Unit, onOpenLicenses: () -> Unit = {}, onOpenPrivacy: () -> Unit = {}, onOpenGuide: () -> Unit = {}) {
     val vm = containerViewModel { c -> SettingsViewModel(c.settingsRepository) }
     val settings by vm.state.collectAsState()
-    SettingsContent(settings, onBack, vm::update, vm::updateReader, onOpenLicenses, onOpenGuide = onOpenGuide)
+    // The language lives in the per-app language API (AppCompatDelegate), not in DataStore; applying it recreates the activity.
+    SettingsContent(
+        settings, onBack, vm::update, vm::updateReader, onOpenLicenses, onOpenPrivacy = onOpenPrivacy, onOpenGuide = onOpenGuide,
+        language = remember { AppLanguage.current() }, onLanguageChange = AppLanguage::apply,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -79,14 +96,21 @@ fun SettingsContent(
     onUpdate: ((AppSettings) -> AppSettings) -> Unit,
     onUpdateReader: ((ReaderSettings) -> ReaderSettings) -> Unit,
     onOpenLicenses: () -> Unit = {},
+    onOpenPrivacy: () -> Unit = {},
     donationUrl: String = DONATION_URL,
     onOpenGuide: () -> Unit = {},
+    language: AppLanguage = AppLanguage.SYSTEM,
+    onLanguageChange: (AppLanguage) -> Unit = {},
 ) {
+    var languageDialog by remember { mutableStateOf(false) }
     val reader = settings.readerSettings()
     val uriHandler = LocalUriHandler.current
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_settings)) }, navigationIcon = { BackButton(onBack) }) },
     ) { padding ->
+        if (languageDialog) {
+            LanguageDialog(language, onSelect = { languageDialog = false; if (it != language) onLanguageChange(it) }, onDismiss = { languageDialog = false })
+        }
         Column(Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
             SectionTitle(R.string.settings_appearance)
             Column(Modifier.padding(horizontal = 16.dp)) {
@@ -101,6 +125,10 @@ fun SettingsContent(
                         )
                     }
                 }
+            }
+            Column(Modifier.fillMaxWidth().clickable { languageDialog = true }.padding(horizontal = 16.dp, vertical = 12.dp).testTag("language")) {
+                Text(stringResource(R.string.settings_language), style = MaterialTheme.typography.bodyLarge)
+                Text(language.nativeName ?: stringResource(R.string.language_system_default), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 SwitchRow(R.string.settings_dynamic_color, R.string.settings_dynamic_color_hint, settings.dynamicColor, "dynamic_color") { v -> onUpdate { it.copy(dynamicColor = v) } }
@@ -164,12 +192,38 @@ fun SettingsContent(
                     Text(stringResource(R.string.settings_donate_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            LinkRow(R.string.settings_privacy, PRIVACY_POLICY_URL) { uriHandler.openUri(PRIVACY_POLICY_URL) }
+            Column(Modifier.fillMaxWidth().clickable(onClick = onOpenPrivacy).padding(horizontal = 16.dp, vertical = 12.dp).testTag("privacy_policy")) {
+                Text(stringResource(R.string.settings_privacy), style = MaterialTheme.typography.bodyLarge)
+            }
             Column(Modifier.fillMaxWidth().clickable(onClick = onOpenLicenses).padding(horizontal = 16.dp, vertical = 12.dp).testTag("third_party_licenses")) {
                 Text(stringResource(R.string.settings_third_party_licenses), style = MaterialTheme.typography.bodyLarge)
             }
         }
     }
+}
+
+/** Radio list with "System default" and every language in its own name. */
+@Composable
+private fun LanguageDialog(selected: AppLanguage, onSelect: (AppLanguage) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_language)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()).selectableGroup()) {
+                for (option in AppLanguage.entries) {
+                    Row(
+                        Modifier.fillMaxWidth().selectable(selected = option == selected, role = Role.RadioButton, onClick = { onSelect(option) })
+                            .padding(vertical = 4.dp).testTag("language_${option.tag.ifEmpty { "system" }}"),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = option == selected, onClick = null)
+                        Text(option.nativeName ?: stringResource(R.string.language_system_default), Modifier.padding(start = 12.dp), style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }
 
 @Composable
@@ -194,14 +248,6 @@ private fun SwitchRow(title: Int, hint: Int, checked: Boolean, tag: String, onCh
     }
 }
 
-@Composable
-private fun LinkRow(title: Int, url: String, onClick: () -> Unit) {
-    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Text(stringResource(title), style = MaterialTheme.typography.bodyLarge)
-        Text(url, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
-    }
-}
-
 /** Notices of the bundled third-party components (assets/third_party_licenses.txt). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -218,5 +264,95 @@ fun LicensesScreen(onBack: () -> Unit) {
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(16.dp).testTag("licenses_text"),
         )
+    }
+}
+
+/**
+ * Asset file of the privacy policy for a language: German, English, Spanish, French, Japanese, Arabic and Turkish have
+ * their own text, Dari only for Persian with region AF (plain "fa" is Iranian Persian), everything else gets English.
+ */
+internal fun privacyAssetFor(language: String, country: String = ""): String {
+    val lang = language.lowercase()
+    return when {
+        lang in setOf("de", "es", "ja", "fr", "ar", "tr") -> "privacy/$lang.md"
+        lang == "fa" && country.equals("AF", ignoreCase = true) -> "privacy/fa-AF.md"
+        else -> "privacy/en.md"
+    }
+}
+
+/** Privacy policy (docs/privacy, bundled as assets/privacy/<language>.md) in the app language. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PrivacyScreen(onBack: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    val language = locale.language
+    val text = remember(language, locale.country) {
+        runCatching { context.assets.open(privacyAssetFor(language, locale.country)).bufferedReader().use { it.readText() } }
+            .recoverCatching { context.assets.open(privacyAssetFor("en")).bufferedReader().use { it.readText() } }
+            .getOrDefault("")
+    }
+    Scaffold(
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.settings_privacy)) }, navigationIcon = { BackButton(onBack) }) },
+    ) { padding ->
+        Column(Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(16.dp).testTag("privacy_text")) {
+            for (block in markdownBlocks(text)) {
+                val style = when (block.level) {
+                    1 -> MaterialTheme.typography.titleLarge
+                    2 -> MaterialTheme.typography.titleMedium
+                    3 -> MaterialTheme.typography.titleSmall
+                    else -> MaterialTheme.typography.bodyMedium
+                }
+                val top = if (block.level > 0) 16.dp else 4.dp
+                Text(inlineMarkdown(block.text), style = style, modifier = Modifier.padding(top = top, start = if (block.bullet) 8.dp else 0.dp))
+            }
+        }
+    }
+}
+
+internal data class MarkdownBlock(val text: String, val level: Int = 0, val bullet: Boolean = false)
+
+private val HEADING = Regex("""^(#{1,6})\s+(.*)$""")
+private val BULLET = Regex("""^\s*[-*]\s+""")
+private val LINK = Regex("""\[([^\]]+)]\(([^)]+)\)""")
+
+/** Minimal Markdown for the bundled texts: headings (level 1-3), bullet items and paragraphs (joined lines). */
+internal fun markdownBlocks(markdown: String): List<MarkdownBlock> {
+    val out = mutableListOf<MarkdownBlock>()
+    val paragraph = StringBuilder()
+    fun flush() {
+        if (paragraph.isNotBlank()) out += MarkdownBlock(paragraph.toString().trim())
+        paragraph.clear()
+    }
+    for (raw in markdown.lines()) {
+        val line = raw.trimEnd()
+        val heading = HEADING.find(line)
+        when {
+            line.isBlank() -> flush()
+            heading != null -> {
+                flush()
+                out += MarkdownBlock(heading.groupValues[2], level = minOf(heading.groupValues[1].length, 3))
+            }
+            BULLET.containsMatchIn(line) -> {
+                flush()
+                out += MarkdownBlock("• " + line.replace(BULLET, ""), bullet = true)
+            }
+            else -> {
+                if (paragraph.isNotEmpty()) paragraph.append(' ')
+                paragraph.append(line.trim())
+            }
+        }
+    }
+    flush()
+    return out
+}
+
+/** **bold** becomes bold; [text](url) becomes "text (url)". */
+internal fun inlineMarkdown(text: String): AnnotatedString {
+    val linked = text.replace(LINK) { m -> if (m.groupValues[1] == m.groupValues[2]) m.groupValues[1] else "${m.groupValues[1]} (${m.groupValues[2]})" }
+    return buildAnnotatedString {
+        linked.split("**").forEachIndexed { i, part ->
+            if (i % 2 == 1) withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(part) } else append(part)
+        }
     }
 }
