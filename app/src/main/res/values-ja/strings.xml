@@ -374,4 +374,11 @@
     <string name="guide_move_body">• Nextcloud の本は詳細画面からオフライン保存できます。\n\n• 本の詳細 → ⋮：本を別のアカウントにコピーまたは移動（例：スマートフォンのフォルダーから Nextcloud へ）。\n\n• 読書の進捗とハイライトも引き継がれます。</string>
     <string name="settings_guide">使い方ガイド</string>
     <string name="settings_guide_hint">ライブラリの設定、読書、本の移動</string>
+    <string name="book_delete">本を削除</string>
+    <string name="book_delete_action">削除</string>
+    <string name="book_delete_confirm">「%1$s」を削除しますか？ファイルはこの端末のフォルダーから削除されます。読書の進捗とハイライトは失われます。</string>
+    <string name="book_deleted">「%1$s」を削除しました</string>
+    <string name="book_delete_failed">本を削除できませんでした。</string>
+    <string name="transfer_error_space">この端末の空き容量が不足しています。本には %1$s が必要ですが、空きは %2$s です（さらに 50 MB の予備が必要です）。</string>
+    <string name="transfer_error_space_unknown">この端末の空き容量が不足しています。</string>
 </resources>

@@ -131,7 +131,7 @@ data class TransferUiState(
 
 sealed interface TransferEvent {
     data class Done(val targetName: String, val move: Boolean, val stateCopied: Boolean) : TransferEvent
-    data class Failed(val reason: TransferException.Reason) : TransferEvent
+    data class Failed(val reason: TransferException.Reason, val needed: Long? = null, val free: Long? = null) : TransferEvent
 }
 
 class BookDetailViewModel(
@@ -142,6 +142,7 @@ class BookDetailViewModel(
     private val shelves: ShelfRepository? = null,
     accounts: Flow<List<Account>> = flowOf(emptyList()),
     private val bookTransfer: BookTransfer? = null,
+    private val deleteLocalBook: (suspend (BookKey) -> Unit)? = null,
 ) : ViewModel() {
 
     private val transfer = MutableStateFlow<TransferUiState?>(null)
@@ -227,13 +228,35 @@ class BookDetailViewModel(
                     val result = t.transfer(key, target.id, ui.folder, ui.move)
                     TransferEvent.Done(target.displayName?.takeIf { it.isNotBlank() } ?: target.loginName, ui.move, result.stateCopied)
                 } catch (e: TransferException) {
-                    TransferEvent.Failed(e.reason)
+                    TransferEvent.Failed(e.reason, e.needed, e.free)
                 } catch (e: Exception) {
                     TransferEvent.Failed(TransferException.Reason.TARGET_FAILED)
                 }
             }
             transfer.value = null
             transferChannel.send(event)
+        }
+    }
+
+    private val deleteChannel = Channel<Boolean>(Channel.BUFFERED)
+
+    /** Result of [deleteBook]: true = deleted (the screen closes), false = failed. */
+    val deleteEvents: Flow<Boolean> = deleteChannel.receiveAsFlow()
+
+    /** Deletes the file of a book in a local library (the folder on the device) and forgets the book. */
+    fun deleteBook() {
+        val delete = deleteLocalBook ?: return
+        if (state.value.book?.local != true) return
+        viewModelScope.launch {
+            val ok = withContext(NonCancellable) {
+                try {
+                    delete(key)
+                    true
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            deleteChannel.send(ok)
         }
     }
 
