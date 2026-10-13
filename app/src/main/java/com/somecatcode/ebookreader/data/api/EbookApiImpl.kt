@@ -337,6 +337,15 @@ class EbookApiImpl(
             }
         }
 
+    override suspend fun fileSize(userId: String, path: String): Long? =
+        execute(Request.Builder().url(davFileUrl(userId, path)).head().build()).use { r ->
+            when {
+                r.isSuccessful -> r.header("Content-Length")?.toLongOrNull()
+                r.code == 404 -> null
+                else -> throw mapHttpError(r.code, r.header("Retry-After"), "")
+            }
+        }
+
     override suspend fun uploadFile(userId: String, path: String, length: Long, contentType: String, content: () -> java.io.InputStream): Long? {
         val body = object : RequestBody() {
             override fun contentType() = contentType.toMediaType()
