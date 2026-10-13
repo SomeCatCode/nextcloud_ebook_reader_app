@@ -62,6 +62,24 @@ class DaoAndLibraryTest : DbTest() {
     }
 
     @Test
+    fun continueReadingShowsOnlyStartedBooksInProgress() = runBlocking {
+        val repo = LibraryRepositoryImpl(db)
+        db.bookDao().upsertAll(
+            listOf(
+                book(1, title = "Reading", readStatus = "reading"),
+                book(2, title = "Unread with progress", readStatus = "unread"),
+                book(3, title = "Finished", readStatus = "finished"),
+                book(4, title = "Reading at zero", readStatus = "reading"),
+                book(5, title = "Reading without progress", readStatus = "reading"),
+            ),
+        )
+        db.progressDao().upsertAll(
+            listOf(progress(1, at = 50), progress(2, at = 60), progress(3, at = 70), progress(4, at = 80).copy(percentage = 0.0)),
+        )
+        assertEquals(listOf("Reading"), repo.continueReading(listOf("acc1")).first().map { it.title })
+    }
+
+    @Test
     fun replaceTagsIsAtomicReplacement() = runBlocking {
         db.bookDao().upsertAll(listOf(book(1)))
         db.bookTagDao().replaceForBook("acc1", 1, listOf(BookTagEntity("acc1", 1, "genre", "A"), BookTagEntity("acc1", 1, "tag", "x")))
@@ -74,7 +92,7 @@ class DaoAndLibraryTest : DbTest() {
         val repo = LibraryRepositoryImpl(db)
         db.bookDao().upsertAll(
             listOf(
-                book(1, title = "Zeta", series = "Saga", seriesIndex = 2.0),
+                book(1, title = "Zeta", series = "Saga", seriesIndex = 2.0, readStatus = "reading"),
                 book(2, title = "alpha", series = "Saga", seriesIndex = 1.0),
                 book(3, title = "Mid", readStatus = "finished"),
             ),
