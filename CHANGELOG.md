@@ -5,6 +5,12 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Geändert
+- Einstellungen: Der Eintrag „Datenschutzerklärung“ zeigt nur noch den Titel und öffnet die Erklärung direkt in der App (wie „Lizenzen von Drittanbietern“), in der App-Sprache (Deutsch, Englisch, Spanisch, Japanisch; sonst Englisch). Quelle sind die Texte unter `docs/privacy/`, der Build kopiert sie in die App.
+
+### Behoben
+- „Weiterlesen“ zeigt nur noch begonnene Bücher mit dem Lesestatus „Wird gelesen“ und einem Fortschritt über 0 %; Bücher mit „Ungelesen“ erscheinen dort nicht mehr (wie in der Web-App).
+
 ## 0.4.0 – 2026-10-12
 
 ### Hinzugefügt

@@ -393,10 +393,11 @@ class ScreenTests {
         val c = container()
         var donation by mutableStateOf("")
         var licenses = 0
+        var privacy = 0
         show(c) {
             SettingsContent(
                 com.somecatcode.ebookreader.data.repo.AppSettings(), onBack = {}, onUpdate = {}, onUpdateReader = {},
-                onOpenLicenses = { licenses++ }, donationUrl = donation,
+                onOpenLicenses = { licenses++ }, onOpenPrivacy = { privacy++ }, donationUrl = donation,
             )
         }
         compose.onAllNodesWithTag("donate").assertCountEquals(0)
@@ -404,6 +405,8 @@ class ScreenTests {
         compose.onNodeWithTag("donate").performScrollTo().assertIsDisplayed()
         compose.onNodeWithTag("third_party_licenses").performScrollTo().performClick()
         assertEquals(1, licenses)
+        compose.onNodeWithTag("privacy_policy").performScrollTo().performClick()
+        assertEquals(1, privacy)
     }
 
     @Test

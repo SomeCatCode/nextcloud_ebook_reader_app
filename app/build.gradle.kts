@@ -86,6 +86,8 @@ android {
     // Room schema export (migration tests read the JSON files from here).
     sourceSets {
         getByName("test").assets.directories.add("$projectDir/schemas")
+        // privacy policy texts (docs/privacy) shown in the app, see copyPrivacyPolicy
+        getByName("main").assets.directories.add(layout.buildDirectory.dir("generated/privacyAssets").get().asFile.path)
     }
 }
 
@@ -130,7 +132,17 @@ val buildReaderWeb = tasks.register<Exec>("buildReaderWeb") {
     outputs.dir(readerAssetsDir)
 }
 
-tasks.named("preBuild") { dependsOn(buildReaderWeb) }
+// ---- privacy policy: docs/privacy/*.md -> assets/privacy/<language>.md (one source for repo and app) ----
+val copyPrivacyPolicy = tasks.register<Copy>("copyPrivacyPolicy") {
+    val docs = rootProject.layout.projectDirectory.dir("docs/privacy")
+    from(docs.file("datenschutz.md")) { rename { "de.md" } }
+    from(docs.file("privacy-policy.md")) { rename { "en.md" } }
+    from(docs.file("politica-de-privacidad.md")) { rename { "es.md" } }
+    from(docs.file("privacy-policy-ja.md")) { rename { "ja.md" } }
+    into(layout.buildDirectory.dir("generated/privacyAssets/privacy"))
+}
+
+tasks.named("preBuild") { dependsOn(buildReaderWeb, copyPrivacyPolicy) }
 
 dependencies {
     implementation(libs.androidx.core.ktx)
