@@ -62,7 +62,7 @@ class DaoAndLibraryTest : DbTest() {
     }
 
     @Test
-    fun continueReadingShowsOnlyStartedBooksInProgress() = runBlocking {
+    fun continueReadingShowsTheBooksWithStatusReading() = runBlocking {
         val repo = LibraryRepositoryImpl(db)
         db.bookDao().upsertAll(
             listOf(
@@ -76,7 +76,11 @@ class DaoAndLibraryTest : DbTest() {
         db.progressDao().upsertAll(
             listOf(progress(1, at = 50), progress(2, at = 60), progress(3, at = 70), progress(4, at = 80).copy(percentage = 0.0)),
         )
-        assertEquals(listOf("Reading"), repo.continueReading(listOf("acc1")).first().map { it.title })
+        assertEquals(
+            "status decides, as in the web app: reading books with and without progress, never unread or finished ones",
+            setOf("Reading", "Reading at zero", "Reading without progress"),
+            repo.continueReading(listOf("acc1")).first().map { it.title }.toSet(),
+        )
     }
 
     @Test

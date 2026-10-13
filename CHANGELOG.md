@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Behoben
+- „Weiterlesen“ zeigt jetzt alle Bücher mit dem Lesestatus „Wird gelesen“ (zuletzt gelesene zuerst), auch ohne Lesefortschritt – dieselbe Auswahl wie der Statusfilter und die Web-App ab Server 0.11.1.
+
 ## 0.5.0 – 2026-10-13
 
 ### Hinzugefügt
