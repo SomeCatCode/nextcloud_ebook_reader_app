@@ -4,8 +4,7 @@ Stand: 12. Oktober 2026
 
 ## 1. Verantwortlicher
 
-[NAME]
-[ANSCHRIFT]
+Felix Kurth
 E-Mail: it@wasmitleder.de
 
 ## 2. Kurzfassung
