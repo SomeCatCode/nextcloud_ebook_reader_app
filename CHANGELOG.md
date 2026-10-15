@@ -7,6 +7,7 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ### Behoben
 - „Weiterlesen“ zeigt jetzt alle Bücher mit dem Lesestatus „Wird gelesen“ (zuletzt gelesene zuerst), auch ohne Lesefortschritt – dieselbe Auswahl wie der Statusfilter und die Web-App ab Server 0.11.1.
+- Randlose Anzeige (Android 15): Im Querformat verdeckt eine seitliche Kameraaussparung keine Inhalte mehr. Die Themes setzen die ab Android 15 veralteten Attribute `android:statusBarColor` und `android:navigationBarColor` nicht mehr; `enableEdgeToEdge()` macht die Leisten transparent.
 
 ## 0.5.0 – 2026-10-13
 
