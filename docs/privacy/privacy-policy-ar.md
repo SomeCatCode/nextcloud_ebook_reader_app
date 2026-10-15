@@ -4,8 +4,7 @@
 
 ## 1. الجهة المسؤولة
 
-[NAME]
-[ADDRESS]
+Felix Kurth
 البريد الإلكتروني: it@wasmitleder.de
 
 ## 2. ملخص

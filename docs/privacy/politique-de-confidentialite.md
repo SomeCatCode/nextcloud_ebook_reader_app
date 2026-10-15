@@ -4,8 +4,7 @@ Dernière mise à jour : 12 octobre 2026
 
 ## 1. Responsable du traitement
 
-[NAME]
-[ADDRESS]
+Felix Kurth
 E-mail : it@wasmitleder.de
 
 ## 2. Résumé

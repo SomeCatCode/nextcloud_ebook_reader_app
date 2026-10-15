@@ -4,8 +4,7 @@ Son güncelleme: 12 Ekim 2026
 
 ## 1. Veri sorumlusu
 
-[NAME]
-[ADDRESS]
+Felix Kurth
 E-posta: it@wasmitleder.de
 
 ## 2. Özet

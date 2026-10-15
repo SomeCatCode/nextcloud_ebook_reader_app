@@ -4,8 +4,7 @@
 
 ## 1. Responsable
 
-[NOMBRE]
-[DIRECCIÓN]
+Felix Kurth
 Correo electrónico: it@wasmitleder.de
 
 ## 2. Resumen

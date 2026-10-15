@@ -4,8 +4,7 @@
 
 ## 1. 管理者
 
-[氏名]
-[住所]
+Felix Kurth
 メール：it@wasmitleder.de
 
 ## 2. 概要
