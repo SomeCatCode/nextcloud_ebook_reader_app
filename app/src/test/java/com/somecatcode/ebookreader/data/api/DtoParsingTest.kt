@@ -21,6 +21,25 @@ class DtoParsingTest {
     """.trimIndent()
 
     @Test
+    fun parsesLongstripFieldsAndFacetLayouts() {
+        val strip = ApiJson.decodeFromString(
+            BookDto.serializer(),
+            """{"fileId":1,"format":"cbz","path":"/a.cbz","size":1,"longstrip":true,"longstripManual":true}""",
+        )
+        assertTrue(strip.longstrip)
+        assertTrue(strip.longstripManual)
+        val old = ApiJson.decodeFromString(BookDto.serializer(), """{"fileId":2,"format":"cbz","path":"/b.cbz","size":1}""")
+        assertEquals(false, old.longstrip)
+        assertEquals(false, old.longstripManual)
+        val facets = ApiJson.decodeFromString(
+            com.somecatcode.ebookreader.data.api.FacetsDto.serializer(),
+            """{"genres":[],"layouts":[{"name":"longstrip","count":3}]}""",
+        )
+        assertEquals(3, facets.layouts.single().count)
+        assertTrue(ApiJson.decodeFromString(com.somecatcode.ebookreader.data.api.FacetsDto.serializer(), "{}").layouts.isEmpty())
+    }
+
+    @Test
     fun parsesSharingFieldsAndCapabilityFeatures() {
         val book = ApiJson.decodeFromString(
             BookDto.serializer(),

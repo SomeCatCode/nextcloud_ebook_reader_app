@@ -383,4 +383,15 @@
     <string name="book_delete_failed">Das Buch konnte nicht gelöscht werden.</string>
     <string name="transfer_error_space">Nicht genug Speicherplatz auf diesem Gerät: Das Buch braucht %1$s, frei sind %2$s (dazu eine Reserve von 50 MB).</string>
     <string name="transfer_error_space_unknown">Nicht genug Speicherplatz auf diesem Gerät.</string>
+    <string name="action_close">Schließen</string>
+    <string name="longstrip_badge">Langer Streifen (Webtoon)</string>
+    <string name="layout_longstrip">Langer Streifen (Webtoon)</string>
+    <string name="filter_section_layouts">Layout</string>
+    <string name="reader_longstrip">Langer Streifen (Webtoon)</string>
+    <string name="reader_longstrip_hint">Zeigt alle Seiten als nahtlosen, senkrechten Scroll.</string>
+    <string name="reader_longstrip_auto">Automatisch erkennen</string>
+    <string name="read_next_finished_title">Fertig gelesen</string>
+    <string name="read_next_continue">Weiterlesen: %1$s</string>
+    <string name="read_next_similar">Ähnliche Titel</string>
+    <string name="book_read_next">Das kommt als Nächstes</string>
 </resources>

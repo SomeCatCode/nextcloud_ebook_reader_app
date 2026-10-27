@@ -58,7 +58,16 @@ data class LibraryBook(
     val sharedOut: Boolean = false,
     /** Book of a local library (a file on the device, always readable offline). */
     val local: Boolean = false,
-)
+    /** Long strip comic (webtoon): the reader shows one seamless vertical scroll. */
+    val longstrip: Boolean = false,
+    /** The long strip flag was set by hand (not recognised from the file). */
+    val longstripManual: Boolean = false,
+    /** Volume number for the reading order: [seriesIndex], else parsed from title or file name (books of a series only). */
+    override val volumeNumber: Double? = seriesIndex,
+) : Volume {
+    override val volumeTitle: String get() = title
+    override val volumeKey: Long get() = key.fileId
+}
 
 /** Offline state of a book file. */
 data class OfflineState(val state: DownloadState?, val bytes: Long = 0, val total: Long = 0, val pinnedBy: PinnedBy? = null) {
@@ -98,6 +107,8 @@ data class LibraryFacets(
     val authors: List<FacetCount> = emptyList(),
     val series: List<FacetCount> = emptyList(),
     val formats: List<FacetCount> = emptyList(),
+    /** Layouts (`longstrip`), only entries with at least one book. */
+    val layouts: List<FacetCount> = emptyList(),
     /** Books lacking a field, keyed by [MissingFields] (only fields with at least one book). */
     val missing: Map<String, Int> = emptyMap(),
 )
@@ -107,7 +118,7 @@ val MissingFields = listOf("genre", "tag", "author", "series", "description", "c
 
 /**
  * Library filter, same semantics as the web app and the server `GET /books`: [include] and [exclude] hold
- * `type:name` terms (`genre`, `tag`, `author`, `series`, `format`, `shelf:<id>`, `missing:<field>`; a genre or tag term ending in slash-star
+ * `type:name` terms (`genre`, `tag`, `author`, `series`, `format`, `layout:longstrip`, `shelf:<id>`, `missing:<field>`; a genre or tag term ending in slash-star
  * also matches everything below that prefix). Includes must all match ([matchAny] = at least one), a book
  * with any excluded term is dropped. [hideFinished] leaves out finished books unless a [status] is set.
  */

@@ -2,6 +2,7 @@ package com.somecatcode.ebookreader.data.local
 
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -159,5 +160,30 @@ class BookMetadataReaderTest {
         assertEquals(id, localFileId("primary:Books/a.epub"))
         assertTrue(id in 1..0x1F_FFFF_FFFF_FFFFL)
         assertTrue(id != localFileId("primary:Books/b.epub"))
+    }
+
+    private fun comicInfo(inner: String) = """<?xml version="1.0"?><ComicInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">$inner</ComicInfo>""".toByteArray()
+
+    @Test
+    fun cbzComicInfoMarksLongStrips() {
+        val page = byteArrayOf(1)
+        fun strip(inner: String) = read("cbz", "a.cbz", zip("001.jpg" to page, "ComicInfo.xml" to comicInfo(inner))).longstrip
+        assertTrue(strip("<Format>Webtoon</Format>"))
+        assertTrue(strip("<Format>Digital Long Strip</Format>"))
+        assertTrue(strip("<Format>vertical scroll</Format>"))
+        assertTrue(strip("<Tags>action, Web Toon</Tags>"))
+        assertTrue(strip("<Genre>Fantasy;LONG STRIP</Genre>"))
+        // tags and genres must match exactly
+        assertFalse(strip("<Tags>vertical slice of life</Tags>"))
+        assertFalse(strip("<Format>Trade Paperback</Format><Genre>Action</Genre>"))
+        assertFalse(read("cbz", "a.cbz", zip("001.jpg" to page)).longstrip)
+        assertFalse(read("cbz", "a.cbz", zip("001.jpg" to page, "ComicInfo.xml" to "<broken".toByteArray())).longstrip)
+        // the cover is still found
+        assertArrayEquals(page, read("cbz", "a.cbz", zip("001.jpg" to page, "ComicInfo.xml" to comicInfo("<Format>Webtoon</Format>"))).cover)
+    }
+
+    @Test
+    fun otherFormatsAreNeverLongStripsByFile() {
+        assertFalse(read("epub", "a.epub", zip("x" to byteArrayOf(1))).longstrip)
     }
 }

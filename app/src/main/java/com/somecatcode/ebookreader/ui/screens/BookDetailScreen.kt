@@ -92,6 +92,10 @@ fun BookDetailScreen(
     onRead: () -> Unit,
     showBack: Boolean = true,
     onFilter: ((String) -> Unit)? = null,
+    /** "Weiterlesen" of the suggestions of a finished book. */
+    onReadBook: (BookKey) -> Unit = {},
+    /** A similar title: opens its details. */
+    onOpenBook: (BookKey) -> Unit = {},
 ) {
     val key = BookKey(accountId, fileId)
     val vm = containerViewModel(key = "book/$accountId/$fileId") { c ->
@@ -163,6 +167,10 @@ fun BookDetailScreen(
         onFilter = onFilter,
         onSaveShelves = vm::saveShelves,
         onDelete = vm::deleteBook,
+        onLongstrip = vm::setLongstrip,
+        onLongstripAuto = vm::resetLongstrip,
+        onReadBook = onReadBook,
+        onOpenBook = onOpenBook,
         transferActions = TransferActions(
             onStart = vm::startTransfer,
             onTarget = vm::selectTarget,
@@ -209,6 +217,10 @@ fun BookDetailContent(
     onSaveShelves: (Set<Long>, String?) -> Unit = { _, _ -> },
     transferActions: TransferActions = TransferActions(),
     onDelete: (() -> Unit)? = null,
+    onLongstrip: (Boolean) -> Unit = {},
+    onLongstripAuto: () -> Unit = {},
+    onReadBook: (BookKey) -> Unit = {},
+    onOpenBook: (BookKey) -> Unit = {},
 ) {
     val book = state.book
     var shelfDialog by remember { mutableStateOf(false) }
@@ -365,6 +377,32 @@ fun BookDetailContent(
                 }
             }
 
+            if (state.longstripAvailable && book.format.lowercase() in COMIC_FORMATS) {
+                Column {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.reader_longstrip), style = MaterialTheme.typography.labelLarge)
+                            Text(
+                                stringResource(R.string.reader_longstrip_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(checked = book.longstrip, onCheckedChange = onLongstrip, modifier = Modifier.testTag("longstrip_switch"))
+                    }
+                    if (book.longstripManual) {
+                        TextButton(onClick = onLongstripAuto, modifier = Modifier.testTag("longstrip_auto")) {
+                            Text(stringResource(R.string.reader_longstrip_auto))
+                        }
+                    }
+                }
+            }
+            state.suggestions?.takeIf { !it.isEmpty }?.let { suggestions ->
+                Column(Modifier.testTag("book_read_next_section")) {
+                    Text(stringResource(R.string.book_read_next), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = 8.dp))
+                    ReadNextBlock(suggestions, onReadBook, onOpenBook)
+                }
+            }
             if (book.genres.isNotEmpty()) ChipSection(stringResource(R.string.book_genres), book.genres, onFilter?.let { f -> { f("genre:$it") } })
             if (book.tags.isNotEmpty()) ChipSection(stringResource(R.string.book_tags), book.tags, onFilter?.let { f -> { f("tag:$it") } })
             // shelves are server objects: local libraries have none
@@ -418,6 +456,8 @@ fun BookDetailContent(
         EditBookDialog(form, state.editError, state.genreSuggestions, state.tagSuggestions, onFormChange, onSaveEdit, onCancelEdit)
     }
 }
+
+private val COMIC_FORMATS = setOf("cbz", "cbr", "cb7", "cbt")
 
 @Composable
 private fun OfflineRow(book: LibraryBook, onToggle: (Boolean) -> Unit, onRetry: () -> Unit) {

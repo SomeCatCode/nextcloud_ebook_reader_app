@@ -96,6 +96,8 @@ fun AppNavHost(modifier: Modifier = Modifier, showGuideOnFirstStart: Boolean = t
                 onBack = { nav.popBackStack() },
                 onRead = { nav.navigate(Routes.reader(accountId, fileId)) },
                 onFilter = { term -> nav.toLibrary(LibraryCommand.only(term)) },
+                onReadBook = { other -> nav.navigate(Routes.reader(other.accountId, other.fileId)) },
+                onOpenBook = { other -> nav.navigate(Routes.bookDetail(other.accountId, other.fileId)) },
             )
         }
         composable(
@@ -134,6 +136,9 @@ fun AppNavHost(modifier: Modifier = Modifier, showGuideOnFirstStart: Boolean = t
                 accountId = entry.arguments?.getString(Routes.ARG_ACCOUNT_ID).orEmpty(),
                 fileId = entry.arguments?.getLong(Routes.ARG_FILE_ID) ?: 0L,
                 onBack = { nav.popBackStack() },
+                // the next volume replaces this reader: back leads to the screen that opened the finished book
+                onReadNext = { next -> nav.navigate(Routes.reader(next.accountId, next.fileId)) { popUpTo(Routes.READER) { inclusive = true } } },
+                onOpenBook = { other -> nav.navigate(Routes.bookDetail(other.accountId, other.fileId)) },
             )
         }
         composable(

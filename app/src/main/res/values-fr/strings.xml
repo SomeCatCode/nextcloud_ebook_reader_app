@@ -385,4 +385,15 @@
     <string name="book_delete_failed">Impossible de supprimer le livre.</string>
     <string name="transfer_error_space">Espace de stockage insuffisant sur cet appareil : le livre nécessite %1$s, %2$s sont libres (plus une réserve de 50 Mo).</string>
     <string name="transfer_error_space_unknown">Espace de stockage insuffisant sur cet appareil.</string>
+    <string name="action_close">Fermer</string>
+    <string name="longstrip_badge">Bande verticale (webtoon)</string>
+    <string name="layout_longstrip">Bande verticale (webtoon)</string>
+    <string name="filter_section_layouts">Mise en page</string>
+    <string name="reader_longstrip">Bande verticale (webtoon)</string>
+    <string name="reader_longstrip_hint">Affiche toutes les pages en un défilement vertical continu.</string>
+    <string name="reader_longstrip_auto">Détecter automatiquement</string>
+    <string name="read_next_finished_title">Lecture terminée</string>
+    <string name="read_next_continue">Continuer : %1$s</string>
+    <string name="read_next_similar">Titres similaires</string>
+    <string name="book_read_next">À lire ensuite</string>
 </resources>

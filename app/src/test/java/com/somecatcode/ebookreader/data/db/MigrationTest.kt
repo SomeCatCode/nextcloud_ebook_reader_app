@@ -73,8 +73,46 @@ class MigrationTest {
             runBlocking {
                 val account = room.accountDao().get("acc1")!!
                 assertEquals(AccountKind.NEXTCLOUD, account.kind)
-                assertEquals("b:5", account.lastSyncCursor)
+                assertNull("version 5 resets the cursor of Nextcloud accounts", account.lastSyncCursor)
                 assertNull(room.bookDao().get("acc1", 7)!!.localUri)
+            }
+        } finally {
+            room.close()
+            context.deleteDatabase(dbName)
+        }
+    }
+
+    @Test
+    fun migrate4To5AddsLongstripColumnsKeepsBooksAndResetsOnlyNextcloudCursors() {
+        createFromSchema(4) { db ->
+            db.execSQL(
+                "INSERT INTO account (id, serverUrl, loginName, userId, displayName, serverVersion, appVersion, lastSyncCursor, lastSyncAt, createdAt, kind) " +
+                    "VALUES ('acc1', 'https://cloud.example.org', 'alice', 'alice', 'Alice', '31', '0.11.1', 'b:5', 1000, 1, 'nextcloud')",
+            )
+            db.execSQL(
+                "INSERT INTO account (id, serverUrl, loginName, userId, displayName, serverVersion, appVersion, lastSyncCursor, lastSyncAt, createdAt, kind) " +
+                    "VALUES ('loc', 'content://tree', '', '', 'Folder', NULL, NULL, NULL, 1000, 1, 'local')",
+            )
+            db.execSQL(
+                "INSERT INTO book (accountId, fileId, format, path, size, title, authors, readStatus, hasCover, mtime, addedAt, updatedAt, " +
+                    "editable, downloadable, overrides, hasSidecar, deleted, shared, sharedOut) " +
+                    "VALUES ('acc1', 7, 'cbz', '/Comics/a.cbz', 10, 'A', '[]', 'unread', 0, 1, 2, 3, 1, 1, '[]', 0, 0, 0, 0)",
+            )
+        }
+        val room = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
+            .addMigrations(*ALL_MIGRATIONS)
+            .allowMainThreadQueries()
+            .build()
+        try {
+            runBlocking {
+                assertNull("the next sync must be a full one so the long strip flags get filled", room.accountDao().get("acc1")!!.lastSyncCursor)
+                val book = room.bookDao().get("acc1", 7)!!
+                assertEquals("/Comics/a.cbz", book.path)
+                assertEquals(false, book.longstrip)
+                assertEquals(false, book.longstripManual)
+                assertEquals(false, book.longstripFile)
+                room.bookDao().upsertAll(listOf(book.copy(longstrip = true, longstripManual = true)))
+                assertEquals(true, room.bookDao().get("acc1", 7)!!.longstripManual)
             }
         } finally {
             room.close()

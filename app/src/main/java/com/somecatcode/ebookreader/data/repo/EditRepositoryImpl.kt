@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.data.repo
 
+import com.somecatcode.ebookreader.data.ServerFeature
 import com.somecatcode.ebookreader.data.db.isLocalAccount
 import androidx.room.withTransaction
 import com.somecatcode.ebookreader.data.api.ApiClientFactory
@@ -26,6 +27,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
@@ -72,13 +74,22 @@ class EditRepositoryImpl(
         val fields = LinkedHashMap<String, JsonElement>()
         if (patch.setRating) fields["rating"] = patch.rating?.let { JsonPrimitive(it.coerceIn(0, 5)) } ?: JsonNull
         patch.readStatus?.let { fields["readStatus"] = JsonPrimitive(it.wire()) }
-        if (fields.isEmpty()) return
         val local = db.isLocalAccount(key.accountId)
+        // Servers before 0.12.0 know no long strip fields: the flag is not stored (a sync would reset it) and never sent.
+        val longstripKnown = local || ServerFeature.LONGSTRIP.availableOn(db.accountDao().get(key.accountId)?.appVersion)
+        val resetLongstrip = patch.resetLongstrip && longstripKnown
+        val setLongstrip = patch.longstrip.takeIf { longstripKnown && !resetLongstrip }
+        if (resetLongstrip) fields["resetLongstrip"] = JsonPrimitive(true)
+        setLongstrip?.let { fields["longstrip"] = JsonPrimitive(it) }
+        if (fields.isEmpty()) return
         db.withTransaction {
             val book = db.bookDao().get(key.accountId, key.fileId) ?: return@withTransaction
             val rating = if (patch.setRating) patch.rating?.coerceIn(0, 5) else book.rating
             val status = patch.readStatus?.wire() ?: book.readStatus
             db.bookDao().updateAppData(key.accountId, key.fileId, rating, status)
+            if (setLongstrip != null) db.bookDao().updateLongstrip(key.accountId, key.fileId, setLongstrip, manual = true)
+            // the file's value applies again: known for local libraries, a server corrects it with the next sync
+            if (resetLongstrip) db.bookDao().updateLongstrip(key.accountId, key.fileId, if (local) book.longstripFile else book.longstrip, manual = false)
             // Status and progress are coupled (like the server): finished = 100 %, unread = back to the start.
             when (patch.readStatus) {
                 ReadStatus.FINISHED -> db.progressDao().get(key.accountId, key.fileId)?.let { p ->
@@ -160,6 +171,9 @@ class EditRepositoryImpl(
         val merged = LinkedHashMap<String, JsonElement>()
         if (existing != null) merged.putAll(parseFields(existing.patch))
         merged.putAll(fields)
+        // `longstrip` and `resetLongstrip` never go together (the server answers 400): the newer one wins
+        if ("resetLongstrip" in fields) merged.remove("longstrip")
+        if ("longstrip" in fields) merged.remove("resetLongstrip")
         dao.upsert(
             PendingEditEntity(
                 id = existing?.id ?: 0,
@@ -207,6 +221,8 @@ class EditRepositoryImpl(
             setRating = hasRating,
             rating = if (ratingEl == null || ratingEl is JsonNull) null else ratingEl.intOrNull,
             readStatus = (f["readStatus"] as? JsonPrimitive)?.contentOrNull?.let { parseReadStatus(it) },
+            longstrip = (f["longstrip"] as? JsonPrimitive)?.booleanOrNull,
+            resetLongstrip = (f["resetLongstrip"] as? JsonPrimitive)?.booleanOrNull == true,
         )
     }
 

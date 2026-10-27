@@ -384,3 +384,23 @@ describe('annotations', () => {
 		expect(fr.handle.setAnnotations).toHaveBeenLastCalledWith([])
 	})
 })
+
+describe('long strip', () => {
+	it('passes the long strip layout to reader-core, reports it and leaves the gesture layer off', async () => {
+		const comic = setup(fakeReader({ info: { isComic: true, fixedLayout: true, longstrip: true } }))
+		comic.host.receive({ ...OPEN, book: { ...OPEN.book, format: 'cbz' }, settings: { comicLongstrip: true } })
+		await flush()
+		expect(comic.created[0].layout?.comicLongstrip).toBe(true)
+		expect(comic.sent[0]).toMatchObject({ type: 'opened', info: { isComic: true, longstrip: true } })
+		expect(comic.comicMode).toEqual([false, false])
+	})
+
+	it('paged comics keep the gesture layer', async () => {
+		const comic = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }))
+		comic.host.receive({ ...OPEN, book: { ...OPEN.book, format: 'cbz' } })
+		await flush()
+		expect(comic.created[0].layout?.comicLongstrip).toBe(false)
+		expect(comic.sent[0]).toMatchObject({ info: { longstrip: false } })
+		expect(comic.comicMode.at(-1)).toBe(true)
+	})
+})

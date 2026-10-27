@@ -89,6 +89,9 @@ interface BookDao {
     @Query("UPDATE book SET rating = :rating, readStatus = :readStatus WHERE accountId = :accountId AND fileId = :fileId")
     suspend fun updateAppData(accountId: String, fileId: Long, rating: Int?, readStatus: String)
 
+    @Query("UPDATE book SET longstrip = :longstrip, longstripManual = :manual WHERE accountId = :accountId AND fileId = :fileId")
+    suspend fun updateLongstrip(accountId: String, fileId: Long, longstrip: Boolean, manual: Boolean)
+
     @Query("SELECT * FROM book WHERE accountId = :accountId AND deleted = 0")
     suspend fun getAllActive(accountId: String): List<BookEntity>
 

@@ -383,4 +383,15 @@
     <string name="book_delete_failed">The book could not be deleted.</string>
     <string name="transfer_error_space">Not enough storage on this device: the book needs %1$s, %2$s are free (plus a reserve of 50 MB).</string>
     <string name="transfer_error_space_unknown">Not enough storage on this device.</string>
+    <string name="action_close">Close</string>
+    <string name="longstrip_badge">Long strip (webtoon)</string>
+    <string name="layout_longstrip">Long strip (webtoon)</string>
+    <string name="filter_section_layouts">Layout</string>
+    <string name="reader_longstrip">Long strip (webtoon)</string>
+    <string name="reader_longstrip_hint">Shows all pages as one seamless vertical scroll.</string>
+    <string name="reader_longstrip_auto">Detect automatically</string>
+    <string name="read_next_finished_title">Finished reading</string>
+    <string name="read_next_continue">Continue: %1$s</string>
+    <string name="read_next_similar">Similar titles</string>
+    <string name="book_read_next">What to read next</string>
 </resources>
