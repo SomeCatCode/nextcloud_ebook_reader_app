@@ -73,6 +73,7 @@ function toLayout(s: ReaderSettings): ReaderLayout {
 		comicSpread: s.comicSpread,
 		comicRtl: s.comicRtl,
 		comicZoom: s.comicZoom,
+		comicLongstrip: s.comicLongstrip,
 	}
 }
 
@@ -365,11 +366,13 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 					fixedLayout: info?.fixedLayout ?? false,
 					rtl: info?.rtl ?? false,
 					pageCount: info?.pageCount ?? 0,
+					longstrip: info?.longstrip ?? false,
 					supportsAnnotations: r.supportsAnnotations(),
 				},
 			})
 			deps.send({ type: 'toc', items: mapToc(r.getToc()) })
-			deps.onComicMode?.(info?.isComic ?? false)
+			// long strips scroll natively inside reader-core: no gesture layer (it would swallow the scrolling)
+			deps.onComicMode?.((info?.isComic ?? false) && !(info?.longstrip ?? false))
 			opening = false
 			applyAnnotations()
 			if (pendingRelocate) {

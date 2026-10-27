@@ -228,6 +228,8 @@ data class BookInfo(
     val fixedLayout: Boolean = false,
     val rtl: Boolean = false,
     val pageCount: Int = 0,
+    /** Comic shown as one seamless vertical scroll (long strip / webtoon). */
+    val longstrip: Boolean = false,
     /** Text selection and highlights work with this book (reflowable text, not comics or fixed layouts). */
     val supportsAnnotations: Boolean = false,
 )
@@ -262,6 +264,11 @@ data class ReaderSettings(
     @EncodeDefault val comicRtl: Boolean = false,
     /** Comics: `fit-page|fit-width` */
     @EncodeDefault val comicZoom: String = "fit-page",
+    /**
+     * Comics: long strip (seamless vertical scroll). Comes from the book flag, is set per book when the book
+     * opens and is never part of the stored reader defaults.
+     */
+    @EncodeDefault val comicLongstrip: Boolean = false,
     /** E-ink mode: no animations, high contrast, no transitions. */
     @EncodeDefault val einkMode: Boolean = false,
 )

@@ -91,7 +91,15 @@ import kotlin.math.roundToInt
 
 /** Full-screen reader: hosts W-READER's WebView through [ReaderHost], handles conflict, TOC, settings, links. */
 @Composable
-fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
+fun ReaderScreen(
+    accountId: String,
+    fileId: Long,
+    onBack: () -> Unit,
+    /** "Weiterlesen": opens the next volume in the reader (replaces this reader). */
+    onReadNext: (BookKey) -> Unit = {},
+    /** A similar title of the "Fertig gelesen" sheet: opens its details. */
+    onOpenBook: (BookKey) -> Unit = {},
+) {
     val key = BookKey(accountId, fileId)
     val context = LocalContext.current
     val container = LocalAppContainer.current
@@ -103,6 +111,7 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
             onKeepScreenOnChanged = { prefs.readerKeepScreenOn = it },
             gestureHintShown = prefs.readerGestureHintShown,
             onGestureHintShown = { prefs.readerGestureHintShown = true },
+            edits = c.editRepository,
         )
     }
     val host = remember(key) { createReaderHost(context, container, key) }
@@ -159,6 +168,18 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
         onHideSettings = { vm.showSettings(false) },
         onSettings = vm::updateSettings,
         onKeepScreenOn = vm::setKeepScreenOn,
+        onLongstrip = vm::setLongstrip,
+        onLongstripAuto = vm::resetLongstrip,
+        onDismissFinished = vm::dismissFinished,
+        onReadNext = { next ->
+            vm.flushProgress()
+            vm.dismissFinished()
+            onReadNext(next)
+        },
+        onOpenSuggestion = { other ->
+            vm.dismissFinished()
+            onOpenBook(other)
+        },
         onSeek = { fraction -> host.send(HostToReader.GoTo(locator = vm.seekLocator(fraction))) },
         onShowGestureHint = vm::showGestureHint,
         onDismissGestureHint = vm::dismissGestureHint,
@@ -237,6 +258,11 @@ fun ReaderContent(
     onSeek: (Double) -> Unit = {},
     onShowGestureHint: () -> Unit = {},
     onDismissGestureHint: () -> Unit = {},
+    onLongstrip: (Boolean) -> Unit = {},
+    onLongstripAuto: () -> Unit = {},
+    onDismissFinished: () -> Unit = {},
+    onReadNext: (BookKey) -> Unit = {},
+    onOpenSuggestion: (BookKey) -> Unit = {},
 ) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
         Box(Modifier.fillMaxSize()) {
@@ -293,7 +319,21 @@ fun ReaderContent(
     }
     if (state.showSettings) {
         ModalBottomSheet(onDismissRequest = onHideSettings) {
-            ReaderSettingsSheet(state.settings, state.fixedLayout, state.keepScreenOn, onSettings, onKeepScreenOn, onShowGestureHint)
+            ReaderSettingsSheet(
+                state.settings, state.fixedLayout, state.keepScreenOn, onSettings, onKeepScreenOn, onShowGestureHint,
+                isComic = state.isComic, longstripManual = state.longstripManual, onLongstrip = onLongstrip, onLongstripAuto = onLongstripAuto,
+            )
+        }
+    }
+    state.finished?.let { suggestions ->
+        ModalBottomSheet(onDismissRequest = onDismissFinished) {
+            Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp).testTag("reader_finished"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(R.string.read_next_finished_title), style = MaterialTheme.typography.titleLarge)
+                ReadNextBlock(suggestions, onReadNext, onOpenSuggestion)
+                TextButton(onClick = onDismissFinished, modifier = Modifier.align(Alignment.End).testTag("finished_close")) {
+                    Text(stringResource(R.string.action_close))
+                }
+            }
         }
     }
     state.externalLink?.let { url ->
@@ -357,6 +397,10 @@ private fun ReaderSettingsSheet(
     onChange: ((ReaderSettings) -> ReaderSettings) -> Unit,
     onKeepScreenOn: (Boolean) -> Unit,
     onShowGestureHint: () -> Unit,
+    isComic: Boolean = false,
+    longstripManual: Boolean = false,
+    onLongstrip: (Boolean) -> Unit = {},
+    onLongstripAuto: () -> Unit = {},
 ) {
     Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.settings_reader_font_size, settings.fontSize), style = MaterialTheme.typography.bodyLarge)
@@ -376,6 +420,24 @@ private fun ReaderSettingsSheet(
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("paginated" to R.string.reader_flow_paginated, "scrolled" to R.string.reader_flow_scrolled).forEach { (flow, label) ->
                 FilterChip(settings.flow == flow, { onChange { it.copy(flow = flow) } }, { Text(stringResource(label)) })
+            }
+        }
+        if (isComic) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.reader_longstrip), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(R.string.reader_longstrip_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(settings.comicLongstrip, onLongstrip, Modifier.testTag("reader_longstrip"))
+            }
+            if (longstripManual) {
+                TextButton(onClick = onLongstripAuto, modifier = Modifier.testTag("reader_longstrip_auto")) {
+                    Text(stringResource(R.string.reader_longstrip_auto))
+                }
             }
         }
         if (fixedLayout) {

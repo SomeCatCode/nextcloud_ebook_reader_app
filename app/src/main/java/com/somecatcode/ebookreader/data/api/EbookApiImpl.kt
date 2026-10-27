@@ -275,6 +275,8 @@ class EbookApiImpl(
         val fields = LinkedHashMap<String, JsonElement>()
         if (patch.setRating) fields["rating"] = patch.rating?.let { JsonPrimitive(it) } ?: JsonNull
         patch.readStatus?.let { fields["readStatus"] = JsonPrimitive(it.wire()) }
+        if (patch.resetLongstrip) fields["resetLongstrip"] = JsonPrimitive(true)
+        else patch.longstrip?.let { fields["longstrip"] = JsonPrimitive(it) }
         return ocs("PATCH", ocsUrl("books/$fileId/app-data").build(), BookDto.serializer(), JsonObject(fields))
     }
 

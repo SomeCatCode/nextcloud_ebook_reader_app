@@ -2,6 +2,7 @@ package com.somecatcode.ebookreader.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.somecatcode.ebookreader.data.api.AppDataPatch
 import com.somecatcode.ebookreader.data.api.Locations
 import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.repo.AnnotationColor
@@ -9,10 +10,15 @@ import com.somecatcode.ebookreader.data.repo.AnnotationRepository
 import com.somecatcode.ebookreader.data.repo.BookAnnotation
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.DownloadRepository
+import com.somecatcode.ebookreader.data.repo.EditRepository
+import com.somecatcode.ebookreader.data.repo.FINISHED_THRESHOLD
 import com.somecatcode.ebookreader.data.repo.LibraryBook
+import com.somecatcode.ebookreader.data.repo.LibraryFilter
 import com.somecatcode.ebookreader.data.repo.LibraryRepository
 import com.somecatcode.ebookreader.data.repo.ProgressConflict
 import com.somecatcode.ebookreader.data.repo.ProgressRepository
+import com.somecatcode.ebookreader.data.repo.ReadNext
+import com.somecatcode.ebookreader.data.repo.ReadNextSuggestions
 import com.somecatcode.ebookreader.data.repo.SettingsRepository
 import com.somecatcode.ebookreader.reader.BookRef
 import com.somecatcode.ebookreader.reader.BookSource
@@ -78,6 +84,12 @@ data class ReaderUiState(
     val showGestureHint: Boolean = false,
     /** Swipe down: the screen leaves the reader. */
     val closeRequested: Boolean = false,
+    /** The open comic is shown as one seamless vertical scroll (long strip). */
+    val longstrip: Boolean = false,
+    /** The long strip flag of the book was set by hand (the settings offer to return to the automatic value). */
+    val longstripManual: Boolean = false,
+    /** "Fertig gelesen" sheet: the end of the book was reached; the next volume and similar unread titles. */
+    val finished: ReadNextSuggestions? = null,
 ) {
     /** What the page draws: highlights and notes with a CFI. */
     val drawnAnnotations: List<DrawnAnnotation>
@@ -98,6 +110,9 @@ internal fun buildBookSource(format: String, fileName: String, offline: Boolean)
     else -> BookSource.File(fileName = fileName)
 }
 
+/** Scroll position (0..1 over the whole strip) from which a long strip counts as read to the end. */
+internal const val LONGSTRIP_END = 0.995
+
 internal fun isSafeExternalUrl(url: String): Boolean {
     val scheme = url.substringBefore(':', "").lowercase()
     return scheme in setOf("http", "https", "mailto") && url.length > scheme.length + 1
@@ -117,6 +132,7 @@ class ReaderViewModel(
     private val onGestureHintShown: () -> Unit = {},
     private val remoteCheckTimeoutMs: Long = 6_000,
     private val saveDebounceMs: Long = 1_000,
+    private val edits: EditRepository? = null,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ReaderUiState(keepScreenOn = keepScreenOn))
@@ -130,6 +146,9 @@ class ReaderViewModel(
     private var saveJob: Job? = null
     /** Color of the next highlight: the last one the user picked (web: yellow by default). */
     private var lastColor = AnnotationColor.YELLOW
+    /** The reader was below the end once in this session; opening a finished book at its end shows no sheet. */
+    private var sawUnfinished = false
+    private var finishedShown = false
 
     init {
         viewModelScope.launch { load() }
@@ -155,7 +174,8 @@ class ReaderViewModel(
         if (!loaded.downloadable) return fail(ReaderFailure.NOT_DOWNLOADABLE)
         book = loaded
         val settings = settingsRepository.settings.first().readerSettings()
-        _state.update { it.copy(title = loaded.title, settings = settings) }
+        // the long strip layout comes from the book flag, it is no stored reader default
+        _state.update { it.copy(title = loaded.title, settings = settings.copy(comicLongstrip = loaded.longstrip), longstripManual = loaded.longstripManual) }
         offline = loaded.local || downloads.localFile(key) != null
         val conflict = withTimeoutOrNull(remoteCheckTimeoutMs) { runCatching { progress.checkRemote(key) }.getOrNull() }
         if (conflict != null) {
@@ -228,6 +248,7 @@ class ReaderViewModel(
                         fixedLayout = event.info.isComic || event.info.fixedLayout,
                         supportsAnnotations = event.info.supportsAnnotations,
                         isComic = event.info.isComic,
+                        longstrip = event.info.longstrip,
                         pageCount = event.info.pageCount,
                         showGestureHint = it.showGestureHint || firstRun,
                     )
@@ -243,6 +264,7 @@ class ReaderViewModel(
                 pendingSave = event.locator to event.percentage
                 // a page turn closes the popup of a highlight
                 _state.update { it.copy(percentage = event.percentage, label = event.label, popup = null) }
+                checkFinished(event)
                 saveJob?.cancel()
                 saveJob = viewModelScope.launch {
                     delay(saveDebounceMs)
@@ -314,10 +336,60 @@ class ReaderViewModel(
         val updated = transform(_state.value.settings)
         _state.update { it.copy(settings = updated) }
         viewModelScope.launch {
-            // einkMode comes from the app setting, not from the stored reader defaults.
-            settingsRepository.update { s -> s.withReaderSettings(updated.copy(einkMode = false)) }
+            // einkMode comes from the app setting, the long strip layout from the book: neither is a stored default.
+            settingsRepository.update { s -> s.withReaderSettings(updated.copy(einkMode = false, comicLongstrip = false)) }
         }
     }
+
+    /**
+     * Long strip toggle of the settings: the page re-opens in the new layout at once; the flag is stored with the
+     * book (manual value; servers before 0.12.0 do not keep it, then it only applies to this session).
+     */
+    fun setLongstrip(enabled: Boolean) {
+        _state.update { it.copy(settings = it.settings.copy(comicLongstrip = enabled), longstripManual = true) }
+        viewModelScope.launch { edits?.editAppData(key, AppDataPatch(longstrip = enabled)) }
+    }
+
+    /** "Detect automatically": drops the manual flag, the value recognised in the file applies again. */
+    fun resetLongstrip() {
+        _state.update { it.copy(longstripManual = false) }
+        viewModelScope.launch {
+            edits?.editAppData(key, AppDataPatch(resetLongstrip = true))
+            val effective = library.book(key).first()?.longstrip ?: return@launch
+            _state.update { it.copy(settings = it.settings.copy(comicLongstrip = effective)) }
+        }
+    }
+
+    // ---- read next ---------------------------------------------------------------------------
+
+    /**
+     * Shows the "Fertig gelesen" sheet once when the end is reached after reading: the last page of a comic, the end
+     * of a long strip (the strip reports the scroll position inside its pages), 98 % of a text book (like the server's finished status).
+     */
+    private fun checkFinished(event: ReaderToHost.Relocate) {
+        val s = _state.value
+        val progress = if (s.longstrip) event.locator.locations?.totalProgression ?: event.percentage else event.percentage
+        val end = when {
+            s.longstrip -> progress >= LONGSTRIP_END
+            s.isComic -> progress >= 0.9999
+            else -> progress >= FINISHED_THRESHOLD
+        }
+        if (!end) {
+            sawUnfinished = true
+            return
+        }
+        if (!sawUnfinished || finishedShown) return
+        finishedShown = true
+        viewModelScope.launch {
+            val current = book ?: return@launch
+            val suggestions = runCatching {
+                ReadNext.compute(current, library.books(listOf(key.accountId), LibraryFilter()).first())
+            }.getOrNull() ?: return@launch
+            if (!suggestions.isEmpty) _state.update { it.copy(finished = suggestions, barsVisible = false) }
+        }
+    }
+
+    fun dismissFinished() = _state.update { it.copy(finished = null) }
 
     // ---- annotations -------------------------------------------------------------------------
 

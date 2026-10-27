@@ -19,6 +19,8 @@ export interface ReaderSettings {
 	comicSpread: 'single' | 'double'
 	comicRtl: boolean
 	comicZoom: 'fit-page' | 'fit-width'
+	/** Comics: long strip (webtoon), seamless vertical scroll; set per book by Kotlin (book flag), never stored as default */
+	comicLongstrip: boolean
 	einkMode: boolean
 }
 
@@ -33,6 +35,7 @@ export const DEFAULT_SETTINGS: ReaderSettings = {
 	comicSpread: 'single',
 	comicRtl: false,
 	comicZoom: 'fit-page',
+	comicLongstrip: false,
 	einkMode: false,
 }
 
@@ -77,7 +80,7 @@ export interface RectMsg {
 
 export type ReaderToHostMsg =
 	| { type: 'ready', protocol: number }
-	| { type: 'opened', info: { title?: string, authors: string[], language?: string, isComic: boolean, fixedLayout: boolean, rtl: boolean, pageCount: number, supportsAnnotations: boolean } }
+	| { type: 'opened', info: { title?: string, authors: string[], language?: string, isComic: boolean, fixedLayout: boolean, rtl: boolean, pageCount: number, longstrip: boolean, supportsAnnotations: boolean } }
 	| { type: 'relocate', locator: ReaderLocator, percentage: number, label?: string, page?: { current: number, total: number } }
 	| { type: 'toc', items: TocItemMsg[] }
 	| { type: 'externalLink', url: string }

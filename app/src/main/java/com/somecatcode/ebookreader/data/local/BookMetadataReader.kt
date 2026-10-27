@@ -22,6 +22,8 @@ data class ExtractedBook(
     val isbn: String? = null,
     val publishedAt: String? = null,
     val genres: List<String> = emptyList(),
+    /** Long strip comic (webtoon): recognised from ComicInfo.xml of a CBZ. */
+    val longstrip: Boolean = false,
     /** Cover image bytes (JPEG/PNG/...), null when the file has none or it could not be found. */
     val cover: ByteArray? = null,
 ) {
@@ -57,7 +59,7 @@ object BookMetadataReader {
                 "epub" -> readEpub(open) ?: fallback
                 "fb2" -> open().use { readFb2(limited(it, MAX_FB2)) } ?: fallback
                 "fbz" -> readFbz(open) ?: fallback
-                "cbz" -> fallback.copy(cover = firstImageOfZip(open))
+                "cbz" -> readCbz(open, fallback)
                 else -> fallback
             }.let { if (it.title.isBlank()) it.copy(title = fallback.title) else it }
         } catch (e: Exception) {
@@ -220,14 +222,35 @@ object BookMetadataReader {
 
     // ---- comics ----------------------------------------------------------------------------------
 
-    /** First page of a CBZ in natural name order (pass 1: names, pass 2: the image). */
-    private fun firstImageOfZip(open: () -> InputStream): ByteArray? {
+    private val LONGSTRIP_WORDS = setOf("webtoon", "web toon", "long strip", "vertical")
+
+    /**
+     * Long strip comic like the server: ComicInfo.xml `Format` contains "Webtoon", "Web Toon", "Long Strip" or
+     * "Vertical" (case-insensitive), or a `Tags`/`Genre` entry is exactly one of these.
+     */
+    internal fun isLongstripComicInfo(xml: ByteArray): Boolean {
+        val root = parseXml(xml)?.documentElement ?: return false
+        val format = elements(root, "Format").firstOrNull()?.let(::text)?.lowercase(Locale.ROOT).orEmpty()
+        if (LONGSTRIP_WORDS.any { format.contains(it) }) return true
+        return listOf("Tags", "Genre").flatMap { name -> elements(root, name).mapNotNull(::text) }
+            .flatMap { it.split(',', ';') }
+            .any { it.trim().lowercase(Locale.ROOT) in LONGSTRIP_WORDS }
+    }
+
+    /** CBZ: cover = first page in natural name order, long strip flag from ComicInfo.xml (pass 1: names + ComicInfo, pass 2: the image). */
+    private fun readCbz(open: () -> InputStream, base: ExtractedBook): ExtractedBook {
         val names = ArrayList<String>()
-        zipEntries(open) { name, _ ->
-            if (IMAGE.containsMatchIn(name) && !name.startsWith("__MACOSX/")) names += name
+        var comicInfo: ByteArray? = null
+        zipEntries(open) { name, input ->
+            if (IMAGE.containsMatchIn(name) && !name.startsWith("__MACOSX/")) {
+                names += name
+            } else if (comicInfo == null && name.substringAfterLast('/').equals("ComicInfo.xml", ignoreCase = true)) {
+                comicInfo = readLimited(input, MAX_TEXT_ENTRY)
+            }
             true
         }
-        val first = names.minWithOrNull(NaturalOrder) ?: return null
+        val longstrip = comicInfo?.let { runCatching { isLongstripComicInfo(it) }.getOrDefault(false) } ?: false
+        val first = names.minWithOrNull(NaturalOrder) ?: return base.copy(longstrip = longstrip)
         var bytes: ByteArray? = null
         zipEntries(open) { name, input ->
             if (name == first) {
@@ -237,7 +260,7 @@ object BookMetadataReader {
                 true
             }
         }
-        return bytes
+        return base.copy(cover = bytes, longstrip = longstrip)
     }
 
     /** "page2" before "page10". */

@@ -2,6 +2,7 @@ package com.somecatcode.ebookreader.ui.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.People
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
@@ -181,6 +182,22 @@ fun ShareBadge(shared: Boolean, sharedOut: Boolean, owner: String? = null, modif
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(14.dp),
         )
+    }
+}
+
+/** Badge of a long strip comic (webtoon): vertical arrows. Draws nothing for other books. */
+@Composable
+fun LongstripBadge(longstrip: Boolean, modifier: Modifier = Modifier) {
+    if (!longstrip) return
+    val description = stringResource(R.string.longstrip_badge)
+    Box(
+        modifier
+            .size(22.dp)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f), CircleShape)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(Icons.Filled.SwapVert, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
     }
 }
 

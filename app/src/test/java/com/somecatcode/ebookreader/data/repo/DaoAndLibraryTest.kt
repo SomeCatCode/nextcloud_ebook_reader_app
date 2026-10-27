@@ -212,4 +212,26 @@ class DaoAndLibraryTest : DbTest() {
         assertEquals(2, facets.missing["series"])
         assertEquals(3, facets.formats.single().count)
     }
+
+    @Test
+    fun longstripFilterFacetAndVolumeOrderInTheLibrary() = runBlocking {
+        db.bookDao().upsertAll(
+            listOf(
+                book(1, title = "Strip Vol. 10", series = "Strip").copy(longstrip = true),
+                book(2, title = "Strip Vol. 2", series = "Strip").copy(longstrip = true, longstripManual = true),
+                book(3, title = "Strip Vol. 1", series = "Strip"),
+                book(4, title = "Paged"),
+            ),
+        )
+        val repo = LibraryRepositoryImpl(db)
+        fun ids(f: LibraryFilter) = runBlocking { repo.books(listOf("acc1"), f).first().map { it.key.fileId } }
+        assertEquals(setOf(1L, 2L), ids(LibraryFilter(include = listOf("layout:longstrip"))).toSet())
+        assertEquals(setOf(3L, 4L), ids(LibraryFilter(exclude = listOf("layout:longstrip"))).toSet())
+        // other layout names have no effect
+        assertEquals(4, ids(LibraryFilter(include = listOf("layout:paged"))).size)
+        assertEquals(listOf(3L, 2L, 1L), ids(LibraryFilter(series = "Strip", sort = LibrarySort.SERIES)))
+        val facets = repo.facets(listOf("acc1")).first()
+        assertEquals(listOf(FacetCount("longstrip", 2)), facets.layouts)
+        assertTrue(repo.books(listOf("acc1")).first().first { it.key.fileId == 2L }.longstripManual)
+    }
 }

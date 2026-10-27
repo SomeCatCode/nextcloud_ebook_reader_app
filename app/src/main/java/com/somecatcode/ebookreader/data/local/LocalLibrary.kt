@@ -161,6 +161,10 @@ class LocalLibraryImpl(
                 overrides = encodeStrings(emptyList()),
                 hasSidecar = false,
                 localUri = uri,
+                // a flag set by hand survives re-indexing; otherwise the file decides
+                longstrip = if (old?.longstripManual == true) old.longstrip else meta.longstrip,
+                longstripManual = old?.longstripManual ?: false,
+                longstripFile = meta.longstrip,
             )
             db.withTransaction {
                 db.bookDao().upsertAll(listOf(entity))
