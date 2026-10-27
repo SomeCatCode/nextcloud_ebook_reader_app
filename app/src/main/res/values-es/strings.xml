@@ -396,4 +396,18 @@
     <string name="read_next_continue">Continuar: %1$s</string>
     <string name="read_next_similar">Títulos similares</string>
     <string name="book_read_next">Qué leer a continuación</string>
+    <string name="nav_home">Inicio</string>
+    <string name="home_continue_reading">Continuar leyendo</string>
+    <string name="home_offline">Sincronizado sin conexión</string>
+    <string name="home_suggestions">Sugerencias</string>
+    <string name="home_show_all">Ver todo</string>
+    <string name="home_empty_title">Todavía no hay nada</string>
+    <string name="home_empty_body">Aquí aparecerán los libros que estás leyendo, los disponibles sin conexión y las sugerencias en cuanto tu biblioteca tenga contenido.</string>
+    <string name="home_open_library">Abrir biblioteca</string>
+    <string name="settings_home">Pantalla de inicio</string>
+    <string name="settings_home_shelves">Estantes en la pantalla de inicio</string>
+    <string name="settings_home_shelves_hint">La pantalla de inicio muestra 2 o 3 estantes al azar de los seleccionados. La selección cambia en cada inicio de la app y al deslizar para actualizar.</string>
+    <string name="settings_home_shelves_none">Ningún estante seleccionado</string>
+    <string name="settings_home_shelves_count">%1$d seleccionados</string>
+    <string name="settings_home_shelves_empty">No hay estantes disponibles. Los estantes proceden de tu biblioteca de Nextcloud.</string>
 </resources>

@@ -394,4 +394,18 @@
     <string name="read_next_continue">ادامه: %1$s</string>
     <string name="read_next_similar">عنوان‌های مشابه</string>
     <string name="book_read_next">بعد چه بخوانیم</string>
+    <string name="nav_home">خانه</string>
+    <string name="home_continue_reading">ادامهٔ مطالعه</string>
+    <string name="home_offline">همگام‌شده برای حالت آفلاین</string>
+    <string name="home_suggestions">پیشنهادها</string>
+    <string name="home_show_all">نمایش همه</string>
+    <string name="home_empty_title">هنوز چیزی نیست</string>
+    <string name="home_empty_body">وقتی کتابخانهٔ شما محتوا داشته باشد، کتاب‌هایی که می‌خوانید، کتاب‌های قابل‌خواندن بدون انترنت و پیشنهادها اینجا نمایش داده می‌شوند.</string>
+    <string name="home_open_library">باز کردن کتابخانه</string>
+    <string name="settings_home">صفحهٔ خانه</string>
+    <string name="settings_home_shelves">قفسه‌ها در صفحهٔ خانه</string>
+    <string name="settings_home_shelves_hint">صفحهٔ خانه ۲ یا ۳ قفسهٔ تصادفی از قفسه‌های انتخاب‌شده را نشان می‌دهد. انتخاب در هر بار شروع برنامه و با کشیدن به پایین برای تازه‌سازی تغییر می‌کند.</string>
+    <string name="settings_home_shelves_none">هیچ قفسه‌ای انتخاب نشده</string>
+    <string name="settings_home_shelves_count">%1$d انتخاب شده</string>
+    <string name="settings_home_shelves_empty">قفسه‌ای موجود نیست. قفسه‌ها از کتابخانهٔ Nextcloud شما می‌آیند.</string>
 </resources>

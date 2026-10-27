@@ -203,7 +203,7 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
     override fun continueReading(accountIds: List<String>, limit: Int): Flow<List<LibraryBook>> =
         books(accountIds, LibraryFilter(sort = LibrarySort.RECENTLY_READ, descending = true)).map { list ->
             // like the web app and the status filter "Reading": the books with that read status, most recently read first
-            list.filter { it.readStatus == ReadStatus.READING }.take(limit)
+            HomeLogic.continueReading(list, limit)
         }
 
     private fun statusWire(s: ReadStatus) = when (s) {

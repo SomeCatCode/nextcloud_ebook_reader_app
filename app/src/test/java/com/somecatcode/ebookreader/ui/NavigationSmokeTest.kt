@@ -16,7 +16,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
-/** Robolectric Compose test: the graph starts in the library and reaches Settings and Downloads. */
+/** Robolectric Compose test: the graph starts at the home screen and reaches the library, Settings and Downloads. */
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [35])
 class NavigationSmokeTest {
@@ -25,15 +25,29 @@ class NavigationSmokeTest {
     val compose = createComposeRule()
 
     @Test
-    fun libraryIsStartDestinationAndOverflowReachesSettingsAndDownloads() {
+    fun homeIsStartDestinationAndLibraryAndSettingsAreReachable() {
         val container = FakeContainer(ApplicationProvider.getApplicationContext())
         compose.setContent {
             CompositionLocalProvider(LocalAppContainer provides container) { EbookReaderTheme(dynamicColor = false) { AppNavHost() } }
         }
-        // first start: the introduction comes first, skipping it leads to the library
+        // first start: the introduction comes first, skipping it leads to the home screen
         compose.onNodeWithText("Welcome").assertIsDisplayed()
         compose.onNodeWithTag("guide_skip").performClick()
+        compose.onNodeWithTag("home_empty").assertIsDisplayed()
+        compose.onNodeWithTag("home_open_library").performClick()
         compose.onNodeWithText("Books").assertIsDisplayed()
+        compose.onNodeWithTag("overflow").performClick()
+        compose.onNodeWithText("Settings").performClick()
+        compose.onNodeWithText("Appearance").assertIsDisplayed()
+    }
+
+    @Test
+    fun homeOverflowReachesSettings() {
+        val container = FakeContainer(ApplicationProvider.getApplicationContext())
+        compose.setContent {
+            CompositionLocalProvider(LocalAppContainer provides container) { EbookReaderTheme(dynamicColor = false) { AppNavHost(showGuideOnFirstStart = false) } }
+        }
+        compose.onNodeWithTag("home_empty").assertIsDisplayed()
         compose.onNodeWithTag("overflow").performClick()
         compose.onNodeWithText("Settings").performClick()
         compose.onNodeWithText("Appearance").assertIsDisplayed()
