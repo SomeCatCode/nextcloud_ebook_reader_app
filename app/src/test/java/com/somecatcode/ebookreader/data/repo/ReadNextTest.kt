@@ -100,6 +100,13 @@ class ReadNextTest {
     }
 
     @Test
+    fun languageAndFormatFamilyAloneAreNoReasonToSuggest() {
+        val me = book(1, "Me", authors = listOf("Ann"))
+        val sameKindOnly = book(2, "Same kind", authors = listOf("Zed")) // same language and family, nothing else
+        assertTrue(ReadNext.similar(me, listOf(me, sameKindOnly)).isEmpty())
+    }
+
+    @Test
     fun computeCombinesNextAndSimilar() {
         val me = book(1, "Saga 1", series = "Saga", authors = listOf("Ann"))
         val library = listOf(me, book(2, "Saga 2", series = "Saga", authors = listOf("Ann")), book(3, "Other", authors = listOf("Ann")))

@@ -38,8 +38,8 @@ object ReadNext {
     /**
      * Unread books that resemble [book]: +3 per shared author, +2 per shared genre, +1 per shared tag, +1 same
      * language, +1 same format family (comic or ebook). Never the book itself or a book of its series, at most
-     * one book per other series (its first volume in reading order), only a score above 0. Ties: newer first,
-     * then by title.
+     * one book per other series (its first volume in reading order). A suggestion needs at least one shared author,
+     * genre or tag; language and format family only rank (as on the server). Ties: newer first, then by title.
      */
     fun similar(book: LibraryBook, library: List<LibraryBook>, limit: Int = DEFAULT_LIMIT): List<LibraryBook> {
         val own = seriesOf(book)
@@ -51,8 +51,8 @@ object ReadNext {
         val seriesFirst = unread.filter { seriesOf(it) != null }.groupBy { seriesOf(it) }.values.map { it.inVolumeOrder().first() }
         val candidates = unread.filter { seriesOf(it) == null } + seriesFirst
         return candidates
+            .filter { contentScore(book, it) > 0 }
             .map { it to score(book, it) }
-            .filter { it.second > 0 }
             .sortedWith(
                 compareByDescending<Pair<LibraryBook, Int>> { it.second }
                     .thenByDescending { it.first.addedAt }
@@ -62,12 +62,17 @@ object ReadNext {
             .map { it.first }
     }
 
+    private fun shared(a: List<String>, b: List<String>): Int {
+        val x = a.map(::norm).filter { it.isNotEmpty() }.toSet()
+        return b.map(::norm).filter { it.isNotEmpty() }.toSet().count { it in x }
+    }
+
+    /** Shared authors (+3), genres (+2) and tags (+1): above 0 makes a book a candidate. */
+    fun contentScore(book: LibraryBook, other: LibraryBook): Int =
+        3 * shared(book.authors, other.authors) + 2 * shared(book.genres, other.genres) + shared(book.tags, other.tags)
+
     fun score(book: LibraryBook, other: LibraryBook): Int {
-        fun shared(a: List<String>, b: List<String>): Int {
-            val x = a.map(::norm).filter { it.isNotEmpty() }.toSet()
-            return b.map(::norm).filter { it.isNotEmpty() }.toSet().count { it in x }
-        }
-        var score = 3 * shared(book.authors, other.authors) + 2 * shared(book.genres, other.genres) + shared(book.tags, other.tags)
+        var score = contentScore(book, other)
         if (norm(book.language).isNotEmpty() && norm(book.language) == norm(other.language)) score++
         if ((book.format.lowercase(Locale.ROOT) in COMIC_FORMATS) == (other.format.lowercase(Locale.ROOT) in COMIC_FORMATS)) score++
         return score
