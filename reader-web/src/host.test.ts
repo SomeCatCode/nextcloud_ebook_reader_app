@@ -134,10 +134,10 @@ describe('open', () => {
 		await flush()
 		sent.length = 0
 		fr.emit('external-link', { url: 'https://example.org' })
-		fr.emit('relocate', { locator: { href: 'c2.xhtml' }, percentage: 0.5, label: 'Two', page: { current: 2, total: 4 } })
+		fr.emit('relocate', { locator: { href: 'c2.xhtml' }, percentage: 0.5, atEnd: false, label: 'Two', page: { current: 2, total: 4 } })
 		expect(sent).toEqual([
 			{ type: 'externalLink', url: 'https://example.org' },
-			{ type: 'relocate', locator: { href: 'c2.xhtml' }, percentage: 0.5, label: 'Two', page: { current: 2, total: 4 } },
+			{ type: 'relocate', locator: { href: 'c2.xhtml' }, percentage: 0.5, atEnd: false, label: 'Two', page: { current: 2, total: 4 } },
 		])
 	})
 })

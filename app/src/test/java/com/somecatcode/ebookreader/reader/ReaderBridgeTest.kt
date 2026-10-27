@@ -70,6 +70,7 @@ class ReaderBridgeTest {
         assertEquals("ready", roundTrip(ReaderToHost.Ready())["type"]!!.jsonPrimitive.content)
         roundTrip(ReaderToHost.Opened(BookInfo("T", listOf("A", "B"), "de", isComic = false, fixedLayout = false, rtl = true, pageCount = 12)))
         roundTrip(ReaderToHost.Relocate(locator, 0.4, "Chapter", PageInfo(3, 100)))
+        assertEquals("true", roundTrip(ReaderToHost.Relocate(locator, 1.0, atEnd = true))["atEnd"]!!.jsonPrimitive.content)
         roundTrip(ReaderToHost.Toc(listOf(TocItem("A", "a.xhtml", listOf(TocItem("A1", "a.xhtml#1"))), TocItem("B", "b.xhtml"))))
         roundTrip(ReaderToHost.ExternalLink("https://example.org"))
         roundTrip(ReaderToHost.Tap("center"))

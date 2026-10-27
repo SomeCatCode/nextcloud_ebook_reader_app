@@ -328,8 +328,8 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 			})
 			reader = r
 			unsubs.push(
-				r.on('relocate', ({ locator, percentage, label, page }) => {
-					const m: ReaderToHostMsg = { type: 'relocate', locator, percentage, label, page }
+				r.on('relocate', ({ locator, percentage, atEnd, label, page }) => {
+					const m: ReaderToHostMsg = { type: 'relocate', locator, percentage, atEnd, label, page }
 					if (opening) {
 						pendingRelocate = m
 					} else {

@@ -116,6 +116,8 @@ sealed interface ReaderToHost {
         /** Chapter or page label, if known. */
         val label: String? = null,
         val page: PageInfo? = null,
+        /** The end of the book is on screen (last page or spread, bottom of a long strip or scrolled text). */
+        val atEnd: Boolean = false,
     ) : ReaderToHost
 
     /** Table of contents, sent once after [Opened]. */
