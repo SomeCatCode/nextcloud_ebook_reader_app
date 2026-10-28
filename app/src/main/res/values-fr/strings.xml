@@ -396,18 +396,4 @@
     <string name="read_next_continue">Continuer : %1$s</string>
     <string name="read_next_similar">Titres similaires</string>
     <string name="book_read_next">À lire ensuite</string>
-    <string name="nav_home">Accueil</string>
-    <string name="home_continue_reading">Continuer la lecture</string>
-    <string name="home_offline">Synchronisés hors ligne</string>
-    <string name="home_suggestions">Suggestions</string>
-    <string name="home_show_all">Tout afficher</string>
-    <string name="home_empty_title">Rien pour l\'instant</string>
-    <string name="home_empty_body">Les livres en cours de lecture, les livres disponibles hors ligne et les suggestions apparaîtront ici dès que votre bibliothèque contiendra des livres.</string>
-    <string name="home_open_library">Ouvrir la bibliothèque</string>
-    <string name="settings_home">Écran d\'accueil</string>
-    <string name="settings_home_shelves">Étagères sur l\'écran d\'accueil</string>
-    <string name="settings_home_shelves_hint">L\'écran d\'accueil affiche 2 ou 3 étagères au hasard parmi celles sélectionnées. Le choix change à chaque démarrage de l\'application et lors d\'un balayage vers le bas pour actualiser.</string>
-    <string name="settings_home_shelves_none">Aucune étagère sélectionnée</string>
-    <string name="settings_home_shelves_count">%1$d sélectionnée(s)</string>
-    <string name="settings_home_shelves_empty">Aucune étagère disponible. Les étagères proviennent de votre bibliothèque Nextcloud.</string>
 </resources>

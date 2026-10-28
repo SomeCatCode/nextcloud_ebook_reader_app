@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -34,7 +33,6 @@ class SettingsRepositoryImpl(private val store: DataStore<Preferences>) : Settin
             prefs[MERGED] = next.mergedLibrary
             prefs[EINK] = next.einkMode
             prefs[HIDE_FINISHED] = next.hideFinished
-            if (next.homeShelves.isEmpty()) prefs.remove(HOME_SHELVES) else prefs[HOME_SHELVES] = next.homeShelves
             prefs.putOrRemove(LAST_ACCOUNT, next.lastAccountId)
             prefs.putOrRemove(READER_SETTINGS, next.readerSettingsJson)
             prefs.putOrRemove(DEVICE_NAME, next.deviceName)
@@ -63,7 +61,6 @@ class SettingsRepositoryImpl(private val store: DataStore<Preferences>) : Settin
             readerSettingsJson = this[READER_SETTINGS],
             deviceName = this[DEVICE_NAME],
             hideFinished = this[HIDE_FINISHED] ?: d.hideFinished,
-            homeShelves = this[HOME_SHELVES] ?: d.homeShelves,
         )
     }
 
@@ -80,7 +77,6 @@ class SettingsRepositoryImpl(private val store: DataStore<Preferences>) : Settin
         val READER_SETTINGS = stringPreferencesKey("reader_settings_json")
         val DEVICE_NAME = stringPreferencesKey("device_name")
         val HIDE_FINISHED = booleanPreferencesKey("hide_finished")
-        val HOME_SHELVES = stringSetPreferencesKey("home_shelves")
     }
 }
 

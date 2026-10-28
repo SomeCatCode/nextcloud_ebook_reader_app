@@ -329,8 +329,6 @@ data class AppSettings(
     val deviceName: String? = null,
     /** Library leaves out finished books unless a status filter is set (default on, like the web app). */
     val hideFinished: Boolean = true,
-    /** Shelves that may appear on the home screen, as [HomeLogic.shelfPref] (`shelfId:accountId`). */
-    val homeShelves: Set<String> = emptySet(),
 )
 
 interface SettingsRepository {

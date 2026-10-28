@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TextButton
@@ -58,13 +57,7 @@ import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 import com.somecatcode.ebookreader.ui.util.readerSettings
 import com.somecatcode.ebookreader.ui.util.withReaderSettings
-import com.somecatcode.ebookreader.data.repo.HomeLogic
-import com.somecatcode.ebookreader.data.repo.ShelfInfo
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -73,13 +66,8 @@ import kotlinx.coroutines.launch
 /** Donation link; empty in the Google Play build (see app/build.gradle.kts), then the entry is hidden. */
 val DONATION_URL: String get() = BuildConfig.DONATION_URL
 
-class SettingsViewModel(
-    private val repository: SettingsRepository,
-    /** Shelves the user can pick for the home screen. */
-    shelfSource: Flow<List<ShelfInfo>> = flowOf(emptyList()),
-) : ViewModel() {
+class SettingsViewModel(private val repository: SettingsRepository) : ViewModel() {
     val state: StateFlow<AppSettings> = repository.settings.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())
-    val shelves: StateFlow<List<ShelfInfo>> = shelfSource.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun update(transform: (AppSettings) -> AppSettings) {
         viewModelScope.launch { repository.update(transform) }
@@ -89,24 +77,13 @@ class SettingsViewModel(
 }
 
 /** App settings (theme, e-ink, downloads, device name, reader defaults, about). */
-@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun SettingsScreen(onBack: () -> Unit, onOpenLicenses: () -> Unit = {}, onOpenPrivacy: () -> Unit = {}, onOpenGuide: () -> Unit = {}) {
-    val vm = containerViewModel { c ->
-        SettingsViewModel(
-            c.settingsRepository,
-            // shelves are server objects: only Nextcloud accounts have them
-            c.accountStore.accounts.flatMapLatest { list ->
-                val ids = list.filter { !it.local }.map { it.id }
-                if (ids.isEmpty()) flowOf(emptyList()) else c.libraryRepository.shelves(ids)
-            },
-        )
-    }
+    val vm = containerViewModel { c -> SettingsViewModel(c.settingsRepository) }
     val settings by vm.state.collectAsState()
-    val shelves by vm.shelves.collectAsState()
     // The language lives in the per-app language API (AppCompatDelegate), not in DataStore; applying it recreates the activity.
     SettingsContent(
-        settings, onBack, vm::update, vm::updateReader, onOpenLicenses, onOpenPrivacy = onOpenPrivacy, onOpenGuide = onOpenGuide, shelves = shelves,
+        settings, onBack, vm::update, vm::updateReader, onOpenLicenses, onOpenPrivacy = onOpenPrivacy, onOpenGuide = onOpenGuide,
         language = remember { AppLanguage.current() }, onLanguageChange = AppLanguage::apply,
     )
 }
@@ -124,10 +101,8 @@ fun SettingsContent(
     onOpenGuide: () -> Unit = {},
     language: AppLanguage = AppLanguage.SYSTEM,
     onLanguageChange: (AppLanguage) -> Unit = {},
-    shelves: List<ShelfInfo> = emptyList(),
 ) {
     var languageDialog by remember { mutableStateOf(false) }
-    var shelvesDialog by remember { mutableStateOf(false) }
     val reader = settings.readerSettings()
     val uriHandler = LocalUriHandler.current
     Scaffold(
@@ -135,12 +110,6 @@ fun SettingsContent(
     ) { padding ->
         if (languageDialog) {
             LanguageDialog(language, onSelect = { languageDialog = false; if (it != language) onLanguageChange(it) }, onDismiss = { languageDialog = false })
-        }
-        if (shelvesDialog) {
-            HomeShelvesDialog(
-                shelves, settings.homeShelves, onDismiss = { shelvesDialog = false },
-                onConfirm = { selected -> shelvesDialog = false; onUpdate { it.copy(homeShelves = selected) } },
-            )
         }
         Column(Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
             SectionTitle(R.string.settings_appearance)
@@ -165,16 +134,6 @@ fun SettingsContent(
                 SwitchRow(R.string.settings_dynamic_color, R.string.settings_dynamic_color_hint, settings.dynamicColor, "dynamic_color") { v -> onUpdate { it.copy(dynamicColor = v) } }
             }
             SwitchRow(R.string.settings_eink, R.string.settings_eink_hint, settings.einkMode, "eink_mode") { v -> onUpdate { it.copy(einkMode = v) } }
-
-            SectionTitle(R.string.settings_home)
-            Column(Modifier.fillMaxWidth().clickable { shelvesDialog = true }.padding(horizontal = 16.dp, vertical = 12.dp).testTag("home_shelves")) {
-                Text(stringResource(R.string.settings_home_shelves), style = MaterialTheme.typography.bodyLarge)
-                val count = shelves.count { HomeLogic.shelfPref(it.key) in settings.homeShelves }
-                Text(
-                    stringResource(if (count == 0) R.string.settings_home_shelves_none else R.string.settings_home_shelves_count, count),
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
 
             SectionTitle(R.string.settings_downloads)
             SwitchRow(R.string.settings_wifi_only, R.string.settings_wifi_only_hint, settings.downloadOnlyOnWifi, "wifi_only") { v -> onUpdate { it.copy(downloadOnlyOnWifi = v) } }
@@ -241,41 +200,6 @@ fun SettingsContent(
             }
         }
     }
-}
-
-/** One checkbox per shelf; the home screen shows 2 or 3 random shelves out of the checked ones. */
-@Composable
-private fun HomeShelvesDialog(shelves: List<ShelfInfo>, selected: Set<String>, onDismiss: () -> Unit, onConfirm: (Set<String>) -> Unit) {
-    var current by remember { mutableStateOf(selected) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_home_shelves)) },
-        text = {
-            if (shelves.isEmpty()) {
-                Text(stringResource(R.string.settings_home_shelves_empty))
-            } else {
-                Column(Modifier.verticalScroll(rememberScrollState())) {
-                    Text(stringResource(R.string.settings_home_shelves_hint), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(bottom = 8.dp))
-                    for (shelf in shelves) {
-                        val pref = HomeLogic.shelfPref(shelf.key)
-                        val checked = pref in current
-                        Row(
-                            Modifier.fillMaxWidth()
-                                .selectable(checked, role = Role.Checkbox) { current = if (checked) current - pref else current + pref }
-                                .padding(vertical = 4.dp).testTag("home_shelf_${shelf.key.shelfId}"),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Checkbox(checked, onCheckedChange = null)
-                            Text(shelf.name, Modifier.padding(start = 12.dp).weight(1f))
-                            Text(shelf.count.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = { TextButton(onClick = { onConfirm(current) }) { Text(stringResource(R.string.action_apply)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
 }
 
 /** Radio list with "System default" and every language in its own name. */
