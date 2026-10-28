@@ -394,18 +394,4 @@
     <string name="read_next_continue">Devam et: %1$s</string>
     <string name="read_next_similar">Benzer kitaplar</string>
     <string name="book_read_next">Sırada ne var</string>
-    <string name="nav_home">Ana sayfa</string>
-    <string name="home_continue_reading">Okumaya devam et</string>
-    <string name="home_offline">Çevrimdışı eşitlendi</string>
-    <string name="home_suggestions">Öneriler</string>
-    <string name="home_show_all">Tümünü göster</string>
-    <string name="home_empty_title">Henüz bir şey yok</string>
-    <string name="home_empty_body">Kitaplığınızda içerik olduğunda okumakta olduğunuz kitaplar, çevrimdışı kullanılabilen kitaplar ve öneriler burada görünür.</string>
-    <string name="home_open_library">Kitaplığı aç</string>
-    <string name="settings_home">Ana ekran</string>
-    <string name="settings_home_shelves">Ana ekrandaki raflar</string>
-    <string name="settings_home_shelves_hint">Ana ekran, seçilen raflardan rastgele 2 veya 3 tanesini gösterir. Seçim her uygulama başlangıcında ve aşağı çekerek yenilemede değişir.</string>
-    <string name="settings_home_shelves_none">Raf seçilmedi</string>
-    <string name="settings_home_shelves_count">%1$d seçildi</string>
-    <string name="settings_home_shelves_empty">Kullanılabilir raf yok. Raflar Nextcloud kitaplığınızdan gelir.</string>
 </resources>

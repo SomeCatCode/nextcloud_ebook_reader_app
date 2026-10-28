@@ -352,14 +352,6 @@ class LibraryViewModel(
         )
     }
 
-    /** Plain books list with a single status filter or the offline filter (home screen "show all"). */
-    fun showOnly(status: ReadStatus? = null, offline: Boolean = false) = query.update {
-        it.copy(
-            tab = LibraryTab.BOOKS, searchOpen = false, editingShelf = null,
-            filter = it.filter.copy(include = emptyList(), exclude = emptyList(), status = status, search = null, onlyOffline = offline),
-        )
-    }
-
     fun setMatchAny(any: Boolean) = query.update { it.copy(filter = it.filter.copy(matchAny = any)) }
 
     fun setOnlyOffline(only: Boolean) = query.update { it.copy(filter = it.filter.copy(onlyOffline = only)) }
