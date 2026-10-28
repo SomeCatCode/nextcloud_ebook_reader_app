@@ -11,7 +11,6 @@ import com.somecatcode.ebookreader.data.repo.BookAnnotation
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.DownloadRepository
 import com.somecatcode.ebookreader.data.repo.EditRepository
-import com.somecatcode.ebookreader.data.repo.FINISHED_THRESHOLD
 import com.somecatcode.ebookreader.data.repo.LibraryBook
 import com.somecatcode.ebookreader.data.repo.LibraryFilter
 import com.somecatcode.ebookreader.data.repo.LibraryRepository
@@ -109,9 +108,6 @@ internal fun buildBookSource(format: String, fileName: String, offline: Boolean)
     format.lowercase() in setOf("cbz", "cbr", "cb7", "cbt") -> BookSource.RemoteComic(name = fileName)
     else -> BookSource.File(fileName = fileName)
 }
-
-/** Scroll position (0..1 over the whole strip) from which a long strip counts as read to the end. */
-internal const val LONGSTRIP_END = 0.995
 
 internal fun isSafeExternalUrl(url: String): Boolean {
     val scheme = url.substringBefore(':', "").lowercase()
@@ -363,18 +359,12 @@ class ReaderViewModel(
     // ---- read next ---------------------------------------------------------------------------
 
     /**
-     * Shows the "Fertig gelesen" sheet once when the end is reached after reading: the last page of a comic, the end
-     * of a long strip (the strip reports the scroll position inside its pages), 98 % of a text book (like the server's finished status).
+     * Shows the "Fertig gelesen" sheet once when the end is reached after reading. The reader reports the end
+     * (`atEnd`): the last page or spread, the bottom of a long strip or of a scrolled text. The percentage is no
+     * signal: a comic reports 100 % as soon as its last page is shown, a long strip at the top of its last page.
      */
     private fun checkFinished(event: ReaderToHost.Relocate) {
-        val s = _state.value
-        val progress = if (s.longstrip) event.locator.locations?.totalProgression ?: event.percentage else event.percentage
-        val end = when {
-            s.longstrip -> progress >= LONGSTRIP_END
-            s.isComic -> progress >= 0.9999
-            else -> progress >= FINISHED_THRESHOLD
-        }
-        if (!end) {
+        if (!event.atEnd) {
             sawUnfinished = true
             return
         }

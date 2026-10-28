@@ -81,7 +81,7 @@ export interface RectMsg {
 export type ReaderToHostMsg =
 	| { type: 'ready', protocol: number }
 	| { type: 'opened', info: { title?: string, authors: string[], language?: string, isComic: boolean, fixedLayout: boolean, rtl: boolean, pageCount: number, longstrip: boolean, supportsAnnotations: boolean } }
-	| { type: 'relocate', locator: ReaderLocator, percentage: number, label?: string, page?: { current: number, total: number } }
+	| { type: 'relocate', locator: ReaderLocator, percentage: number, atEnd?: boolean, label?: string, page?: { current: number, total: number } }
 	| { type: 'toc', items: TocItemMsg[] }
 	| { type: 'externalLink', url: string }
 	| { type: 'tap', zone: 'left' | 'center' | 'right' }
