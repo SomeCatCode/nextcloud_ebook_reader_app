@@ -394,4 +394,18 @@
     <string name="read_next_continue">Continue: %1$s</string>
     <string name="read_next_similar">Similar titles</string>
     <string name="book_read_next">What to read next</string>
+    <string name="nav_home">Home</string>
+    <string name="home_continue_reading">Continue reading</string>
+    <string name="home_offline">Synced offline</string>
+    <string name="home_suggestions">Suggestions</string>
+    <string name="home_show_all">Show all</string>
+    <string name="home_empty_title">Nothing here yet</string>
+    <string name="home_empty_body">Books you are reading, books available offline and suggestions appear here once your library has content.</string>
+    <string name="home_open_library">Open library</string>
+    <string name="settings_home">Home screen</string>
+    <string name="settings_home_shelves">Shelves on the home screen</string>
+    <string name="settings_home_shelves_hint">The home screen shows 2 or 3 random shelves out of the selected ones. The choice changes on each app start and on pull-to-refresh.</string>
+    <string name="settings_home_shelves_none">No shelves selected</string>
+    <string name="settings_home_shelves_count">%1$d selected</string>
+    <string name="settings_home_shelves_empty">No shelves available. Shelves come from your Nextcloud library.</string>
 </resources>

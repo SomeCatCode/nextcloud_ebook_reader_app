@@ -402,4 +402,18 @@
     <string name="read_next_continue">متابعة: %1$s</string>
     <string name="read_next_similar">عناوين مشابهة</string>
     <string name="book_read_next">ماذا تقرأ بعد ذلك</string>
+    <string name="nav_home">الرئيسية</string>
+    <string name="home_continue_reading">متابعة القراءة</string>
+    <string name="home_offline">متزامن للقراءة دون اتصال</string>
+    <string name="home_suggestions">اقتراحات</string>
+    <string name="home_show_all">عرض الكل</string>
+    <string name="home_empty_title">لا يوجد شيء بعد</string>
+    <string name="home_empty_body">ستظهر هنا الكتب التي تقرؤها والكتب المتاحة دون اتصال والاقتراحات بمجرد أن تحتوي مكتبتك على كتب.</string>
+    <string name="home_open_library">فتح المكتبة</string>
+    <string name="settings_home">الشاشة الرئيسية</string>
+    <string name="settings_home_shelves">الأرفف في الشاشة الرئيسية</string>
+    <string name="settings_home_shelves_hint">تعرض الشاشة الرئيسية رفّين أو ثلاثة أرفف عشوائية من الأرفف المحددة. يتغير الاختيار عند كل تشغيل للتطبيق وعند السحب للتحديث.</string>
+    <string name="settings_home_shelves_none">لم يتم تحديد أي رف</string>
+    <string name="settings_home_shelves_count">تم تحديد %1$d</string>
+    <string name="settings_home_shelves_empty">لا توجد أرفف متاحة. تأتي الأرفف من مكتبة Nextcloud الخاصة بك.</string>
 </resources>

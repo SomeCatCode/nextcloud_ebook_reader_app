@@ -8,6 +8,8 @@ import android.net.Uri
  */
 object Routes {
     const val ACCOUNTS = "accounts"
+    /** Start destination: continue reading, synced offline, suggestions, random shelves. */
+    const val HOME = "home"
     const val LIBRARY = "library"
     const val DOWNLOADS = "downloads"
     const val SETTINGS = "settings"

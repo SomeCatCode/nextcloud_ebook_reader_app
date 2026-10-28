@@ -23,6 +23,7 @@ import com.somecatcode.ebookreader.ui.screens.BookDetailScreen
 import com.somecatcode.ebookreader.ui.screens.CollectionId
 import com.somecatcode.ebookreader.ui.screens.CollectionScreen
 import com.somecatcode.ebookreader.ui.screens.DownloadsScreen
+import com.somecatcode.ebookreader.ui.screens.HomeScreen
 import com.somecatcode.ebookreader.ui.screens.LibraryCommand
 import com.somecatcode.ebookreader.ui.screens.LibraryScreen
 import com.somecatcode.ebookreader.ui.screens.ReaderScreen
@@ -30,15 +31,16 @@ import com.somecatcode.ebookreader.ui.screens.SettingsScreen
 import com.somecatcode.ebookreader.ui.theme.LocalEinkMode
 
 /**
- * Navigation graph of the app. Start destination is the library (it shows the welcome state without
- * accounts); at the very first start the introduction comes first ([showGuideOnFirstStart]).
+ * Navigation graph of the app. Start destination is the home screen (it shows the welcome state without
+ * accounts); the library is one step above it. At the very first start the introduction comes first
+ * ([showGuideOnFirstStart]).
  */
 @Composable
 fun AppNavHost(modifier: Modifier = Modifier, showGuideOnFirstStart: Boolean = true) {
     val nav = rememberNavController()
     val context = LocalContext.current
     val prefs = remember { UiPrefs(context) }
-    val start = remember { if (showGuideOnFirstStart && !prefs.guideShown) Routes.GUIDE else Routes.LIBRARY }
+    val start = remember { if (showGuideOnFirstStart && !prefs.guideShown) Routes.GUIDE else Routes.HOME }
     val accounts by LocalAppContainer.current.accountStore.accounts.collectAsState(initial = null)
     val eink = LocalEinkMode.current
     val bookArgs = listOf(
@@ -62,15 +64,25 @@ fun AppNavHost(modifier: Modifier = Modifier, showGuideOnFirstStart: Boolean = t
         composable(Routes.GUIDE) {
             GuideScreen(hasLibrary = !accounts.isNullOrEmpty()) { addLibrary ->
                 prefs.guideShown = true
-                // first start: the library replaces the guide at the bottom of the stack
-                if (!nav.popBackStack()) nav.navigate(Routes.LIBRARY) { popUpTo(Routes.GUIDE) { inclusive = true } }
+                // first start: the home screen replaces the guide at the bottom of the stack
+                if (!nav.popBackStack()) nav.navigate(Routes.HOME) { popUpTo(Routes.GUIDE) { inclusive = true } }
                 if (addLibrary) nav.navigate(Routes.ACCOUNTS)
             }
         }
         composable(Routes.ACCOUNTS) {
             AccountsScreen(
                 onBack = { nav.popBackStack() },
-                onAccountAdded = { nav.popBackStack(Routes.LIBRARY, inclusive = false) },
+                onAccountAdded = { if (!nav.popBackStack(Routes.LIBRARY, inclusive = false)) nav.popBackStack(Routes.HOME, inclusive = false) },
+            )
+        }
+        composable(Routes.HOME) {
+            HomeScreen(
+                onOpenLibrary = { command -> nav.toLibrary(command) },
+                onOpenAccounts = { nav.navigate(Routes.ACCOUNTS) },
+                onOpenDownloads = { nav.navigate(Routes.DOWNLOADS) },
+                onOpenSettings = { nav.navigate(Routes.SETTINGS) },
+                onOpenBook = { accountId, fileId -> nav.navigate(Routes.bookDetail(accountId, fileId)) },
+                onOpenShelf = { accountId, shelfId -> nav.navigate(Routes.shelf(accountId, shelfId)) },
             )
         }
         composable(Routes.LIBRARY) { entry ->
@@ -164,8 +176,17 @@ fun AppNavHost(modifier: Modifier = Modifier, showGuideOnFirstStart: Boolean = t
     }
 }
 
-/** Back to the library (always at the bottom of the stack) and hand it a [LibraryCommand]. */
-private fun NavHostController.toLibrary(command: String) {
-    runCatching { getBackStackEntry(Routes.LIBRARY) }.getOrNull()?.savedStateHandle?.set(LibraryCommand.KEY, command)
-    popBackStack(Routes.LIBRARY, inclusive = false)
+/**
+ * To the library with an optional [LibraryCommand]. The library sits directly above the home screen: when it is
+ * already in the back stack, pop back to it; otherwise (opened from the home screen) open it.
+ */
+private fun NavHostController.toLibrary(command: String?) {
+    val existing = runCatching { getBackStackEntry(Routes.LIBRARY) }.getOrNull()
+    if (existing != null) {
+        if (command != null) existing.savedStateHandle[LibraryCommand.KEY] = command
+        popBackStack(Routes.LIBRARY, inclusive = false)
+        return
+    }
+    navigate(Routes.LIBRARY) { launchSingleTop = true }
+    if (command != null) runCatching { getBackStackEntry(Routes.LIBRARY) }.getOrNull()?.savedStateHandle?.set(LibraryCommand.KEY, command)
 }

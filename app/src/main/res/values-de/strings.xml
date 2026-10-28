@@ -394,4 +394,18 @@
     <string name="read_next_continue">Weiterlesen: %1$s</string>
     <string name="read_next_similar">Ähnliche Titel</string>
     <string name="book_read_next">Das kommt als Nächstes</string>
+    <string name="nav_home">Start</string>
+    <string name="home_continue_reading">Weiterlesen</string>
+    <string name="home_offline">Offline synchronisiert</string>
+    <string name="home_suggestions">Vorschläge</string>
+    <string name="home_show_all">Alle anzeigen</string>
+    <string name="home_empty_title">Noch nichts da</string>
+    <string name="home_empty_body">Bücher, die du gerade liest, offline verfügbare Bücher und Vorschläge erscheinen hier, sobald deine Bibliothek Inhalte hat.</string>
+    <string name="home_open_library">Bibliothek öffnen</string>
+    <string name="settings_home">Startbildschirm</string>
+    <string name="settings_home_shelves">Regale auf dem Startbildschirm</string>
+    <string name="settings_home_shelves_hint">Der Startbildschirm zeigt 2 oder 3 zufällige Regale aus den ausgewählten. Die Auswahl wechselt bei jedem App-Start und beim Herunterziehen zum Aktualisieren.</string>
+    <string name="settings_home_shelves_none">Keine Regale ausgewählt</string>
+    <string name="settings_home_shelves_count">%1$d ausgewählt</string>
+    <string name="settings_home_shelves_empty">Keine Regale vorhanden. Regale stammen aus deiner Nextcloud-Bibliothek.</string>
 </resources>

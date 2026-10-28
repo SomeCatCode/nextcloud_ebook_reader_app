@@ -143,9 +143,15 @@ object LibraryCommand {
 
     /** Load a smart shelf's filter into the library for editing. */
     fun editSmart(accountId: String, shelfId: Long) = "smart:$shelfId:$accountId"
+
+    /** Show the books with the read status reading (home screen: continue reading). */
+    fun reading() = "status:reading"
+
+    /** Show only the books that are available offline (home screen: synced offline). */
+    fun offline() = "offline"
 }
 
-/** Library (grid/list, search, filters, shelves, series). Start destination. */
+/** Library (grid/list, search, filters, shelves, series). Reached from the home screen. */
 @Composable
 fun LibraryScreen(
     onOpenAccounts: () -> Unit,
@@ -177,6 +183,8 @@ fun LibraryScreen(
         val cmd = command ?: return@LaunchedEffect
         when {
             cmd.startsWith("only:") -> vm.onlyTerm(cmd.removePrefix("only:"))
+            cmd == "status:reading" -> vm.showOnly(status = ReadStatus.READING)
+            cmd == "offline" -> vm.showOnly(offline = true)
             cmd.startsWith("smart:") -> {
                 val rest = cmd.removePrefix("smart:")
                 rest.substringBefore(':').toLongOrNull()?.let { vm.editSmartShelf(ShelfKey(rest.substringAfter(':'), it)) }

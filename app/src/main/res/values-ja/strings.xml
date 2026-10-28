@@ -392,4 +392,18 @@
     <string name="read_next_continue">続きを読む: %1$s</string>
     <string name="read_next_similar">似た作品</string>
     <string name="book_read_next">次に読む</string>
+    <string name="nav_home">ホーム</string>
+    <string name="home_continue_reading">続きを読む</string>
+    <string name="home_offline">オフライン同期済み</string>
+    <string name="home_suggestions">おすすめ</string>
+    <string name="home_show_all">すべて表示</string>
+    <string name="home_empty_title">まだ何もありません</string>
+    <string name="home_empty_body">ライブラリに本が入ると、読書中の本、オフラインで読める本、おすすめがここに表示されます。</string>
+    <string name="home_open_library">ライブラリを開く</string>
+    <string name="settings_home">ホーム画面</string>
+    <string name="settings_home_shelves">ホーム画面に表示する本棚</string>
+    <string name="settings_home_shelves_hint">ホーム画面には、選択した本棚の中からランダムに2〜3個が表示されます。アプリの起動時と、下に引いて更新したときに入れ替わります。</string>
+    <string name="settings_home_shelves_none">本棚が選択されていません</string>
+    <string name="settings_home_shelves_count">%1$d件選択中</string>
+    <string name="settings_home_shelves_empty">利用できる本棚がありません。本棚は Nextcloud のライブラリから取得されます。</string>
 </resources>
