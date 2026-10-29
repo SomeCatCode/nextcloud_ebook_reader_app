@@ -392,6 +392,12 @@
     <string name="reader_longstrip">Bande verticale (webtoon)</string>
     <string name="reader_longstrip_hint">Affiche toutes les pages en un défilement vertical continu.</string>
     <string name="reader_longstrip_auto">Détecter automatiquement</string>
+    <string name="reader_comic_brightness">Luminosité : %1$d %%</string>
+    <string name="reader_comic_contrast">Contraste : %1$d %%</string>
+    <string name="reader_comic_grayscale">Niveaux de gris</string>
+    <string name="reader_comic_image_reset">Réinitialiser l’image</string>
+    <string name="reader_comic_image_hint">La luminosité, le contraste et les niveaux de gris s’appliquent aux images des pages de toutes les bandes dessinées.</string>
+    <string name="reader_annotation_limit">Ce livre contient déjà %1$d surlignages et notes. Supprimez-en pour en ajouter de nouveaux.</string>
     <string name="read_next_finished_title">Lecture terminée</string>
     <string name="read_next_continue">Continuer : %1$s</string>
     <string name="read_next_similar">Titres similaires</string>

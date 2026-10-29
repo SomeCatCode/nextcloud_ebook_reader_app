@@ -1,20 +1,9 @@
 package com.somecatcode.ebookreader.ui.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material.icons.filled.MoreVert
-import com.somecatcode.ebookreader.ui.util.title
-import com.somecatcode.ebookreader.ui.util.serverLabel
-import com.somecatcode.ebookreader.data.transfer.TransferException
-import com.somecatcode.ebookreader.data.account.Account
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -22,19 +11,25 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -42,6 +37,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -65,23 +61,28 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.text.HtmlCompat
 import com.somecatcode.ebookreader.R
+import com.somecatcode.ebookreader.data.account.Account
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.db.DownloadState
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.FacetCount
 import com.somecatcode.ebookreader.data.repo.LibraryBook
 import com.somecatcode.ebookreader.data.repo.ShelfInfo
-import com.somecatcode.ebookreader.ui.components.rememberLocalText
+import com.somecatcode.ebookreader.data.transfer.TransferException
 import com.somecatcode.ebookreader.ui.components.BackButton
 import com.somecatcode.ebookreader.ui.components.BookCover
 import com.somecatcode.ebookreader.ui.components.EmptyState
 import com.somecatcode.ebookreader.ui.components.StarRating
 import com.somecatcode.ebookreader.ui.components.rememberDownloadGate
+import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 import com.somecatcode.ebookreader.ui.util.formatBytes
 import com.somecatcode.ebookreader.ui.util.percentText
+import com.somecatcode.ebookreader.ui.util.serverLabel
+import com.somecatcode.ebookreader.ui.util.title
 
 /** Book details, offline toggle, minimal metadata editing. */
 @Composable
@@ -632,6 +633,8 @@ private fun EditBookDialog(
     AlertDialog(
         onDismissRequest = onCancel,
         title = { Text(stringResource(R.string.book_edit)) },
+        // a form: a tap next to it (e.g. to hide the keyboard) must not close it and lose the input
+        properties = DialogProperties(dismissOnClickOutside = false),
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(

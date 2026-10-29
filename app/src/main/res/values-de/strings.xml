@@ -390,6 +390,12 @@
     <string name="reader_longstrip">Langer Streifen (Webtoon)</string>
     <string name="reader_longstrip_hint">Zeigt alle Seiten als nahtlosen, senkrechten Scroll.</string>
     <string name="reader_longstrip_auto">Automatisch erkennen</string>
+    <string name="reader_comic_brightness">Helligkeit: %1$d %%</string>
+    <string name="reader_comic_contrast">Kontrast: %1$d %%</string>
+    <string name="reader_comic_grayscale">Graustufen</string>
+    <string name="reader_comic_image_reset">Bild zurücksetzen</string>
+    <string name="reader_comic_image_hint">Helligkeit, Kontrast und Graustufen gelten für die Seitenbilder aller Comics.</string>
+    <string name="reader_annotation_limit">Dieses Buch hat bereits %1$d Markierungen und Notizen. Lösche welche, um neue hinzuzufügen.</string>
     <string name="read_next_finished_title">Fertig gelesen</string>
     <string name="read_next_continue">Weiterlesen: %1$s</string>
     <string name="read_next_similar">Ähnliche Titel</string>

@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,10 +17,10 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -47,8 +48,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -61,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -68,6 +68,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -75,6 +76,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.somecatcode.ebookreader.R
+import com.somecatcode.ebookreader.data.repo.ANNOTATION_MAX_PER_BOOK
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.ProgressConflict
 import com.somecatcode.ebookreader.reader.HostToReader
@@ -132,6 +134,12 @@ fun ReaderScreen(
     // a new host (also after a rotation, which rebuilds the WebView) opens at the current position
     LaunchedEffect(host, state.openMessage) { state.openMessage?.let { host.send(vm.openMessageForPage(it)) } }
     LaunchedEffect(state.closeRequested) { if (state.closeRequested) onBack() }
+    LaunchedEffect(state.notice) {
+        state.notice?.let { res ->
+            Toast.makeText(context, context.getString(res, ANNOTATION_MAX_PER_BOOK), Toast.LENGTH_LONG).show()
+            vm.consumeNotice()
+        }
+    }
     LaunchedEffect(state.settings, state.phase) {
         if (state.phase == ReaderPhase.READING) host.send(HostToReader.SetSettings(state.settings))
     }
@@ -439,6 +447,7 @@ private fun ReaderSettingsSheet(
                     Text(stringResource(R.string.reader_longstrip_auto))
                 }
             }
+            ComicImageSettings(settings, onChange)
         }
         if (fixedLayout) {
             Text(stringResource(R.string.reader_comic_zoom), style = MaterialTheme.typography.bodyLarge)
@@ -466,6 +475,42 @@ private fun ReaderSettingsSheet(
             Text(stringResource(R.string.reader_gestures_help))
         }
     }
+}
+
+/** Brightness, contrast and grayscale of comic page images (bad scans); they apply to all comics. */
+@Composable
+private fun ComicImageSettings(settings: ReaderSettings, onChange: ((ReaderSettings) -> ReaderSettings) -> Unit) {
+    Text(stringResource(R.string.reader_comic_brightness, settings.comicBrightness), style = MaterialTheme.typography.bodyLarge)
+    Slider(
+        value = settings.comicBrightness.toFloat(),
+        onValueChange = { v -> onChange { it.copy(comicBrightness = ((v / 5f).roundToInt() * 5).coerceIn(50, 200)) } },
+        valueRange = 50f..200f,
+        modifier = Modifier.testTag("comic_brightness"),
+    )
+    Text(stringResource(R.string.reader_comic_contrast, settings.comicContrast), style = MaterialTheme.typography.bodyLarge)
+    Slider(
+        value = settings.comicContrast.toFloat(),
+        onValueChange = { v -> onChange { it.copy(comicContrast = ((v / 5f).roundToInt() * 5).coerceIn(50, 200)) } },
+        valueRange = 50f..200f,
+        modifier = Modifier.testTag("comic_contrast"),
+    )
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(stringResource(R.string.reader_comic_grayscale), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+        Switch(settings.comicGrayscale, { on -> onChange { it.copy(comicGrayscale = on) } }, Modifier.testTag("comic_grayscale"))
+    }
+    if (settings.comicBrightness != 100 || settings.comicContrast != 100 || settings.comicGrayscale) {
+        TextButton(
+            onClick = { onChange { it.copy(comicBrightness = 100, comicContrast = 100, comicGrayscale = false) } },
+            modifier = Modifier.testTag("comic_image_reset"),
+        ) {
+            Text(stringResource(R.string.reader_comic_image_reset))
+        }
+    }
+    Text(
+        stringResource(R.string.reader_comic_image_hint),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 /**

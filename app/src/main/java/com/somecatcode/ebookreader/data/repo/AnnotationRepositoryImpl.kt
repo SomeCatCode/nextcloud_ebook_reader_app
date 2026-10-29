@@ -39,6 +39,7 @@ class AnnotationRepositoryImpl(
         }
 
     override suspend fun create(key: BookKey, locator: Locator, text: String?, color: AnnotationColor, note: String?): String {
+        if (dao.countLive(key.accountId, key.fileId) >= ANNOTATION_MAX_PER_BOOK) throw AnnotationLimitException()
         val uuid = newUuid().lowercase()
         val now = clock()
         val local = db.isLocalAccount(key.accountId)

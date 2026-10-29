@@ -390,6 +390,12 @@
     <string name="reader_longstrip">نوار بلند (وبتون)</string>
     <string name="reader_longstrip_hint">همه صفحه‌ها را در یک پیمایش عمودی پیوسته نشان می‌دهد.</string>
     <string name="reader_longstrip_auto">تشخیص خودکار</string>
+    <string name="reader_comic_brightness">روشنایی: %1$d %%</string>
+    <string name="reader_comic_contrast">کنتراست: %1$d %%</string>
+    <string name="reader_comic_grayscale">سیاه‌وسفید</string>
+    <string name="reader_comic_image_reset">بازنشانی تصویر</string>
+    <string name="reader_comic_image_hint">روشنایی، کنتراست و سیاه‌وسفید روی تصاویر صفحه‌های همه کمیک‌ها اعمال می‌شود.</string>
+    <string name="reader_annotation_limit">این کتاب از قبل %1$d برجسته‌سازی و یادداشت دارد. برای افزودن موارد جدید، برخی را حذف کنید.</string>
     <string name="read_next_finished_title">خواندن تمام شد</string>
     <string name="read_next_continue">ادامه: %1$s</string>
     <string name="read_next_similar">عنوان‌های مشابه</string>

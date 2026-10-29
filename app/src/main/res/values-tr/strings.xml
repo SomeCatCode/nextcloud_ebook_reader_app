@@ -390,6 +390,12 @@
     <string name="reader_longstrip">Uzun şerit (webtoon)</string>
     <string name="reader_longstrip_hint">Tüm sayfaları kesintisiz dikey kaydırmayla gösterir.</string>
     <string name="reader_longstrip_auto">Otomatik algıla</string>
+    <string name="reader_comic_brightness">Parlaklık: %%%1$d</string>
+    <string name="reader_comic_contrast">Kontrast: %%%1$d</string>
+    <string name="reader_comic_grayscale">Gri tonlama</string>
+    <string name="reader_comic_image_reset">Görüntüyü sıfırla</string>
+    <string name="reader_comic_image_hint">Parlaklık, kontrast ve gri tonlama tüm çizgi romanların sayfa görüntülerine uygulanır.</string>
+    <string name="reader_annotation_limit">Bu kitapta zaten %1$d vurgu ve not var. Yenilerini eklemek için bazılarını silin.</string>
     <string name="read_next_finished_title">Okuma bitti</string>
     <string name="read_next_continue">Devam et: %1$s</string>
     <string name="read_next_similar">Benzer kitaplar</string>

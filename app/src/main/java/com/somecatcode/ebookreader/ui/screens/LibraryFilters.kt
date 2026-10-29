@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import com.somecatcode.ebookreader.R
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.repo.FacetCount
@@ -390,6 +391,8 @@ internal fun NameDialog(title: String, initial: String, onDismiss: () -> Unit, o
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
+        // a form: a tap next to it (e.g. to hide the keyboard) must not close it and lose the input
+        properties = DialogProperties(dismissOnClickOutside = false),
         text = {
             OutlinedTextField(
                 value = name,

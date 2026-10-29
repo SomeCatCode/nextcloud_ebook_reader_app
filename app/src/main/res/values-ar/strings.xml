@@ -398,6 +398,12 @@
     <string name="reader_longstrip">شريط طويل (ويبتون)</string>
     <string name="reader_longstrip_hint">يعرض كل الصفحات في تمرير عمودي متصل.</string>
     <string name="reader_longstrip_auto">الكشف تلقائيًا</string>
+    <string name="reader_comic_brightness">السطوع: %1$d %%</string>
+    <string name="reader_comic_contrast">التباين: %1$d %%</string>
+    <string name="reader_comic_grayscale">تدرج رمادي</string>
+    <string name="reader_comic_image_reset">إعادة تعيين الصورة</string>
+    <string name="reader_comic_image_hint">ينطبق السطوع والتباين والتدرج الرمادي على صور صفحات جميع القصص المصورة.</string>
+    <string name="reader_annotation_limit">يحتوي هذا الكتاب بالفعل على %1$d من التظليلات والملاحظات. احذف بعضها لإضافة عناصر جديدة.</string>
     <string name="read_next_finished_title">انتهت القراءة</string>
     <string name="read_next_continue">متابعة: %1$s</string>
     <string name="read_next_similar">عناوين مشابهة</string>

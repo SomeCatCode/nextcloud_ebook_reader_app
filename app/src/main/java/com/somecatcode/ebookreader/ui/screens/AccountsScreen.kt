@@ -1,20 +1,11 @@
 package com.somecatcode.ebookreader.ui.screens
 
-import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.lifecycle.Lifecycle
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.material3.Surface
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Cloud
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.rememberLauncherForActivityResult
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,6 +18,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -43,24 +37,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.somecatcode.ebookreader.R
+import com.somecatcode.ebookreader.data.ServerVersions
 import com.somecatcode.ebookreader.data.account.Account
-import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.components.BackButton
 import com.somecatcode.ebookreader.ui.components.ConfirmDialog
 import com.somecatcode.ebookreader.ui.components.EmptyState
+import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 import com.somecatcode.ebookreader.ui.util.formatRelativeTime
 import com.somecatcode.ebookreader.ui.util.serverLabel
-import com.somecatcode.ebookreader.data.ServerVersions
 import com.somecatcode.ebookreader.ui.util.title
 
 /** Account list, add account (Login Flow v2), remove account. */
@@ -333,6 +334,8 @@ private fun AddAccountDialog(flow: AddFlowState, actions: AddFlowActions) {
     when (flow.stage) {
         AddStage.INPUT -> AlertDialog(
             onDismissRequest = actions.onDismiss,
+            // a form: a tap next to it (e.g. to hide the keyboard) must not close it and lose the input
+            properties = DialogProperties(dismissOnClickOutside = false),
             title = { Text(title) },
             text = {
                 Column {

@@ -155,8 +155,9 @@ const host = createHost({
 	pageWidth: () => comicPageWidth(window.innerWidth, window.innerHeight, window.devicePixelRatio),
 	loadLibarchive: async () => {
 		const [worker, wasm] = await Promise.all([
-			import('libarchive.js/dist/worker-bundle.js?raw'),
-			import('libarchive.js/dist/libarchive.wasm?url'),
+			// own build with a current libarchive (server repo packages/libarchive/README.md), not the npm worker
+			import('../../third_party/nextcloud_ebook_reader/packages/libarchive/dist/worker-bundle.js?raw'),
+			import('../../third_party/nextcloud_ebook_reader/packages/libarchive/dist/libarchive.wasm?url'),
 		])
 		return { workerSource: worker.default, wasmUrl: wasm.default }
 	},
