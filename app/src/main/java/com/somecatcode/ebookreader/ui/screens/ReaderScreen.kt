@@ -134,9 +134,11 @@ fun ReaderScreen(
     // a new host (also after a rotation, which rebuilds the WebView) opens at the current position
     LaunchedEffect(host, state.openMessage) { state.openMessage?.let { host.send(vm.openMessageForPage(it)) } }
     LaunchedEffect(state.closeRequested) { if (state.closeRequested) onBack() }
-    LaunchedEffect(state.notice) {
-        state.notice?.let { res ->
-            Toast.makeText(context, context.getString(res, ANNOTATION_MAX_PER_BOOK), Toast.LENGTH_LONG).show()
+    // stringResource (not context.getString): the text follows configuration changes such as the app language
+    val noticeText = state.notice?.let { stringResource(it, ANNOTATION_MAX_PER_BOOK) }
+    LaunchedEffect(noticeText) {
+        noticeText?.let { text ->
+            Toast.makeText(context, text, Toast.LENGTH_LONG).show()
             vm.consumeNotice()
         }
     }
