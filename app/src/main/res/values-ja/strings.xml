@@ -388,6 +388,12 @@
     <string name="reader_longstrip">縦読み（ウェブトゥーン）</string>
     <string name="reader_longstrip_hint">すべてのページを途切れのない縦スクロールで表示します。</string>
     <string name="reader_longstrip_auto">自動検出に戻す</string>
+    <string name="reader_comic_brightness">明るさ: %1$d %%</string>
+    <string name="reader_comic_contrast">コントラスト: %1$d %%</string>
+    <string name="reader_comic_grayscale">グレースケール</string>
+    <string name="reader_comic_image_reset">画像をリセット</string>
+    <string name="reader_comic_image_hint">明るさ、コントラスト、グレースケールはすべてのコミックのページ画像に適用されます。</string>
+    <string name="reader_annotation_limit">この本にはすでに %1$d 件のハイライトとメモがあります。新しく追加するには、いくつか削除してください。</string>
     <string name="read_next_finished_title">読了</string>
     <string name="read_next_continue">続きを読む: %1$s</string>
     <string name="read_next_similar">似た作品</string>

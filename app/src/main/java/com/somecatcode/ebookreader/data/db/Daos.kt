@@ -334,6 +334,9 @@ interface AnnotationDao {
     @Query("SELECT * FROM annotation WHERE accountId = :accountId AND fileId = :fileId")
     suspend fun allForBook(accountId: String, fileId: Long): List<AnnotationEntity>
 
+    @Query("SELECT COUNT(*) FROM annotation WHERE accountId = :accountId AND fileId = :fileId AND deleted = 0")
+    suspend fun countLive(accountId: String, fileId: Long): Int
+
     @Query("SELECT * FROM annotation WHERE accountId = :accountId AND uuid = :uuid")
     suspend fun get(accountId: String, uuid: String): AnnotationEntity?
 

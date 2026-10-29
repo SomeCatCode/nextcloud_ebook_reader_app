@@ -74,6 +74,9 @@ function toLayout(s: ReaderSettings): ReaderLayout {
 		comicRtl: s.comicRtl,
 		comicZoom: s.comicZoom,
 		comicLongstrip: s.comicLongstrip,
+		comicBrightness: s.comicBrightness,
+		comicContrast: s.comicContrast,
+		comicGrayscale: s.comicGrayscale,
 	}
 }
 

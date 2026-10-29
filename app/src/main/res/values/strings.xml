@@ -390,6 +390,12 @@
     <string name="reader_longstrip">Long strip (webtoon)</string>
     <string name="reader_longstrip_hint">Shows all pages as one seamless vertical scroll.</string>
     <string name="reader_longstrip_auto">Detect automatically</string>
+    <string name="reader_comic_brightness">Brightness: %1$d %%</string>
+    <string name="reader_comic_contrast">Contrast: %1$d %%</string>
+    <string name="reader_comic_grayscale">Grayscale</string>
+    <string name="reader_comic_image_reset">Reset image</string>
+    <string name="reader_comic_image_hint">Brightness, contrast and grayscale apply to the page images of all comics.</string>
+    <string name="reader_annotation_limit">This book already has %1$d highlights and notes. Delete some to add new ones.</string>
     <string name="read_next_finished_title">Finished reading</string>
     <string name="read_next_continue">Continue: %1$s</string>
     <string name="read_next_similar">Similar titles</string>

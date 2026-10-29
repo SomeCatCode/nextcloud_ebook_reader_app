@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import com.somecatcode.ebookreader.R
 import com.somecatcode.ebookreader.data.repo.ANNOTATION_MAX_NOTE
 import com.somecatcode.ebookreader.data.repo.AnnotationColor
@@ -182,6 +183,8 @@ fun NoteEditorDialog(editor: NoteEditor, actions: AnnotationActions) {
     var text by rememberSaveable(editor.uuid, editor.quote) { mutableStateOf(editor.initial) }
     AlertDialog(
         onDismissRequest = actions.onDismissNote,
+        // a form: a tap next to it (e.g. to hide the keyboard) must not close it and lose the input
+        properties = DialogProperties(dismissOnClickOutside = false),
         title = { Text(stringResource(if (editor.uuid == null) R.string.annotation_note_title_new else R.string.annotation_edit_note)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

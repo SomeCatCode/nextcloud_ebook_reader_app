@@ -21,6 +21,12 @@ export interface ReaderSettings {
 	comicZoom: 'fit-page' | 'fit-width'
 	/** Comics: long strip (webtoon), seamless vertical scroll; set per book by Kotlin (book flag), never stored as default */
 	comicLongstrip: boolean
+	/** Comics: brightness of the page images in percent (50-200) */
+	comicBrightness: number
+	/** Comics: contrast of the page images in percent (50-200) */
+	comicContrast: number
+	/** Comics: page images in grayscale */
+	comicGrayscale: boolean
 	einkMode: boolean
 }
 
@@ -36,6 +42,9 @@ export const DEFAULT_SETTINGS: ReaderSettings = {
 	comicRtl: false,
 	comicZoom: 'fit-page',
 	comicLongstrip: false,
+	comicBrightness: 100,
+	comicContrast: 100,
+	comicGrayscale: false,
 	einkMode: false,
 }
 

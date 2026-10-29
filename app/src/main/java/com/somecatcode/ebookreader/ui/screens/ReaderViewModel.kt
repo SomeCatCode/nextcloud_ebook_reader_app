@@ -2,10 +2,12 @@ package com.somecatcode.ebookreader.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.somecatcode.ebookreader.R
 import com.somecatcode.ebookreader.data.api.AppDataPatch
 import com.somecatcode.ebookreader.data.api.Locations
 import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.repo.AnnotationColor
+import com.somecatcode.ebookreader.data.repo.AnnotationLimitException
 import com.somecatcode.ebookreader.data.repo.AnnotationRepository
 import com.somecatcode.ebookreader.data.repo.BookAnnotation
 import com.somecatcode.ebookreader.data.repo.BookKey
@@ -89,6 +91,8 @@ data class ReaderUiState(
     val longstripManual: Boolean = false,
     /** "Fertig gelesen" sheet: the end of the book was reached; the next volume and similar unread titles. */
     val finished: ReadNextSuggestions? = null,
+    /** Short message for the user (string resource), shown once by the screen and then cleared with [ReaderViewModel.consumeNotice]. */
+    val notice: Int? = null,
 ) {
     /** What the page draws: highlights and notes with a CFI. */
     val drawnAnnotations: List<DrawnAnnotation>
@@ -392,7 +396,12 @@ class ReaderViewModel(
         val sel = _state.value.selection ?: return false
         when (action) {
             SelectionAction.HIGHLIGHT -> viewModelScope.launch {
-                val uuid = annotationRepository.create(key, sel.locator, sel.text, lastColor)
+                val uuid = try {
+                    annotationRepository.create(key, sel.locator, sel.text, lastColor)
+                } catch (e: AnnotationLimitException) {
+                    _state.update { it.copy(selection = null, notice = R.string.reader_annotation_limit) }
+                    return@launch
+                }
                 _state.update { it.copy(selection = null, popup = AnnotationPopup(uuid, sel.rect)) }
             }
             SelectionAction.NOTE -> _state.update { it.copy(selection = null, noteEditor = NoteEditor(null, sel.text, "", sel)) }
@@ -422,13 +431,18 @@ class ReaderViewModel(
         viewModelScope.launch {
             when {
                 editor.uuid != null -> annotationRepository.setNote(key, editor.uuid, text)
-                editor.selection != null && text.isNotBlank() ->
+                editor.selection != null && text.isNotBlank() -> try {
                     annotationRepository.create(key, editor.selection.locator, editor.selection.text, lastColor, text)
+                } catch (e: AnnotationLimitException) {
+                    _state.update { it.copy(notice = R.string.reader_annotation_limit) }
+                }
             }
         }
     }
 
     fun dismissNoteEditor() = _state.update { it.copy(noteEditor = null) }
+
+    fun consumeNotice() = _state.update { it.copy(notice = null) }
 
     fun dismissPopup() = _state.update { it.copy(popup = null) }
 

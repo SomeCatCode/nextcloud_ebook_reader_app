@@ -271,6 +271,12 @@ data class ReaderSettings(
      * opens and is never part of the stored reader defaults.
      */
     @EncodeDefault val comicLongstrip: Boolean = false,
+    /** Comics: brightness of the page images in percent (50-200). */
+    @EncodeDefault val comicBrightness: Int = 100,
+    /** Comics: contrast of the page images in percent (50-200). */
+    @EncodeDefault val comicContrast: Int = 100,
+    /** Comics: page images in grayscale. */
+    @EncodeDefault val comicGrayscale: Boolean = false,
     /** E-ink mode: no animations, high contrast, no transitions. */
     @EncodeDefault val einkMode: Boolean = false,
 )

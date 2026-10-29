@@ -302,6 +302,14 @@ describe('comic zoom', () => {
 		expect(fr.handle.setLayout).toHaveBeenLastCalledWith(expect.objectContaining({ comicZoom: 'fit-width' }))
 	})
 
+	it('passes the comic image filter to the layout', async () => {
+		const { host, fr } = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }))
+		host.receive(COMIC)
+		await flush()
+		host.receive({ type: 'setSettings', settings: { comicBrightness: 130, comicContrast: 80, comicGrayscale: true } })
+		expect(fr.handle.setLayout).toHaveBeenLastCalledWith(expect.objectContaining({ comicBrightness: 130, comicContrast: 80, comicGrayscale: true }))
+	})
+
 	it('a tap zone turns the page at fit zoom', async () => {
 		const { host, fr } = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }))
 		host.receive(COMIC)

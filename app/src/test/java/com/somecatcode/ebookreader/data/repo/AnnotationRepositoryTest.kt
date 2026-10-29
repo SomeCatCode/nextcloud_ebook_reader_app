@@ -26,6 +26,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
@@ -127,6 +128,22 @@ class AnnotationRepositoryTest : DbTest() {
         dispatcher.on("DELETE", "/annotations/") { ocsError(404, "Annotation not found") }
         repo.pushDirty("acc1")
         assertNull(row())
+    }
+
+    @Test
+    fun createRefusesANewAnnotationAtTheBookLimit() = runBlocking {
+        val rows = (0 until ANNOTATION_MAX_PER_BOOK).map { i ->
+            dto(annotationJson(uuid = "00000000-0000-4000-8000-%012d".format(i + 100))).toEntity("acc1")
+        }
+        rows.forEach { db.annotationDao().upsert(it) }
+        try {
+            repo.create(key, locator, "one too many", AnnotationColor.YELLOW)
+            fail("expected AnnotationLimitException")
+        } catch (e: AnnotationLimitException) {
+            // expected
+        }
+        assertEquals(ANNOTATION_MAX_PER_BOOK, db.annotationDao().countLive("acc1", 1))
+        assertTrue(scheduler.scheduled.isEmpty())
     }
 
     @Test
