@@ -16,6 +16,9 @@ val donationUrl = if (playBuild) "" else (project.findProperty("donationUrl") as
 android {
     namespace = "com.somecatcode.ebookreader"
     compileSdk = 36
+    // NDK only for llvm-objcopy: AGP strips the AndroidX .so files and extracts their symbol tables for Play.
+    // CI installs exactly this version (the workflows read it from here).
+    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         applicationId = "com.somecatcode.ebookreader"

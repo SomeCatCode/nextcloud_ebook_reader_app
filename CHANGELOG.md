@@ -6,6 +6,7 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 ## [Unreleased]
 
 ### Geändert
+- Release-Workflow: Der Build installiert jetzt das NDK 28.2.13676358 (`ndkVersion` in `app/build.gradle.kts`). Damit packt er die Symboltabellen der nativen Bibliotheken in das App Bundle. Google Play zeigt die Warnung „Dieses App Bundle enthält nativen Code und du hast keine Symbole zum Debuggen hochgeladen“ nicht mehr. Die CI prüft bei jedem Pull Request, dass der Build die Symboltabellen erzeugt.
 - Release-Workflow: Der Upload zu Google Play nutzt den Parameter `tracks` statt `track`. Der alte Parameter `track` ist veraltet und erzeugte eine Warnung.
 
 ## 0.6.0 – 2026-10-30
