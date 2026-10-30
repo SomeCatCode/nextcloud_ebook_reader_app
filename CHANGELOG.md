@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Geändert
+- Release-Workflow: Der Upload zu Google Play nutzt den Parameter `tracks` statt `track`. Der alte Parameter `track` ist veraltet und erzeugte eine Warnung.
+
 ## 0.6.0 – 2026-10-30
 
 ### Hinzugefügt

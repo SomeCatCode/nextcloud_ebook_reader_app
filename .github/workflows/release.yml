@@ -159,7 +159,7 @@ jobs:
           releaseFiles: dist/${{ steps.files.outputs.name }}.aab
           mappingFile: dist/${{ steps.files.outputs.name }}-mapping.txt
           whatsNewDirectory: dist/whatsnew
-          track: ${{ inputs.track || vars.PLAY_TRACK || 'internal' }}
+          tracks: ${{ inputs.track || vars.PLAY_TRACK || 'internal' }}
           status: ${{ inputs.status || vars.PLAY_RELEASE_STATUS || 'completed' }}
           releaseName: ${{ steps.version.outputs.name }} (${{ steps.version.outputs.code }})
 
