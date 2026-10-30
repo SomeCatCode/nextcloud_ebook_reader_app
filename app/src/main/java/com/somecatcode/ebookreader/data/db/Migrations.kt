@@ -56,7 +56,7 @@ val MIGRATION_3_4: Migration = object : Migration(3, 4) {
 }
 
 /**
- * Version 5: long strip comics (`book.longstrip`, `longstripManual`, `longstripFile`; server 0.12.0). All false
+ * Version 5: long strip comics (`book.longstrip`, `longstripManual`, `longstripFile`; server 1.0.0). All false
  * for existing books. The stored `/sync` cursors are reset so the next sync is a full one and fills the flags
  * of the existing books (books are upserted, nothing is lost).
  */

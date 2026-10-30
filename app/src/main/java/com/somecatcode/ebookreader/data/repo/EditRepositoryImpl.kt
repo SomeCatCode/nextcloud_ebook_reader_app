@@ -75,7 +75,7 @@ class EditRepositoryImpl(
         if (patch.setRating) fields["rating"] = patch.rating?.let { JsonPrimitive(it.coerceIn(0, 5)) } ?: JsonNull
         patch.readStatus?.let { fields["readStatus"] = JsonPrimitive(it.wire()) }
         val local = db.isLocalAccount(key.accountId)
-        // Servers before 0.12.0 know no long strip fields: the flag is not stored (a sync would reset it) and never sent.
+        // Servers before 1.0.0 know no long strip fields: the flag is not stored (a sync would reset it) and never sent.
         val longstripKnown = local || ServerFeature.LONGSTRIP.availableOn(db.accountDao().get(key.accountId)?.appVersion)
         val resetLongstrip = patch.resetLongstrip && longstripKnown
         val setLongstrip = patch.longstrip.takeIf { longstripKnown && !resetLongstrip }
