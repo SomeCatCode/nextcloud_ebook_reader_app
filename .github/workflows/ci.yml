@@ -34,8 +34,23 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
 
+      - name: Install NDK (native debug symbols for Play)
+        run: |
+          ndk=$(sed -n 's/^ *ndkVersion = "\(.*\)"/\1/p' app/build.gradle.kts)
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$ndk" > /dev/null
+          ls -d "$ANDROID_HOME/ndk/$ndk"
+
       - name: Lint, unit tests, debug build (builds reader-web too)
         run: ./gradlew lint test assembleDebug --stacktrace
+
+      - name: Native debug symbols for Play
+        run: |
+          ./gradlew :app:extractReleaseNativeSymbolTables --stacktrace
+          if [ -z "$(find app/build/intermediates -path '*native_symbol_tables*' -name '*.sym' -print -quit)" ]; then
+            echo "::error::AGP extracted no native symbol tables (NDK missing?); Play would show a warning"
+            exit 1
+          fi
+          find app/build/intermediates -path '*native_symbol_tables*' -name '*.sym'
 
       - name: Upload debug APK (dev builds for testing)
         if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
