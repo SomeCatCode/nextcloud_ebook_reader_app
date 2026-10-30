@@ -19,6 +19,14 @@ export interface ReaderSettings {
 	comicSpread: 'single' | 'double'
 	comicRtl: boolean
 	comicZoom: 'fit-page' | 'fit-width'
+	/** Comics: long strip (webtoon), seamless vertical scroll; set per book by Kotlin (book flag), never stored as default */
+	comicLongstrip: boolean
+	/** Comics: brightness of the page images in percent (50-200) */
+	comicBrightness: number
+	/** Comics: contrast of the page images in percent (50-200) */
+	comicContrast: number
+	/** Comics: page images in grayscale */
+	comicGrayscale: boolean
 	einkMode: boolean
 }
 
@@ -33,6 +41,10 @@ export const DEFAULT_SETTINGS: ReaderSettings = {
 	comicSpread: 'single',
 	comicRtl: false,
 	comicZoom: 'fit-page',
+	comicLongstrip: false,
+	comicBrightness: 100,
+	comicContrast: 100,
+	comicGrayscale: false,
 	einkMode: false,
 }
 
@@ -77,8 +89,8 @@ export interface RectMsg {
 
 export type ReaderToHostMsg =
 	| { type: 'ready', protocol: number }
-	| { type: 'opened', info: { title?: string, authors: string[], language?: string, isComic: boolean, fixedLayout: boolean, rtl: boolean, pageCount: number, supportsAnnotations: boolean } }
-	| { type: 'relocate', locator: ReaderLocator, percentage: number, label?: string, page?: { current: number, total: number } }
+	| { type: 'opened', info: { title?: string, authors: string[], language?: string, isComic: boolean, fixedLayout: boolean, rtl: boolean, pageCount: number, longstrip: boolean, supportsAnnotations: boolean } }
+	| { type: 'relocate', locator: ReaderLocator, percentage: number, atEnd?: boolean, label?: string, page?: { current: number, total: number } }
 	| { type: 'toc', items: TocItemMsg[] }
 	| { type: 'externalLink', url: string }
 	| { type: 'tap', zone: 'left' | 'center' | 'right' }

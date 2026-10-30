@@ -4,6 +4,7 @@ import com.somecatcode.ebookreader.data.DbTest
 import com.somecatcode.ebookreader.data.RecordingScheduler
 import com.somecatcode.ebookreader.data.RoutingDispatcher
 import com.somecatcode.ebookreader.data.StaticApiFactory
+import com.somecatcode.ebookreader.data.addAccount
 import com.somecatcode.ebookreader.data.api.ApiJson
 import com.somecatcode.ebookreader.data.api.AppDataPatch
 import com.somecatcode.ebookreader.data.api.MetadataPatch
@@ -140,5 +141,60 @@ class EditRepositoryTest : DbTest() {
         val f = withTimeout(3000) { failure.await() }
         assertEquals(key, f.key)
         assertEquals("invalid isbn", f.message)
+    }
+
+    private suspend fun supportLongstrip() = db.accountDao().updateVersions("acc1", "31.0", "1.0.0")
+
+    @Test
+    fun longstripIsStoredAsManualAndQueuedAsOneAppDataPatch() = runBlocking {
+        supportLongstrip()
+        repo.editAppData(key, AppDataPatch(longstrip = true))
+        val book = db.bookDao().get("acc1", 1)!!
+        assertTrue(book.longstrip)
+        assertTrue(book.longstripManual)
+        val patch = ApiJson.parseToJsonElement(db.pendingEditDao().forAccount("acc1").single().patch).jsonObject
+        assertEquals(JsonPrimitive(true), patch["longstrip"])
+
+        // reset replaces the queued value: both together are a 400 at the server
+        repo.editAppData(key, AppDataPatch(resetLongstrip = true))
+        val reset = ApiJson.parseToJsonElement(db.pendingEditDao().forAccount("acc1").single().patch).jsonObject
+        assertEquals(setOf("resetLongstrip"), reset.keys)
+        assertEquals(false, db.bookDao().get("acc1", 1)!!.longstripManual)
+    }
+
+    @Test
+    fun longstripUploadsThePatchFields() = runBlocking {
+        supportLongstrip()
+        dispatcher.on("PATCH", "/app-data") { ocs(bookJson(1)) }
+        repo.editAppData(key, AppDataPatch(longstrip = false))
+        repo.flushPending("acc1")
+        assertTrue(db.pendingEditDao().forAccount("acc1").isEmpty())
+        assertEquals("""{"longstrip":false}""", dispatcher.requests.single().body.readUtf8())
+    }
+
+    @Test
+    fun serversBefore0120NeverGetTheLongstripFlag() = runBlocking {
+        // the account of the test has no app version: the flag is neither stored nor queued
+        repo.editAppData(key, AppDataPatch(longstrip = true))
+        assertEquals(false, db.bookDao().get("acc1", 1)!!.longstrip)
+        assertTrue(db.pendingEditDao().forAccount("acc1").isEmpty())
+        // other app data still goes through
+        repo.editAppData(key, AppDataPatch(longstrip = true, setRating = true, rating = 3))
+        assertEquals(setOf("rating"), ApiJson.parseToJsonElement(db.pendingEditDao().forAccount("acc1").single().patch).jsonObject.keys)
+    }
+
+    @Test
+    fun localLibrariesKeepTheFlagInTheAppAndResetToTheFileValue() = runBlocking {
+        db.addAccount("loc", kind = com.somecatcode.ebookreader.data.db.AccountKind.LOCAL)
+        val local = book(5, accountId = "loc").copy(longstrip = false, longstripFile = true)
+        db.bookDao().upsertAll(listOf(local))
+        val k = BookKey("loc", 5)
+        repo.editAppData(k, AppDataPatch(longstrip = false))
+        assertEquals(true, db.bookDao().get("loc", 5)!!.longstripManual)
+        assertTrue("local changes are never queued", db.pendingEditDao().forAccount("loc").isEmpty())
+        repo.editAppData(k, AppDataPatch(resetLongstrip = true))
+        val after = db.bookDao().get("loc", 5)!!
+        assertEquals(false, after.longstripManual)
+        assertEquals("the file says long strip", true, after.longstrip)
     }
 }

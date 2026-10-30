@@ -94,12 +94,18 @@ fun book(
     shared: Boolean = false,
     sharedOut: Boolean = false,
     owner: String? = null,
+    longstrip: Boolean = false,
+    longstripManual: Boolean = false,
+    language: String? = "en",
+    addedAt: Long = fileId,
 ) = LibraryBook(
     key = BookKey(accountId, fileId), format = format, path = path, size = 1_000_000, title = title,
-    authors = authors, series = series, seriesIndex = seriesIndex, descriptionHtml = null, language = "en", publisher = null,
+    authors = authors, series = series, seriesIndex = seriesIndex, descriptionHtml = null, language = language, publisher = null,
     isbn = null, publishedAt = null, genres = genres, tags = tags, rating = rating, readStatus = status, hasCover = false,
-    coverEtag = null, addedAt = fileId, editable = editable, downloadable = true, percentage = percentage, offline = offline,
+    coverEtag = null, addedAt = addedAt, editable = editable, downloadable = true, percentage = percentage, offline = offline,
     hasPendingEdit = pending, shared = shared, owner = owner, sharedOut = sharedOut,
+    longstrip = longstrip, longstripManual = longstripManual,
+    volumeNumber = com.somecatcode.ebookreader.data.repo.VolumeNumbers.effective(series, seriesIndex, title, path),
 )
 
 // ---- repositories -----------------------------------------------------------------------------------

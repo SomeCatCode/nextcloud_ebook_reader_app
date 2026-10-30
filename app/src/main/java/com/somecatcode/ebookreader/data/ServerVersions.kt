@@ -62,7 +62,10 @@ enum class ServerFeature(val since: String) {
     SHARED_VIEW("0.10.0"),
 
     /** Book paths and folder shares (`ebookreader.features` contains `folders`): "Folders" view. */
-    FOLDERS_VIEW("0.10.0");
+    FOLDERS_VIEW("0.10.0"),
+
+    /** Long strip comics: book fields `longstrip`/`longstripManual`, app-data `longstrip`/`resetLongstrip`, filter `layout:longstrip`. */
+    LONGSTRIP("1.0.0");
 
     fun availableOn(serverAppVersion: String?): Boolean = ServerVersions.isAtLeast(serverAppVersion, since)
 }

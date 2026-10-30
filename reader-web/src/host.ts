@@ -73,6 +73,10 @@ function toLayout(s: ReaderSettings): ReaderLayout {
 		comicSpread: s.comicSpread,
 		comicRtl: s.comicRtl,
 		comicZoom: s.comicZoom,
+		comicLongstrip: s.comicLongstrip,
+		comicBrightness: s.comicBrightness,
+		comicContrast: s.comicContrast,
+		comicGrayscale: s.comicGrayscale,
 	}
 }
 
@@ -327,8 +331,8 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 			})
 			reader = r
 			unsubs.push(
-				r.on('relocate', ({ locator, percentage, label, page }) => {
-					const m: ReaderToHostMsg = { type: 'relocate', locator, percentage, label, page }
+				r.on('relocate', ({ locator, percentage, atEnd, label, page }) => {
+					const m: ReaderToHostMsg = { type: 'relocate', locator, percentage, atEnd, label, page }
 					if (opening) {
 						pendingRelocate = m
 					} else {
@@ -365,11 +369,13 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 					fixedLayout: info?.fixedLayout ?? false,
 					rtl: info?.rtl ?? false,
 					pageCount: info?.pageCount ?? 0,
+					longstrip: info?.longstrip ?? false,
 					supportsAnnotations: r.supportsAnnotations(),
 				},
 			})
 			deps.send({ type: 'toc', items: mapToc(r.getToc()) })
-			deps.onComicMode?.(info?.isComic ?? false)
+			// long strips scroll natively inside reader-core: no gesture layer (it would swallow the scrolling)
+			deps.onComicMode?.((info?.isComic ?? false) && !(info?.longstrip ?? false))
 			opening = false
 			applyAnnotations()
 			if (pendingRelocate) {

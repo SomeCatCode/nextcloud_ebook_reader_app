@@ -101,6 +101,12 @@ data class BookEntity(
     @ColumnInfo(defaultValue = "0") val sharedOut: Boolean = false,
     /** Local accounts: `content://` document URI of the file; null for Nextcloud books. */
     val localUri: String? = null,
+    /** Long strip comic (webtoon, server 1.0.0+): effective value, [longstripManual] if set, else the one from the file. */
+    @ColumnInfo(defaultValue = "0") val longstrip: Boolean = false,
+    /** The long strip flag was set in the app and survives re-indexing. */
+    @ColumnInfo(defaultValue = "0") val longstripManual: Boolean = false,
+    /** Long strip recognised in the file (ComicInfo.xml). Known for local libraries; for server books the value without a manual flag. */
+    @ColumnInfo(defaultValue = "0") val longstripFile: Boolean = false,
 )
 
 /** Genre or tag of a book. */

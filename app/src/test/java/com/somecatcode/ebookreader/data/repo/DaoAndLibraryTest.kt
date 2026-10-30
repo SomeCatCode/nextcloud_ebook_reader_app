@@ -62,7 +62,7 @@ class DaoAndLibraryTest : DbTest() {
     }
 
     @Test
-    fun continueReadingShowsOnlyStartedBooksInProgress() = runBlocking {
+    fun continueReadingShowsTheBooksWithStatusReading() = runBlocking {
         val repo = LibraryRepositoryImpl(db)
         db.bookDao().upsertAll(
             listOf(
@@ -76,7 +76,11 @@ class DaoAndLibraryTest : DbTest() {
         db.progressDao().upsertAll(
             listOf(progress(1, at = 50), progress(2, at = 60), progress(3, at = 70), progress(4, at = 80).copy(percentage = 0.0)),
         )
-        assertEquals(listOf("Reading"), repo.continueReading(listOf("acc1")).first().map { it.title })
+        assertEquals(
+            "status decides, as in the web app: reading books with and without progress, never unread or finished ones",
+            setOf("Reading", "Reading at zero", "Reading without progress"),
+            repo.continueReading(listOf("acc1")).first().map { it.title }.toSet(),
+        )
     }
 
     @Test
@@ -207,5 +211,27 @@ class DaoAndLibraryTest : DbTest() {
         assertEquals(1, facets.missing["genre"])
         assertEquals(2, facets.missing["series"])
         assertEquals(3, facets.formats.single().count)
+    }
+
+    @Test
+    fun longstripFilterFacetAndVolumeOrderInTheLibrary() = runBlocking {
+        db.bookDao().upsertAll(
+            listOf(
+                book(1, title = "Strip Vol. 10", series = "Strip").copy(longstrip = true),
+                book(2, title = "Strip Vol. 2", series = "Strip").copy(longstrip = true, longstripManual = true),
+                book(3, title = "Strip Vol. 1", series = "Strip"),
+                book(4, title = "Paged"),
+            ),
+        )
+        val repo = LibraryRepositoryImpl(db)
+        fun ids(f: LibraryFilter) = runBlocking { repo.books(listOf("acc1"), f).first().map { it.key.fileId } }
+        assertEquals(setOf(1L, 2L), ids(LibraryFilter(include = listOf("layout:longstrip"))).toSet())
+        assertEquals(setOf(3L, 4L), ids(LibraryFilter(exclude = listOf("layout:longstrip"))).toSet())
+        // other layout names have no effect
+        assertEquals(4, ids(LibraryFilter(include = listOf("layout:paged"))).size)
+        assertEquals(listOf(3L, 2L, 1L), ids(LibraryFilter(series = "Strip", sort = LibrarySort.SERIES)))
+        val facets = repo.facets(listOf("acc1")).first()
+        assertEquals(listOf(FacetCount("longstrip", 2)), facets.layouts)
+        assertTrue(repo.books(listOf("acc1")).first().first { it.key.fileId == 2L }.longstripManual)
     }
 }

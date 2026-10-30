@@ -391,4 +391,21 @@
     <string name="book_delete_failed">تعذّر حذف الكتاب.</string>
     <string name="transfer_error_space">لا توجد مساحة تخزين كافية على هذا الجهاز: يحتاج الكتاب إلى %1$s والمساحة الحرة %2$s (بالإضافة إلى احتياطي 50 ميغابايت).</string>
     <string name="transfer_error_space_unknown">لا توجد مساحة تخزين كافية على هذا الجهاز.</string>
+    <string name="action_close">إغلاق</string>
+    <string name="longstrip_badge">شريط طويل (ويبتون)</string>
+    <string name="layout_longstrip">شريط طويل (ويبتون)</string>
+    <string name="filter_section_layouts">التخطيط</string>
+    <string name="reader_longstrip">شريط طويل (ويبتون)</string>
+    <string name="reader_longstrip_hint">يعرض كل الصفحات في تمرير عمودي متصل.</string>
+    <string name="reader_longstrip_auto">الكشف تلقائيًا</string>
+    <string name="reader_comic_brightness">السطوع: %1$d %%</string>
+    <string name="reader_comic_contrast">التباين: %1$d %%</string>
+    <string name="reader_comic_grayscale">تدرج رمادي</string>
+    <string name="reader_comic_image_reset">إعادة تعيين الصورة</string>
+    <string name="reader_comic_image_hint">ينطبق السطوع والتباين والتدرج الرمادي على صور صفحات جميع القصص المصورة.</string>
+    <string name="reader_annotation_limit">يحتوي هذا الكتاب بالفعل على %1$d من التظليلات والملاحظات. احذف بعضها لإضافة عناصر جديدة.</string>
+    <string name="read_next_finished_title">انتهت القراءة</string>
+    <string name="read_next_continue">متابعة: %1$s</string>
+    <string name="read_next_similar">عناوين مشابهة</string>
+    <string name="book_read_next">ماذا تقرأ بعد ذلك</string>
 </resources>

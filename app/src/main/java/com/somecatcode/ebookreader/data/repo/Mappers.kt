@@ -73,6 +73,9 @@ internal fun BookDto.toEntity(accountId: String, fileEtag: String?): BookEntity 
     shared = shared,
     owner = owner,
     sharedOut = sharedOut,
+    longstrip = longstrip,
+    longstripManual = longstripManual,
+    longstripFile = longstrip && !longstripManual,
 )
 
 internal fun BookDto.tagEntities(accountId: String): List<BookTagEntity> =
@@ -160,6 +163,9 @@ internal fun BookEntity.toLibraryBook(
     owner = owner,
     sharedOut = sharedOut,
     local = localUri != null,
+    longstrip = longstrip,
+    longstripManual = longstripManual,
+    volumeNumber = VolumeNumbers.effective(series, seriesIndex, fallbackTitle(), path),
 )
 
 /** Manual shelf memberships and smart shelf queries of the shown accounts, keyed by (accountId, shelfId). */
@@ -229,6 +235,8 @@ internal object SmartQueryEvaluator {
             "author" -> decodeStrings(book.authors).any { it.trim().equals(name, ignoreCase = true) }
             "series" -> book.series?.trim().equals(name, ignoreCase = true)
             "format" -> book.format.equals(name, ignoreCase = true)
+            // same as the server: only `layout:longstrip` exists, other names have no effect
+            "layout" -> if (name.equals("longstrip", ignoreCase = true)) book.longstrip else null
             "missing" -> missing(name, book, tags)
             "shelf" -> if (!allowShelf) null else shelfTerm(name, book, tags, shelves, negate)
             else -> null

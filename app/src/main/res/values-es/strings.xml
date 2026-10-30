@@ -385,4 +385,21 @@
     <string name="book_delete_failed">No se ha podido eliminar el libro.</string>
     <string name="transfer_error_space">No hay suficiente espacio en este dispositivo: el libro necesita %1$s y hay %2$s libres (más una reserva de 50 MB).</string>
     <string name="transfer_error_space_unknown">No hay suficiente espacio en este dispositivo.</string>
+    <string name="action_close">Cerrar</string>
+    <string name="longstrip_badge">Tira larga (webtoon)</string>
+    <string name="layout_longstrip">Tira larga (webtoon)</string>
+    <string name="filter_section_layouts">Diseño</string>
+    <string name="reader_longstrip">Tira larga (webtoon)</string>
+    <string name="reader_longstrip_hint">Muestra todas las páginas como un desplazamiento vertical continuo.</string>
+    <string name="reader_longstrip_auto">Detectar automáticamente</string>
+    <string name="reader_comic_brightness">Brillo: %1$d %%</string>
+    <string name="reader_comic_contrast">Contraste: %1$d %%</string>
+    <string name="reader_comic_grayscale">Escala de grises</string>
+    <string name="reader_comic_image_reset">Restablecer imagen</string>
+    <string name="reader_comic_image_hint">El brillo, el contraste y la escala de grises se aplican a las imágenes de las páginas de todos los cómics.</string>
+    <string name="reader_annotation_limit">Este libro ya tiene %1$d resaltados y notas. Elimina algunos para añadir otros nuevos.</string>
+    <string name="read_next_finished_title">Lectura terminada</string>
+    <string name="read_next_continue">Continuar: %1$s</string>
+    <string name="read_next_similar">Títulos similares</string>
+    <string name="book_read_next">Qué leer a continuación</string>
 </resources>

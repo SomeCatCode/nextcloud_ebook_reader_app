@@ -134,10 +134,10 @@ describe('open', () => {
 		await flush()
 		sent.length = 0
 		fr.emit('external-link', { url: 'https://example.org' })
-		fr.emit('relocate', { locator: { href: 'c2.xhtml' }, percentage: 0.5, label: 'Two', page: { current: 2, total: 4 } })
+		fr.emit('relocate', { locator: { href: 'c2.xhtml' }, percentage: 0.5, atEnd: false, label: 'Two', page: { current: 2, total: 4 } })
 		expect(sent).toEqual([
 			{ type: 'externalLink', url: 'https://example.org' },
-			{ type: 'relocate', locator: { href: 'c2.xhtml' }, percentage: 0.5, label: 'Two', page: { current: 2, total: 4 } },
+			{ type: 'relocate', locator: { href: 'c2.xhtml' }, percentage: 0.5, atEnd: false, label: 'Two', page: { current: 2, total: 4 } },
 		])
 	})
 })
@@ -302,6 +302,14 @@ describe('comic zoom', () => {
 		expect(fr.handle.setLayout).toHaveBeenLastCalledWith(expect.objectContaining({ comicZoom: 'fit-width' }))
 	})
 
+	it('passes the comic image filter to the layout', async () => {
+		const { host, fr } = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }))
+		host.receive(COMIC)
+		await flush()
+		host.receive({ type: 'setSettings', settings: { comicBrightness: 130, comicContrast: 80, comicGrayscale: true } })
+		expect(fr.handle.setLayout).toHaveBeenLastCalledWith(expect.objectContaining({ comicBrightness: 130, comicContrast: 80, comicGrayscale: true }))
+	})
+
 	it('a tap zone turns the page at fit zoom', async () => {
 		const { host, fr } = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }))
 		host.receive(COMIC)
@@ -382,5 +390,25 @@ describe('annotations', () => {
 		host.receive(OPEN)
 		await flush()
 		expect(fr.handle.setAnnotations).toHaveBeenLastCalledWith([])
+	})
+})
+
+describe('long strip', () => {
+	it('passes the long strip layout to reader-core, reports it and leaves the gesture layer off', async () => {
+		const comic = setup(fakeReader({ info: { isComic: true, fixedLayout: true, longstrip: true } }))
+		comic.host.receive({ ...OPEN, book: { ...OPEN.book, format: 'cbz' }, settings: { comicLongstrip: true } })
+		await flush()
+		expect(comic.created[0].layout?.comicLongstrip).toBe(true)
+		expect(comic.sent[0]).toMatchObject({ type: 'opened', info: { isComic: true, longstrip: true } })
+		expect(comic.comicMode).toEqual([false, false])
+	})
+
+	it('paged comics keep the gesture layer', async () => {
+		const comic = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }))
+		comic.host.receive({ ...OPEN, book: { ...OPEN.book, format: 'cbz' } })
+		await flush()
+		expect(comic.created[0].layout?.comicLongstrip).toBe(false)
+		expect(comic.sent[0]).toMatchObject({ info: { longstrip: false } })
+		expect(comic.comicMode.at(-1)).toBe(true)
 	})
 })

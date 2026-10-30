@@ -15,7 +15,11 @@ import com.somecatcode.ebookreader.data.repo.DownloadRepository
 import com.somecatcode.ebookreader.data.repo.EditFailure
 import com.somecatcode.ebookreader.data.repo.EditRepository
 import com.somecatcode.ebookreader.data.repo.FacetCount
+import com.somecatcode.ebookreader.data.ServerFeature
 import com.somecatcode.ebookreader.data.repo.LibraryBook
+import com.somecatcode.ebookreader.data.repo.LibraryFilter
+import com.somecatcode.ebookreader.data.repo.ReadNext
+import com.somecatcode.ebookreader.data.repo.ReadNextSuggestions
 import com.somecatcode.ebookreader.data.repo.LibraryRepository
 import com.somecatcode.ebookreader.data.repo.OfflineTarget
 import com.somecatcode.ebookreader.data.repo.ShelfInfo
@@ -26,7 +30,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -118,6 +125,10 @@ data class BookDetailUiState(
     /** Accounts the book can be copied or moved to (all others). */
     val transferTargets: List<Account> = emptyList(),
     val transfer: TransferUiState? = null,
+    /** The account's server (or a local library) keeps the long strip flag: the toggle is offered. */
+    val longstripAvailable: Boolean = false,
+    /** Finished book: the next volume and similar unread titles; null otherwise. */
+    val suggestions: ReadNextSuggestions? = null,
 )
 
 /** Copy/move dialog. [folders] of the selected Nextcloud account, null while loading. */
@@ -156,12 +167,31 @@ class BookDetailViewModel(
         shelves?.shelvesOf(key) ?: flowOf(emptySet()),
     ) { list, member -> list to member }
 
+    private val longstripAvailable: Flow<Boolean> = accounts.map { list ->
+        list.firstOrNull { it.id == key.accountId }?.let { it.local || ServerFeature.LONGSTRIP.availableOn(it.appVersion) } ?: false
+    }
+
+    /** Only computed while the book is finished (it scans the library of the account). */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val suggestions: Flow<ReadNextSuggestions?> = library.book(key)
+        .map { it?.readStatus == ReadStatus.FINISHED }.distinctUntilChanged()
+        .flatMapLatest { finished ->
+            if (!finished) {
+                flowOf(null)
+            } else {
+                combine(library.book(key), library.books(listOf(key.accountId), LibraryFilter())) { book, all ->
+                    book?.let { ReadNext.compute(it, all) }
+                }
+            }
+        }
+
     val state: StateFlow<BookDetailUiState> = combine(
         library.book(key), editing, editError, library.genres(listOf(key.accountId)), library.tags(listOf(key.accountId)),
     ) { book, form, error, genres, tags ->
         BookDetailUiState(true, book, form, error, genres, tags)
     }.combine(shelfState) { st, (list, member) -> st.copy(manualShelves = list, inShelves = member) }
         .combine(combine(targets, transfer, ::Pair)) { st, (t, tr) -> st.copy(transferTargets = t, transfer = tr) }
+        .combine(combine(longstripAvailable, suggestions, ::Pair)) { st, (l, s) -> st.copy(longstripAvailable = l, suggestions = s) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BookDetailUiState())
 
     private val messageChannel = Channel<Int>(Channel.BUFFERED)
@@ -299,6 +329,16 @@ class BookDetailViewModel(
         val book = state.value.book ?: return
         if (status == book.readStatus) return
         viewModelScope.launch { edits.editAppData(key, AppDataPatch(readStatus = status)) }
+    }
+
+    /** Long strip toggle: always a manual value. */
+    fun setLongstrip(enabled: Boolean) {
+        viewModelScope.launch { edits.editAppData(key, AppDataPatch(longstrip = enabled)) }
+    }
+
+    /** Drops the manual value: the layout recognised in the file applies again. */
+    fun resetLongstrip() {
+        viewModelScope.launch { edits.editAppData(key, AppDataPatch(resetLongstrip = true)) }
     }
 
     fun setOffline(enabled: Boolean) {

@@ -2,17 +2,24 @@ package com.somecatcode.ebookreader.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.somecatcode.ebookreader.R
+import com.somecatcode.ebookreader.data.api.AppDataPatch
 import com.somecatcode.ebookreader.data.api.Locations
 import com.somecatcode.ebookreader.data.api.Locator
 import com.somecatcode.ebookreader.data.repo.AnnotationColor
+import com.somecatcode.ebookreader.data.repo.AnnotationLimitException
 import com.somecatcode.ebookreader.data.repo.AnnotationRepository
 import com.somecatcode.ebookreader.data.repo.BookAnnotation
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.DownloadRepository
+import com.somecatcode.ebookreader.data.repo.EditRepository
 import com.somecatcode.ebookreader.data.repo.LibraryBook
+import com.somecatcode.ebookreader.data.repo.LibraryFilter
 import com.somecatcode.ebookreader.data.repo.LibraryRepository
 import com.somecatcode.ebookreader.data.repo.ProgressConflict
 import com.somecatcode.ebookreader.data.repo.ProgressRepository
+import com.somecatcode.ebookreader.data.repo.ReadNext
+import com.somecatcode.ebookreader.data.repo.ReadNextSuggestions
 import com.somecatcode.ebookreader.data.repo.SettingsRepository
 import com.somecatcode.ebookreader.reader.BookRef
 import com.somecatcode.ebookreader.reader.BookSource
@@ -78,6 +85,14 @@ data class ReaderUiState(
     val showGestureHint: Boolean = false,
     /** Swipe down: the screen leaves the reader. */
     val closeRequested: Boolean = false,
+    /** The open comic is shown as one seamless vertical scroll (long strip). */
+    val longstrip: Boolean = false,
+    /** The long strip flag of the book was set by hand (the settings offer to return to the automatic value). */
+    val longstripManual: Boolean = false,
+    /** "Fertig gelesen" sheet: the end of the book was reached; the next volume and similar unread titles. */
+    val finished: ReadNextSuggestions? = null,
+    /** Short message for the user (string resource), shown once by the screen and then cleared with [ReaderViewModel.consumeNotice]. */
+    val notice: Int? = null,
 ) {
     /** What the page draws: highlights and notes with a CFI. */
     val drawnAnnotations: List<DrawnAnnotation>
@@ -117,6 +132,7 @@ class ReaderViewModel(
     private val onGestureHintShown: () -> Unit = {},
     private val remoteCheckTimeoutMs: Long = 6_000,
     private val saveDebounceMs: Long = 1_000,
+    private val edits: EditRepository? = null,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ReaderUiState(keepScreenOn = keepScreenOn))
@@ -130,6 +146,9 @@ class ReaderViewModel(
     private var saveJob: Job? = null
     /** Color of the next highlight: the last one the user picked (web: yellow by default). */
     private var lastColor = AnnotationColor.YELLOW
+    /** The reader was below the end once in this session; opening a finished book at its end shows no sheet. */
+    private var sawUnfinished = false
+    private var finishedShown = false
 
     init {
         viewModelScope.launch { load() }
@@ -155,7 +174,8 @@ class ReaderViewModel(
         if (!loaded.downloadable) return fail(ReaderFailure.NOT_DOWNLOADABLE)
         book = loaded
         val settings = settingsRepository.settings.first().readerSettings()
-        _state.update { it.copy(title = loaded.title, settings = settings) }
+        // the long strip layout comes from the book flag, it is no stored reader default
+        _state.update { it.copy(title = loaded.title, settings = settings.copy(comicLongstrip = loaded.longstrip), longstripManual = loaded.longstripManual) }
         offline = loaded.local || downloads.localFile(key) != null
         val conflict = withTimeoutOrNull(remoteCheckTimeoutMs) { runCatching { progress.checkRemote(key) }.getOrNull() }
         if (conflict != null) {
@@ -228,6 +248,7 @@ class ReaderViewModel(
                         fixedLayout = event.info.isComic || event.info.fixedLayout,
                         supportsAnnotations = event.info.supportsAnnotations,
                         isComic = event.info.isComic,
+                        longstrip = event.info.longstrip,
                         pageCount = event.info.pageCount,
                         showGestureHint = it.showGestureHint || firstRun,
                     )
@@ -243,6 +264,7 @@ class ReaderViewModel(
                 pendingSave = event.locator to event.percentage
                 // a page turn closes the popup of a highlight
                 _state.update { it.copy(percentage = event.percentage, label = event.label, popup = null) }
+                checkFinished(event)
                 saveJob?.cancel()
                 saveJob = viewModelScope.launch {
                     delay(saveDebounceMs)
@@ -314,10 +336,54 @@ class ReaderViewModel(
         val updated = transform(_state.value.settings)
         _state.update { it.copy(settings = updated) }
         viewModelScope.launch {
-            // einkMode comes from the app setting, not from the stored reader defaults.
-            settingsRepository.update { s -> s.withReaderSettings(updated.copy(einkMode = false)) }
+            // einkMode comes from the app setting, the long strip layout from the book: neither is a stored default.
+            settingsRepository.update { s -> s.withReaderSettings(updated.copy(einkMode = false, comicLongstrip = false)) }
         }
     }
+
+    /**
+     * Long strip toggle of the settings: the page re-opens in the new layout at once; the flag is stored with the
+     * book (manual value; servers before 1.0.0 do not keep it, then it only applies to this session).
+     */
+    fun setLongstrip(enabled: Boolean) {
+        _state.update { it.copy(settings = it.settings.copy(comicLongstrip = enabled), longstripManual = true) }
+        viewModelScope.launch { edits?.editAppData(key, AppDataPatch(longstrip = enabled)) }
+    }
+
+    /** "Detect automatically": drops the manual flag, the value recognised in the file applies again. */
+    fun resetLongstrip() {
+        _state.update { it.copy(longstripManual = false) }
+        viewModelScope.launch {
+            edits?.editAppData(key, AppDataPatch(resetLongstrip = true))
+            val effective = library.book(key).first()?.longstrip ?: return@launch
+            _state.update { it.copy(settings = it.settings.copy(comicLongstrip = effective)) }
+        }
+    }
+
+    // ---- read next ---------------------------------------------------------------------------
+
+    /**
+     * Shows the "Fertig gelesen" sheet once when the end is reached after reading. The reader reports the end
+     * (`atEnd`): the last page or spread, the bottom of a long strip or of a scrolled text. The percentage is no
+     * signal: a comic reports 100 % as soon as its last page is shown, a long strip at the top of its last page.
+     */
+    private fun checkFinished(event: ReaderToHost.Relocate) {
+        if (!event.atEnd) {
+            sawUnfinished = true
+            return
+        }
+        if (!sawUnfinished || finishedShown) return
+        finishedShown = true
+        viewModelScope.launch {
+            val current = book ?: return@launch
+            val suggestions = runCatching {
+                ReadNext.compute(current, library.books(listOf(key.accountId), LibraryFilter()).first())
+            }.getOrNull() ?: return@launch
+            if (!suggestions.isEmpty) _state.update { it.copy(finished = suggestions, barsVisible = false) }
+        }
+    }
+
+    fun dismissFinished() = _state.update { it.copy(finished = null) }
 
     // ---- annotations -------------------------------------------------------------------------
 
@@ -330,7 +396,12 @@ class ReaderViewModel(
         val sel = _state.value.selection ?: return false
         when (action) {
             SelectionAction.HIGHLIGHT -> viewModelScope.launch {
-                val uuid = annotationRepository.create(key, sel.locator, sel.text, lastColor)
+                val uuid = try {
+                    annotationRepository.create(key, sel.locator, sel.text, lastColor)
+                } catch (e: AnnotationLimitException) {
+                    _state.update { it.copy(selection = null, notice = R.string.reader_annotation_limit) }
+                    return@launch
+                }
                 _state.update { it.copy(selection = null, popup = AnnotationPopup(uuid, sel.rect)) }
             }
             SelectionAction.NOTE -> _state.update { it.copy(selection = null, noteEditor = NoteEditor(null, sel.text, "", sel)) }
@@ -360,13 +431,18 @@ class ReaderViewModel(
         viewModelScope.launch {
             when {
                 editor.uuid != null -> annotationRepository.setNote(key, editor.uuid, text)
-                editor.selection != null && text.isNotBlank() ->
+                editor.selection != null && text.isNotBlank() -> try {
                     annotationRepository.create(key, editor.selection.locator, editor.selection.text, lastColor, text)
+                } catch (e: AnnotationLimitException) {
+                    _state.update { it.copy(notice = R.string.reader_annotation_limit) }
+                }
             }
         }
     }
 
     fun dismissNoteEditor() = _state.update { it.copy(noteEditor = null) }
+
+    fun consumeNotice() = _state.update { it.copy(notice = null) }
 
     fun dismissPopup() = _state.update { it.copy(popup = null) }
 

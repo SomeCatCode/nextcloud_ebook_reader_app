@@ -89,6 +89,9 @@ interface BookDao {
     @Query("UPDATE book SET rating = :rating, readStatus = :readStatus WHERE accountId = :accountId AND fileId = :fileId")
     suspend fun updateAppData(accountId: String, fileId: Long, rating: Int?, readStatus: String)
 
+    @Query("UPDATE book SET longstrip = :longstrip, longstripManual = :manual WHERE accountId = :accountId AND fileId = :fileId")
+    suspend fun updateLongstrip(accountId: String, fileId: Long, longstrip: Boolean, manual: Boolean)
+
     @Query("SELECT * FROM book WHERE accountId = :accountId AND deleted = 0")
     suspend fun getAllActive(accountId: String): List<BookEntity>
 
@@ -330,6 +333,9 @@ interface AnnotationDao {
 
     @Query("SELECT * FROM annotation WHERE accountId = :accountId AND fileId = :fileId")
     suspend fun allForBook(accountId: String, fileId: Long): List<AnnotationEntity>
+
+    @Query("SELECT COUNT(*) FROM annotation WHERE accountId = :accountId AND fileId = :fileId AND deleted = 0")
+    suspend fun countLive(accountId: String, fileId: Long): Int
 
     @Query("SELECT * FROM annotation WHERE accountId = :accountId AND uuid = :uuid")
     suspend fun get(accountId: String, uuid: String): AnnotationEntity?

@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import com.somecatcode.ebookreader.R
 import com.somecatcode.ebookreader.data.api.ReadStatus
 import com.somecatcode.ebookreader.data.repo.FacetCount
@@ -229,6 +230,7 @@ internal fun termLabel(t: String, excluded: Boolean, state: LibraryUiState): Str
     val name = termName(t)
     return when (termType(t)) {
         "format" -> name.uppercase()
+        "layout" -> if (name.equals("longstrip", ignoreCase = true)) stringResource(R.string.layout_longstrip) else name
         "shelf" -> stringResource(R.string.filter_shelf_term, state.shelves.firstOrNull { it.key.shelfId.toString() == name }?.name ?: name)
         "missing" -> missingLabel(name, has = excluded)
         else -> if (name.endsWith("/*")) stringResource(R.string.filter_with_sub, name.dropLast(2)) else name
@@ -255,6 +257,7 @@ private enum class FilterSection(val title: Int) {
     SERIES(R.string.filter_section_series),
     FORMATS(R.string.filter_section_formats),
     MISSING(R.string.filter_section_missing),
+    LAYOUTS(R.string.filter_section_layouts),
 }
 
 /** Bottom sheet with all facets; every entry cycles off → include → exclude → off. */
@@ -275,7 +278,9 @@ private fun FilterSheet(state: LibraryUiState, filter: LibraryFilter, actions: L
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
             ScrollableTabRow(selectedTabIndex = section.ordinal, edgePadding = 8.dp) {
-                FilterSection.entries.forEach { s ->
+                // the layout tab only exists when the library has a long strip (or a layout term is active)
+                val sections = FilterSection.entries.filter { it != FilterSection.LAYOUTS || facets.layouts.isNotEmpty() || filter.include.plus(filter.exclude).any { t -> termType(t) == "layout" } }
+                sections.forEach { s ->
                     Tab(
                         selected = section == s,
                         onClick = { section = s; search = "" },
@@ -284,7 +289,7 @@ private fun FilterSheet(state: LibraryUiState, filter: LibraryFilter, actions: L
                     )
                 }
             }
-            if (section != FilterSection.FORMATS && section != FilterSection.MISSING) {
+            if (section != FilterSection.FORMATS && section != FilterSection.MISSING && section != FilterSection.LAYOUTS) {
                 OutlinedTextField(
                     value = search,
                     onValueChange = { search = it },
@@ -299,6 +304,9 @@ private fun FilterSheet(state: LibraryUiState, filter: LibraryFilter, actions: L
                 FilterSection.AUTHORS -> flatRows("author", facets.authors, search)
                 FilterSection.SERIES -> flatRows("series", facets.series, search)
                 FilterSection.FORMATS -> facets.formats.map { FacetRow(term("format", it.name), it.name.uppercase(), it.count.toString()) }
+                FilterSection.LAYOUTS -> (facets.layouts.ifEmpty { listOf(FacetCount("longstrip", 0)) }).map {
+                    FacetRow(term("layout", it.name), if (it.name == "longstrip") stringResource(R.string.layout_longstrip) else it.name, it.count.toString())
+                }
                 FilterSection.MISSING -> MissingFields
                     .filter { (facets.missing[it] ?: 0) > 0 || filter.stateOf(term("missing", it)) != TermState.OFF }
                     .map { FacetRow(term("missing", it), "", (facets.missing[it] ?: 0).toString(), missingField = it) }
@@ -383,6 +391,8 @@ internal fun NameDialog(title: String, initial: String, onDismiss: () -> Unit, o
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
+        // a form: a tap next to it (e.g. to hide the keyboard) must not close it and lose the input
+        properties = DialogProperties(dismissOnClickOutside = false),
         text = {
             OutlinedTextField(
                 value = name,

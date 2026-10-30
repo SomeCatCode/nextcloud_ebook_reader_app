@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,10 +17,10 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -47,8 +48,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -61,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -68,6 +68,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -75,6 +76,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.somecatcode.ebookreader.R
+import com.somecatcode.ebookreader.data.repo.ANNOTATION_MAX_PER_BOOK
 import com.somecatcode.ebookreader.data.repo.BookKey
 import com.somecatcode.ebookreader.data.repo.ProgressConflict
 import com.somecatcode.ebookreader.reader.HostToReader
@@ -91,7 +93,15 @@ import kotlin.math.roundToInt
 
 /** Full-screen reader: hosts W-READER's WebView through [ReaderHost], handles conflict, TOC, settings, links. */
 @Composable
-fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
+fun ReaderScreen(
+    accountId: String,
+    fileId: Long,
+    onBack: () -> Unit,
+    /** "Weiterlesen": opens the next volume in the reader (replaces this reader). */
+    onReadNext: (BookKey) -> Unit = {},
+    /** A similar title of the "Fertig gelesen" sheet: opens its details. */
+    onOpenBook: (BookKey) -> Unit = {},
+) {
     val key = BookKey(accountId, fileId)
     val context = LocalContext.current
     val container = LocalAppContainer.current
@@ -103,6 +113,7 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
             onKeepScreenOnChanged = { prefs.readerKeepScreenOn = it },
             gestureHintShown = prefs.readerGestureHintShown,
             onGestureHintShown = { prefs.readerGestureHintShown = true },
+            edits = c.editRepository,
         )
     }
     val host = remember(key) { createReaderHost(context, container, key) }
@@ -123,6 +134,14 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
     // a new host (also after a rotation, which rebuilds the WebView) opens at the current position
     LaunchedEffect(host, state.openMessage) { state.openMessage?.let { host.send(vm.openMessageForPage(it)) } }
     LaunchedEffect(state.closeRequested) { if (state.closeRequested) onBack() }
+    // stringResource (not context.getString): the text follows configuration changes such as the app language
+    val noticeText = state.notice?.let { stringResource(it, ANNOTATION_MAX_PER_BOOK) }
+    LaunchedEffect(noticeText) {
+        noticeText?.let { text ->
+            Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+            vm.consumeNotice()
+        }
+    }
     LaunchedEffect(state.settings, state.phase) {
         if (state.phase == ReaderPhase.READING) host.send(HostToReader.SetSettings(state.settings))
     }
@@ -159,6 +178,18 @@ fun ReaderScreen(accountId: String, fileId: Long, onBack: () -> Unit) {
         onHideSettings = { vm.showSettings(false) },
         onSettings = vm::updateSettings,
         onKeepScreenOn = vm::setKeepScreenOn,
+        onLongstrip = vm::setLongstrip,
+        onLongstripAuto = vm::resetLongstrip,
+        onDismissFinished = vm::dismissFinished,
+        onReadNext = { next ->
+            vm.flushProgress()
+            vm.dismissFinished()
+            onReadNext(next)
+        },
+        onOpenSuggestion = { other ->
+            vm.dismissFinished()
+            onOpenBook(other)
+        },
         onSeek = { fraction -> host.send(HostToReader.GoTo(locator = vm.seekLocator(fraction))) },
         onShowGestureHint = vm::showGestureHint,
         onDismissGestureHint = vm::dismissGestureHint,
@@ -237,6 +268,11 @@ fun ReaderContent(
     onSeek: (Double) -> Unit = {},
     onShowGestureHint: () -> Unit = {},
     onDismissGestureHint: () -> Unit = {},
+    onLongstrip: (Boolean) -> Unit = {},
+    onLongstripAuto: () -> Unit = {},
+    onDismissFinished: () -> Unit = {},
+    onReadNext: (BookKey) -> Unit = {},
+    onOpenSuggestion: (BookKey) -> Unit = {},
 ) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
         Box(Modifier.fillMaxSize()) {
@@ -293,7 +329,21 @@ fun ReaderContent(
     }
     if (state.showSettings) {
         ModalBottomSheet(onDismissRequest = onHideSettings) {
-            ReaderSettingsSheet(state.settings, state.fixedLayout, state.keepScreenOn, onSettings, onKeepScreenOn, onShowGestureHint)
+            ReaderSettingsSheet(
+                state.settings, state.fixedLayout, state.keepScreenOn, onSettings, onKeepScreenOn, onShowGestureHint,
+                isComic = state.isComic, longstripManual = state.longstripManual, onLongstrip = onLongstrip, onLongstripAuto = onLongstripAuto,
+            )
+        }
+    }
+    state.finished?.let { suggestions ->
+        ModalBottomSheet(onDismissRequest = onDismissFinished) {
+            Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp).testTag("reader_finished"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(R.string.read_next_finished_title), style = MaterialTheme.typography.titleLarge)
+                ReadNextBlock(suggestions, onReadNext, onOpenSuggestion)
+                TextButton(onClick = onDismissFinished, modifier = Modifier.align(Alignment.End).testTag("finished_close")) {
+                    Text(stringResource(R.string.action_close))
+                }
+            }
         }
     }
     state.externalLink?.let { url ->
@@ -357,6 +407,10 @@ private fun ReaderSettingsSheet(
     onChange: ((ReaderSettings) -> ReaderSettings) -> Unit,
     onKeepScreenOn: (Boolean) -> Unit,
     onShowGestureHint: () -> Unit,
+    isComic: Boolean = false,
+    longstripManual: Boolean = false,
+    onLongstrip: (Boolean) -> Unit = {},
+    onLongstripAuto: () -> Unit = {},
 ) {
     Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.settings_reader_font_size, settings.fontSize), style = MaterialTheme.typography.bodyLarge)
@@ -377,6 +431,25 @@ private fun ReaderSettingsSheet(
             listOf("paginated" to R.string.reader_flow_paginated, "scrolled" to R.string.reader_flow_scrolled).forEach { (flow, label) ->
                 FilterChip(settings.flow == flow, { onChange { it.copy(flow = flow) } }, { Text(stringResource(label)) })
             }
+        }
+        if (isComic) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.reader_longstrip), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(R.string.reader_longstrip_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(settings.comicLongstrip, onLongstrip, Modifier.testTag("reader_longstrip"))
+            }
+            if (longstripManual) {
+                TextButton(onClick = onLongstripAuto, modifier = Modifier.testTag("reader_longstrip_auto")) {
+                    Text(stringResource(R.string.reader_longstrip_auto))
+                }
+            }
+            ComicImageSettings(settings, onChange)
         }
         if (fixedLayout) {
             Text(stringResource(R.string.reader_comic_zoom), style = MaterialTheme.typography.bodyLarge)
@@ -404,6 +477,42 @@ private fun ReaderSettingsSheet(
             Text(stringResource(R.string.reader_gestures_help))
         }
     }
+}
+
+/** Brightness, contrast and grayscale of comic page images (bad scans); they apply to all comics. */
+@Composable
+private fun ComicImageSettings(settings: ReaderSettings, onChange: ((ReaderSettings) -> ReaderSettings) -> Unit) {
+    Text(stringResource(R.string.reader_comic_brightness, settings.comicBrightness), style = MaterialTheme.typography.bodyLarge)
+    Slider(
+        value = settings.comicBrightness.toFloat(),
+        onValueChange = { v -> onChange { it.copy(comicBrightness = ((v / 5f).roundToInt() * 5).coerceIn(50, 200)) } },
+        valueRange = 50f..200f,
+        modifier = Modifier.testTag("comic_brightness"),
+    )
+    Text(stringResource(R.string.reader_comic_contrast, settings.comicContrast), style = MaterialTheme.typography.bodyLarge)
+    Slider(
+        value = settings.comicContrast.toFloat(),
+        onValueChange = { v -> onChange { it.copy(comicContrast = ((v / 5f).roundToInt() * 5).coerceIn(50, 200)) } },
+        valueRange = 50f..200f,
+        modifier = Modifier.testTag("comic_contrast"),
+    )
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(stringResource(R.string.reader_comic_grayscale), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+        Switch(settings.comicGrayscale, { on -> onChange { it.copy(comicGrayscale = on) } }, Modifier.testTag("comic_grayscale"))
+    }
+    if (settings.comicBrightness != 100 || settings.comicContrast != 100 || settings.comicGrayscale) {
+        TextButton(
+            onClick = { onChange { it.copy(comicBrightness = 100, comicContrast = 100, comicGrayscale = false) } },
+            modifier = Modifier.testTag("comic_image_reset"),
+        ) {
+            Text(stringResource(R.string.reader_comic_image_reset))
+        }
+    }
+    Text(
+        stringResource(R.string.reader_comic_image_hint),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 /**

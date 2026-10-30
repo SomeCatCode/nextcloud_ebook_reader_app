@@ -4,8 +4,7 @@ Last updated: 12 October 2026
 
 ## 1. Controller
 
-[NAME]
-[ADDRESS]
+Felix Kurth
 Email: it@wasmitleder.de
 
 ## 2. Summary

@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.components.ShareBadge
+import com.somecatcode.ebookreader.ui.components.LongstripBadge
 import com.somecatcode.ebookreader.data.repo.FolderTree
 import com.somecatcode.ebookreader.data.repo.FolderNode
 import androidx.compose.material3.Switch
@@ -218,6 +219,8 @@ fun LibraryScreen(
                         onRead = { onReadBook(key.accountId, key.fileId) },
                         showBack = false,
                         onFilter = vm::onlyTerm,
+                        onReadBook = { next -> onReadBook(next.accountId, next.fileId) },
+                        onOpenBook = { selected = it },
                     )
                 }
             }
@@ -560,6 +563,7 @@ internal fun BookGridCell(book: LibraryBook, onOpenBook: (BookKey) -> Unit) {
             BookCover(book, Modifier.fillMaxSize())
             ShareBadge(book.shared, book.sharedOut, book.owner, Modifier.align(Alignment.TopStart).padding(4.dp).testTag("share_badge_${book.key.fileId}"))
             OfflineIndicator(book.offline, Modifier.align(Alignment.TopEnd).padding(4.dp))
+            LongstripBadge(book.longstrip, Modifier.align(Alignment.BottomStart).padding(start = 4.dp, bottom = 8.dp).testTag("longstrip_badge_${book.key.fileId}"))
             book.percentage?.takeIf { it > 0.0 && it < 1.0 }?.let {
                 LinearProgressIndicator({ it.toFloat() }, Modifier.align(Alignment.BottomCenter).fillMaxWidth())
             }
@@ -613,6 +617,7 @@ internal fun BookListRow(book: LibraryBook, onOpenBook: (BookKey) -> Unit) {
                 LinearProgressIndicator({ it.toFloat() }, Modifier.fillMaxWidth().padding(top = 6.dp))
             }
         }
+        LongstripBadge(book.longstrip, Modifier.padding(end = 4.dp).testTag("longstrip_badge_${book.key.fileId}"))
         ShareBadge(book.shared, book.sharedOut, book.owner, Modifier.padding(end = 4.dp).testTag("share_badge_${book.key.fileId}"))
         OfflineIndicator(book.offline)
     }

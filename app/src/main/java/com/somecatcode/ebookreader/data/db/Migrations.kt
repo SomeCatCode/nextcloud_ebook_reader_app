@@ -55,5 +55,19 @@ val MIGRATION_3_4: Migration = object : Migration(3, 4) {
     }
 }
 
+/**
+ * Version 5: long strip comics (`book.longstrip`, `longstripManual`, `longstripFile`; server 1.0.0). All false
+ * for existing books. The stored `/sync` cursors are reset so the next sync is a full one and fills the flags
+ * of the existing books (books are upserted, nothing is lost).
+ */
+val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `book` ADD COLUMN `longstrip` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE `book` ADD COLUMN `longstripManual` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE `book` ADD COLUMN `longstripFile` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("UPDATE account SET lastSyncCursor = NULL WHERE kind = 'nextcloud'")
+    }
+}
+
 /** All migrations, registered by the database builder. */
-val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)

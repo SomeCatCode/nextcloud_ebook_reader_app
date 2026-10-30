@@ -4,8 +4,7 @@
 
 ## 1. مسئول پروسس داده
 
-[NAME]
-[ADDRESS]
+Felix Kurth
 ایمیل: it@wasmitleder.de
 
 ## 2. خلاصه

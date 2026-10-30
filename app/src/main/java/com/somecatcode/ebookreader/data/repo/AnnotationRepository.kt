@@ -66,6 +66,8 @@ interface AnnotationRepository {
     /**
      * New highlight ([note] null/blank) or note of a text selection. Returns the uuid. Text and note are cut
      * to the server limits. Never blocks on the network.
+     *
+     * @throws AnnotationLimitException the book already has [ANNOTATION_MAX_PER_BOOK] annotations
      */
     suspend fun create(key: BookKey, locator: Locator, text: String?, color: AnnotationColor, note: String? = null): String
 
@@ -90,3 +92,9 @@ interface AnnotationRepository {
 /** Server limits (characters). */
 const val ANNOTATION_MAX_TEXT = 2000
 const val ANNOTATION_MAX_NOTE = 10000
+
+/** Annotations per book (server AnnotationService::MAX_PER_BOOK). */
+const val ANNOTATION_MAX_PER_BOOK = 5000
+
+/** The book has reached [ANNOTATION_MAX_PER_BOOK]: no new annotation is stored. */
+class AnnotationLimitException : Exception("Annotation limit of the book reached")

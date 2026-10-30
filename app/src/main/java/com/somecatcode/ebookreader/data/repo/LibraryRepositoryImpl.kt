@@ -119,13 +119,16 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
         val base: Comparator<LibraryBook> = when (filter.sort) {
             LibrarySort.TITLE -> compareBy(ci) { it.title }
             LibrarySort.AUTHOR -> compareBy<LibraryBook, String>(ci) { it.authors.firstOrNull().orEmpty() }.thenBy(ci) { it.title }
-            LibrarySort.SERIES -> compareBy<LibraryBook, String>(ci) { it.series.orEmpty() }
-                .thenBy { it.seriesIndex ?: Double.MAX_VALUE }.thenBy(ci) { it.title }
+            LibrarySort.SERIES -> compareBy<LibraryBook, String>(ci) { it.series.orEmpty() }.then(VolumeComparator)
             LibrarySort.RATING -> compareBy<LibraryBook> { it.rating ?: -1 }.thenBy(ci) { it.title }
             LibrarySort.ADDED -> compareBy<LibraryBook> { it.addedAt }.thenBy(ci) { it.title }
             LibrarySort.RECENTLY_READ -> compareBy<LibraryBook> { progressBy[it.key.accountId to it.key.fileId]?.clientUpdatedAt ?: 0L }
                 .thenBy(ci) { it.title }
             LibrarySort.SHELF -> compareBy<LibraryBook> { positions[it.key.fileId] ?: Int.MAX_VALUE }.thenBy(ci) { it.title }
+        }
+        if (filter.sort == LibrarySort.SERIES && filter.descending) {
+            // books without a volume number stay last, also descending (like the server)
+            return list.sortedWith(compareByDescending<LibraryBook, String>(ci) { it.series.orEmpty() }.then(VolumeComparatorDesc))
         }
         return list.sortedWith(if (filter.descending) base.reversed() else base)
     }
@@ -152,7 +155,7 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
             books.filter { !it.series.isNullOrBlank() }
                 .groupBy { it.accountId to it.series!! }
                 .map { (key, group) ->
-                    val ordered = group.sortedWith(compareBy({ it.seriesIndex ?: Double.MAX_VALUE }, { it.title?.lowercase() }))
+                    val ordered = group.map { it.toVolumeRow() }.sortedWith(VolumeComparator).map { it.entity }
                     SeriesInfo(
                         accountId = key.first,
                         name = key.second,
@@ -189,6 +192,7 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
                 authors = count(books.flatMap { decodeStrings(it.authors) }),
                 series = count(books.mapNotNull { it.series }),
                 formats = count(books.map { it.format.lowercase() }),
+                layouts = books.count { it.longstrip }.let { n -> if (n > 0) listOf(FacetCount("longstrip", n)) else emptyList() },
                 missing = MissingFields.associateWith { field ->
                     books.count { SmartQueryEvaluator.missing(field, it, tagsBy[it.accountId to it.fileId].orEmpty()) == true }
                 }.filterValues { it > 0 },
@@ -198,8 +202,8 @@ class LibraryRepositoryImpl(private val db: AppDatabase) : LibraryRepository {
 
     override fun continueReading(accountIds: List<String>, limit: Int): Flow<List<LibraryBook>> =
         books(accountIds, LibraryFilter(sort = LibrarySort.RECENTLY_READ, descending = true)).map { list ->
-            // like the web app: only started books (progress above 0 %) that are neither finished nor marked unread
-            list.filter { (it.percentage ?: 0.0) > 0.0 && it.readStatus == ReadStatus.READING }.take(limit)
+            // like the web app and the status filter "Reading": the books with that read status, most recently read first
+            list.filter { it.readStatus == ReadStatus.READING }.take(limit)
         }
 
     private fun statusWire(s: ReadStatus) = when (s) {
