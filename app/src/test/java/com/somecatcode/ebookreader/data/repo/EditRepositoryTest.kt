@@ -143,7 +143,7 @@ class EditRepositoryTest : DbTest() {
         assertEquals("invalid isbn", f.message)
     }
 
-    private suspend fun supportLongstrip() = db.accountDao().updateVersions("acc1", "31.0", "0.12.0")
+    private suspend fun supportLongstrip() = db.accountDao().updateVersions("acc1", "31.0", "1.0.0")
 
     @Test
     fun longstripIsStoredAsManualAndQueuedAsOneAppDataPatch() = runBlocking {

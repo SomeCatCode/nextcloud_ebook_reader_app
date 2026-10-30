@@ -343,7 +343,7 @@ class ReaderViewModel(
 
     /**
      * Long strip toggle of the settings: the page re-opens in the new layout at once; the flag is stored with the
-     * book (manual value; servers before 0.12.0 do not keep it, then it only applies to this session).
+     * book (manual value; servers before 1.0.0 do not keep it, then it only applies to this session).
      */
     fun setLongstrip(enabled: Boolean) {
         _state.update { it.copy(settings = it.settings.copy(comicLongstrip = enabled), longstripManual = true) }

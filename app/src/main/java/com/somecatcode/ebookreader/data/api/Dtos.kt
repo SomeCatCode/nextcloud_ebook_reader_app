@@ -191,9 +191,9 @@ data class BookDto(
     val shared: Boolean = false,
     /** Own book shared through the app with at least one user (book, shelf, series or folder share; server 0.10.0+). */
     val sharedOut: Boolean = false,
-    /** Long strip comic (webtoon), effective value (server 0.12.0+). */
+    /** Long strip comic (webtoon), effective value (server 1.0.0+). */
     val longstrip: Boolean = false,
-    /** The flag was set in the app and survives re-indexing (server 0.12.0+). */
+    /** The flag was set in the app and survives re-indexing (server 1.0.0+). */
     val longstripManual: Boolean = false,
     val progress: ProgressDto? = null,
 )
@@ -236,7 +236,7 @@ data class FacetsDto(
     val authors: List<FacetEntryDto> = emptyList(),
     val series: List<FacetEntryDto> = emptyList(),
     val formats: List<FacetEntryDto> = emptyList(),
-    /** Server 0.12.0+: the single entry `longstrip`. */
+    /** server 1.0.0+: the single entry `longstrip`. */
     val layouts: List<FacetEntryDto> = emptyList(),
 )
 
@@ -400,9 +400,9 @@ data class AppDataPatch(
     val setRating: Boolean = false,
     val rating: Int? = null,
     val readStatus: ReadStatus? = null,
-    /** Long strip flag (server 0.12.0+), always manual. Not together with [resetLongstrip]. */
+    /** Long strip flag (server 1.0.0+), always manual. Not together with [resetLongstrip]. */
     val longstrip: Boolean? = null,
-    /** Drops the manual long strip flag, the value from the file applies again (server 0.12.0+). */
+    /** Drops the manual long strip flag, the value from the file applies again (server 1.0.0+). */
     val resetLongstrip: Boolean = false,
 )
 
