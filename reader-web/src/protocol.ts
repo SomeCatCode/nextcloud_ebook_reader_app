@@ -69,6 +69,10 @@ export type HostToReaderMsg =
 	/** Highlights to draw (reflowable books); kept across re-opens until `destroy` */
 	| { type: 'setAnnotations', annotations: ReaderAnnotation[] }
 	| { type: 'clearSelection' }
+	/** Read aloud: `start` from the visible page, `next`/`prev` paragraph, `resume` the current one, `stop` */
+	| { type: 'tts', action: 'start' | 'next' | 'prev' | 'resume' | 'stop' }
+	/** Android started speaking the segment with this mark: highlight the sentence and turn to it */
+	| { type: 'ttsMark', mark: string }
 	| { type: 'destroy' }
 
 export type ErrorCode = 'open-failed' | 'unsupported-format' | 'network' | 'unauthorized' | 'reader'
@@ -99,4 +103,8 @@ export type ReaderToHostMsg =
 	| { type: 'selection', text: string, cfi: string, locator: ReaderLocator, rect: RectMsg }
 	| { type: 'selectionClear' }
 	| { type: 'annotationClick', id: string, rect: RectMsg }
+	/** Next paragraph to read aloud (answer to `tts`): sentences with their mark, language of the text if known */
+	| { type: 'ttsBlock', lang?: string, segments: { mark: string | null, text: string }[] }
+	/** Nothing more to read (end of the book, or no text) */
+	| { type: 'ttsEnd' }
 	| { type: 'error', code: ErrorCode, message: string }

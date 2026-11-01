@@ -379,7 +379,7 @@
     <string name="guide_browse_title">العثور على الكتب</string>
     <string name="guide_browse_body">• البحث والتصفية والترتيب في أعلى المكتبة.\n\n• تبويبات للكتب والسلاسل والمجلدات (وللأرفف مع Nextcloud).\n\n• انقر على كتاب لعرض تفاصيله وتقييمه وحالة قراءته.\n\n• اسحب للأسفل لإعادة قراءة المجلدات ومزامنة الحسابات.</string>
     <string name="guide_read_title">القراءة</string>
-    <string name="guide_read_body">• انقر أو اسحب لليمين أو اليسار لتقليب الصفحة.\n\n• انقر في الوسط أو اسحب للأعلى لفتح القائمة مع شريط التقدّم.\n\n• اسحب للأسفل لإغلاق الكتاب؛ يُحفظ موضعك.\n\n• اضغط مطولًا على نص لتمييزه أو لإضافة ملاحظة.</string>
+    <string name="guide_read_body">• انقر أو اسحب لليمين أو اليسار لتقليب الصفحة.\n\n• انقر في الوسط أو اسحب للأعلى لفتح القائمة مع شريط التقدّم.\n\n• اسحب للأسفل لإغلاق الكتاب؛ يُحفظ موضعك.\n\n• اضغط مطولًا على نص لتمييزه أو لإضافة ملاحظة.\n\n• القائمة ← «القراءة بصوت عالٍ» (رمز الرأس المتحدث): استمع إلى الكتاب بلغة النص.</string>
     <string name="guide_move_title">دون اتصال، النسخ والنقل</string>
     <string name="guide_move_body">• أتِح كتب Nextcloud دون اتصال من صفحة تفاصيلها.\n\n• تفاصيل الكتاب ← ⋮: انسخ كتابًا أو انقله إلى حساب آخر، مثلًا من مجلد على هاتفك إلى Nextcloud.\n\n• ينتقل معه تقدّم القراءة والتمييزات.</string>
     <string name="settings_guide">مقدّمة</string>
@@ -408,4 +408,19 @@
     <string name="read_next_continue">متابعة: %1$s</string>
     <string name="read_next_similar">عناوين مشابهة</string>
     <string name="book_read_next">ماذا تقرأ بعد ذلك</string>
+    <string name="read_aloud_start">القراءة بصوت عالٍ</string>
+    <string name="read_aloud_play">متابعة القراءة بصوت عالٍ</string>
+    <string name="read_aloud_pause">إيقاف مؤقت</string>
+    <string name="read_aloud_next">الفقرة التالية</string>
+    <string name="read_aloud_previous">الفقرة السابقة</string>
+    <string name="read_aloud_stop">إيقاف القراءة بصوت عالٍ</string>
+    <string name="read_aloud_rate">%1$s×</string>
+    <string name="read_aloud_voice">الصوت</string>
+    <string name="read_aloud_voice_title">صوت %1$s</string>
+    <string name="read_aloud_voice_default">الصوت الافتراضي</string>
+    <string name="read_aloud_voice_online">عبر الإنترنت</string>
+    <string name="read_aloud_install_voice">تثبيت الأصوات</string>
+    <string name="read_aloud_missing_voice">لا يوجد صوت مثبّت للغة %1$s، تجري القراءة باللغة %2$s.</string>
+    <string name="read_aloud_finished">نهاية الكتاب.</string>
+    <string name="read_aloud_unavailable">لا يتوفر على هذا الجهاز نطق للنصوص. ثبّت محرك تحويل النص إلى كلام، مثل «خدمات الكلام من Google».</string>
 </resources>

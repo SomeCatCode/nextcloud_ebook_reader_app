@@ -92,6 +92,8 @@ Echter Code: `ReaderBridge.kt` (Nachrichten, `BridgeJson`), `ReaderRequestProxy.
 | Kotlin → JS | `setSettings` | `ReaderSettings` (live: Theme, Schrift, Layout, E-Ink) |
 | Kotlin → JS | `setAnnotations` | `annotations[{id, cfi, color, hasNote}]` – zu zeichnende Markierungen (nur Textbücher; die Seite behält die Liste bis `destroy`, Kotlin sendet sie nach einem Neuaufbau der WebView erneut). Notiztexte gehen nie an die Seite. |
 | Kotlin → JS | `clearSelection` | Textauswahl im Buch aufheben |
+| Kotlin → JS | `tts` | `action` = `start|next|prev|resume|stop` – Vorlesen: ab der sichtbaren Seite, nächster/vorheriger Absatz, aktueller Absatz ab dem zuletzt gesprochenen Satz, beenden (Markierung weg). Antwort `ttsBlock` oder `ttsEnd` (nicht bei `stop`) |
+| Kotlin → JS | `ttsMark` | `mark` – Android spricht diesen Satz: die Seite markiert ihn (CSS Custom Highlight) und blättert hin |
 | Kotlin → JS | `destroy` | Reader abbauen |
 | JS → Kotlin | `ready` | `protocol: 1` – `EbookReaderHost` ist verfügbar |
 | JS → Kotlin | `opened` | `info` (`title`, `authors`, `language`, `isComic`, `fixedLayout`, `rtl`, `pageCount`, `supportsAnnotations`) |
@@ -100,12 +102,16 @@ Echter Code: `ReaderBridge.kt` (Nachrichten, `BridgeJson`), `ReaderRequestProxy.
 | JS → Kotlin | `externalLink` | `url` – Kotlin fragt nach und startet `ACTION_VIEW` (nur http/https/mailto) |
 | JS → Kotlin | `tap` | `zone` = `left|center|right` |
 | JS → Kotlin | `swipe` | `direction` = `up|down` – schnelles senkrechtes Wischen (nicht bei Fließtext-Scrollen, gezoomten oder scrollbaren Comicseiten): oben = Menü mit Fortschrittsregler, unten = Menü schließen bzw. Buch schließen |
+| JS → Kotlin | `ttsBlock` | `lang` (BCP 47 aus dem Buch, optional), `segments[{mark, text}]` – nächster Absatz zum Vorlesen, ein Segment pro Satz (foliate-TTS mit `sentence`-Granularität, SSML → Text) |
+| JS → Kotlin | `ttsEnd` | nichts mehr vorzulesen (Buchende, Comic oder Fixed Layout) |
 | JS → Kotlin | `selection` | `text`, `cfi` (Bereichs-CFI), `locator` (mit `locations.cfi`), `rect{left,top,right,bottom}` in CSS-px (= dp) |
 | JS → Kotlin | `selectionClear` | Auswahl weg |
 | JS → Kotlin | `annotationClick` | `id` (UUID), `rect` – Antippen einer Markierung (blättert nicht) |
 | JS → Kotlin | `error` | `code` (`open-failed`, `unsupported-format`, `network`, `unauthorized`, `reader`), `message` |
 
 **Markierungen & Notizen:** Die WebView (`ReaderWebView`) ergänzt ihr eigenes Textauswahl-Menü (Kopieren, Teilen …) um „Markieren“ und „Notiz“, solange `supportsAnnotations` gilt; ein Tipp geht als `ReaderHost.selectionActions` an den Reader-Screen, der die zuletzt gemeldete `selection` verwendet. Daten: `AnnotationRepository` (Room-Tabelle `annotation`, Schlüssel `accountId`+`uuid`, `dirty`/`deleted` wie beim Fortschritt), Upload im `PUSH_LOCAL`-Schritt per `POST /books/{id}/annotations` (Upsert) bzw. `DELETE /annotations/{uuid}`, Zusammenführung aus `/sync` nach Server-Regel (neuerer `clientUpdatedAt` gewinnt, Tombstones löschen).
+
+**Vorlesen:** `ReadAloud` (im `ReaderViewModel`, überlebt Drehen) holt absatzweise `ttsBlock`s und spricht die Sätze mit Android-`TextToSpeech` (`AndroidSpeechEngine`, Audiofokus: ein Anruf pausiert). Sprache: die des Absatzes (`xml:lang` des Buchs), sonst die Buchsprache, sonst die App-Sprache (In-App-Einstellung), sonst die Gerätesprache; fehlt für die Textsprache eine Stimme, liest die App in der Ersatzsprache und bietet „Stimmen installieren“ an. Tempo und Stimme je Sprache in `UiPrefs`. Das Manifest deklariert `queries` für `android.intent.action.TTS_SERVICE` (Paketsichtbarkeit ab Android 11).
 
 **Gesten bei Comics** (rein im Bundle, kein Protokollanteil): Eine transparente Ebene über dem Reader (`reader-web/src/gestures.ts`) nimmt alle Berührungen auf – Tippen (Zonen links/Mitte/rechts, um 250 ms verzögert wegen Doppeltippen), Wischen, Pinch-Zoom (1–5×), Verschieben und Doppeltippen (eingepasst ↔ 2,5×). Der Zoom ist eine CSS-Transformation des Reader-Containers und damit nie Teil des Locators; jedes Blättern/Springen und jede Layout-Änderung setzt ihn zurück. Die WebView selbst bleibt unzoombar (`user-scalable=no`, `builtInZoomControls=false`). Text-Bücher behalten die Gesten von foliate (waagrechtes Wischen blättert); senkrechtes Wischen erkennt `main.ts` in den Abschnittsdokumenten (nicht bei Textauswahl) und meldet es als `swipe`.
 

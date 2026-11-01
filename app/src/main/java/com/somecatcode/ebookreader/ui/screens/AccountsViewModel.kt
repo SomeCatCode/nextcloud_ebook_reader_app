@@ -1,5 +1,7 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import com.somecatcode.ebookreader.data.api.LoginFlowStart
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import com.somecatcode.ebookreader.data.local.LocalLibrary
@@ -80,6 +82,9 @@ class AccountsViewModel(
     private val localLibrary: LocalLibrary? = null,
     private val pollIntervalMs: Long = 2_000,
     private val pollTimeoutMs: Long = 20 * 60_000,
+    /** Saved state of the screen: keeps a running browser login when Android stops the app. */
+    private val savedState: SavedStateHandle? = null,
+    private val clock: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
 
     private val addFlow = MutableStateFlow<AddFlowState?>(null)
@@ -114,6 +119,8 @@ class AccountsViewModel(
                 credentialsMissing.value = accounts.filter { !it.local && accountStore.credentials(it.id) == null }.map { it.id }.toSet()
             }
         }
+        // after every property is set up: the restored login may finish at once
+        restoreLogin()
     }
 
     private fun statusOf(account: Account, sync: SyncState?, noCredentials: Boolean): AccountStatus = when {
@@ -168,6 +175,7 @@ class AccountsViewModel(
 
     fun dismissAddFlow() {
         addJob?.cancel()
+        forgetLogin()
         addFlow.value = null
     }
 
@@ -182,28 +190,76 @@ class AccountsViewModel(
         }
         addFlow.value = flow.copy(serverInput = server, stage = AddStage.STARTING, error = null)
         addJob = viewModelScope.launch {
-            try {
-                val start = retryNetwork { loginFlowClient.start(server) }
-                lastLoginUrl = start.login
-                addFlow.update { it?.copy(stage = AddStage.WAITING) }
-                eventChannel.send(AccountsEvent.OpenBrowser(start.login))
-                val result = poll(start.poll)
-                if (result == null) {
-                    fail(AddError.TIMEOUT)
-                    return@launch
-                }
-                addFlow.update { it?.copy(stage = AddStage.VERIFYING) }
-                finish(result, flow.reloginAccountId)
+            val start = try {
+                retryNetwork { loginFlowClient.start(server) }
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: ApiException) {
-                Log.w(TAG, "Login failed: ${e::class.simpleName}: ${e.message}", e)
-                fail(if (e is ApiException.Network) AddError.NETWORK else AddError.GENERIC)
             } catch (e: Exception) {
                 Log.w(TAG, "Login failed: ${e::class.simpleName}: ${e.message}", e)
-                fail(AddError.GENERIC)
+                fail(if (e is ApiException.Network) AddError.NETWORK else AddError.GENERIC)
+                return@launch
             }
+            lastLoginUrl = start.login
+            saveLogin(start, server, flow.reloginAccountId)
+            addFlow.update { it?.copy(stage = AddStage.WAITING) }
+            eventChannel.send(AccountsEvent.OpenBrowser(start.login))
+            completeLogin(start.poll, flow.reloginAccountId, pollTimeoutMs)
         }
+    }
+
+    /** Waits for the browser login and stores the account; the saved login is forgotten once it ended. */
+    private suspend fun completeLogin(poll: LoginFlowPoll, reloginAccountId: String?, timeoutMs: Long) {
+        try {
+            val result = poll(poll, timeoutMs)
+            if (result == null) {
+                fail(AddError.TIMEOUT)
+                return
+            }
+            addFlow.update { it?.copy(stage = AddStage.VERIFYING) }
+            finish(result, reloginAccountId)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: ApiException) {
+            Log.w(TAG, "Login failed: ${e::class.simpleName}: ${e.message}", e)
+            fail(if (e is ApiException.Network) AddError.NETWORK else AddError.GENERIC)
+        } catch (e: Exception) {
+            Log.w(TAG, "Login failed: ${e::class.simpleName}: ${e.message}", e)
+            fail(AddError.GENERIC)
+        } finally {
+            if (addJob?.isCancelled != true) forgetLogin()
+        }
+    }
+
+    /**
+     * The running login survives Android stopping the app while the user is in the browser (low memory):
+     * the poll token is kept in the screen's saved state (as long as the login can still complete, 20 min)
+     * and the waiting dialog continues where it was. Without this the login had to be done again.
+     */
+    private fun saveLogin(start: LoginFlowStart, server: String, reloginAccountId: String?) {
+        val s = savedState ?: return
+        s[KEY_TOKEN] = start.poll.token
+        s[KEY_ENDPOINT] = start.poll.endpoint
+        s[KEY_URL] = start.login
+        s[KEY_SERVER] = server
+        s[KEY_RELOGIN] = reloginAccountId
+        s[KEY_STARTED] = clock()
+    }
+
+    private fun forgetLogin() {
+        val s = savedState ?: return
+        listOf(KEY_TOKEN, KEY_ENDPOINT, KEY_URL, KEY_SERVER, KEY_RELOGIN, KEY_STARTED).forEach { s.remove<Any>(it) }
+    }
+
+    private fun restoreLogin() {
+        val s = savedState ?: return
+        val token = s.get<String>(KEY_TOKEN) ?: return
+        val endpoint = s.get<String>(KEY_ENDPOINT) ?: return forgetLogin()
+        val left = pollTimeoutMs - (clock() - (s.get<Long>(KEY_STARTED) ?: 0L))
+        if (left <= 0) return forgetLogin()
+        val relogin = s.get<String>(KEY_RELOGIN)
+        lastLoginUrl = s.get<String>(KEY_URL)
+        addFlow.value = AddFlowState(serverInput = s.get<String>(KEY_SERVER).orEmpty(), stage = AddStage.WAITING, reloginAccountId = relogin)
+        addJob = viewModelScope.launch { completeLogin(LoginFlowPoll(token, endpoint), relogin, left) }
     }
 
     fun reopenBrowser() {
@@ -214,6 +270,7 @@ class AccountsViewModel(
     /** Cancel while waiting for the browser: back to the address input. */
     fun cancelLogin() {
         addJob?.cancel()
+        forgetLogin()
         addFlow.update { it?.copy(stage = AddStage.INPUT, error = null) }
     }
 
@@ -228,11 +285,11 @@ class AccountsViewModel(
         if (visible) resumed.trySend(Unit)
     }
 
-    private suspend fun poll(poll: LoginFlowPoll): LoginFlowResult? {
+    private suspend fun poll(poll: LoginFlowPoll, timeoutMs: Long): LoginFlowResult? {
         var waited = 0L
         var networkErrors = 0
         resumed.tryReceive() // a return before the login started is no reason to poll early
-        while (waited <= pollTimeoutMs) {
+        while (waited <= timeoutMs) {
             // the interval, cut short when the user returns from the browser
             withTimeoutOrNull(pollIntervalMs) { resumed.receive() }
             foreground.first { it }
@@ -358,4 +415,10 @@ class AccountsViewModel(
 }
 
 private const val TAG = "EbrAccounts"
+private const val KEY_TOKEN = "login_poll_token"
+private const val KEY_ENDPOINT = "login_poll_endpoint"
+private const val KEY_URL = "login_url"
+private const val KEY_SERVER = "login_server"
+private const val KEY_RELOGIN = "login_relogin"
+private const val KEY_STARTED = "login_started"
 private const val NETWORK_RETRIES = 6

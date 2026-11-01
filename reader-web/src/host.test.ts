@@ -4,6 +4,7 @@
  */
 import type { ReaderHandle, ReaderOptions } from '../../third_party/nextcloud_ebook_reader/packages/reader-core/src/types.ts'
 import type { ReaderToHostMsg } from './protocol.ts'
+import type { TtsApi } from './tts.ts'
 
 import { describe, expect, it, vi } from 'vitest'
 import { createHost } from './host.ts'
@@ -55,7 +56,7 @@ function fakeReader(opts: { info?: object, failOpen?: Error } = {}) {
 /**
  * @param fr
  */
-function setup(fr = fakeReader()) {
+function setup(fr = fakeReader(), tts?: TtsApi) {
 	const sent: ReaderToHostMsg[] = []
 	const created: ReaderOptions[] = []
 	const eink: [boolean, boolean][] = []
@@ -76,6 +77,7 @@ function setup(fr = fakeReader()) {
 			},
 		},
 		onComicMode: (e) => comicMode.push(e),
+		tts,
 	})
 	return { host, sent, created, eink, fr, zoom, comicMode }
 }
@@ -410,5 +412,69 @@ describe('long strip', () => {
 		expect(comic.created[0].layout?.comicLongstrip).toBe(false)
 		expect(comic.sent[0]).toMatchObject({ info: { longstrip: false } })
 		expect(comic.comicMode.at(-1)).toBe(true)
+	})
+})
+
+describe('read aloud', () => {
+	/**
+	 * Fake TTS: blocks "1", "2", then the end of the book.
+	 */
+	function fakeTts() {
+		const blocks = [{ lang: 'de', segments: [{ mark: '0', text: 'Eins.' }] }, { segments: [{ mark: '0', text: 'Zwei.' }] }]
+		let i = -1
+		const marks: string[] = []
+		let stops = 0
+		const api: TtsApi = {
+			start: async () => blocks[i = 0] ?? null,
+			next: async () => blocks[++i] ?? null,
+			prev: async () => blocks[i = Math.max(0, i - 1)] ?? null,
+			resume: async () => blocks[Math.max(i, 0)] ?? null,
+			mark: (m) => { marks.push(m) },
+			stop: () => { stops++ },
+		}
+		return { api, marks, stops: () => stops }
+	}
+
+	it('answers with blocks until the end of the book and forwards marks', async () => {
+		const tts = fakeTts()
+		const { host, sent } = setup(fakeReader(), tts.api)
+		host.receive(OPEN)
+		await flush()
+		sent.length = 0
+		host.receive({ type: 'tts', action: 'start' })
+		await flush()
+		host.receive({ type: 'ttsMark', mark: '0' })
+		host.receive({ type: 'tts', action: 'next' })
+		await flush()
+		host.receive({ type: 'tts', action: 'next' })
+		await flush()
+		expect(sent).toEqual([
+			{ type: 'ttsBlock', lang: 'de', segments: [{ mark: '0', text: 'Eins.' }] },
+			{ type: 'ttsBlock', lang: undefined, segments: [{ mark: '0', text: 'Zwei.' }] },
+			{ type: 'ttsEnd' },
+		])
+		expect(tts.marks).toEqual(['0'])
+	})
+
+	it('drops the answer of a request that was stopped meanwhile, and comics have nothing to read', async () => {
+		const tts = fakeTts()
+		const { host, sent } = setup(fakeReader(), tts.api)
+		host.receive(OPEN)
+		await flush()
+		sent.length = 0
+		const stopsAfterOpen = tts.stops() // opening a book also clears an old highlight
+		host.receive({ type: 'tts', action: 'start' })
+		host.receive({ type: 'tts', action: 'stop' })
+		await flush()
+		expect(sent).toEqual([])
+		expect(tts.stops()).toBe(stopsAfterOpen + 1)
+
+		const comic = setup(fakeReader({ info: { isComic: true, fixedLayout: true } }), fakeTts().api)
+		comic.host.receive({ ...OPEN, book: { ...OPEN.book, format: 'cbz' } })
+		await flush()
+		comic.sent.length = 0
+		comic.host.receive({ type: 'tts', action: 'start' })
+		await flush()
+		expect(comic.sent).toEqual([{ type: 'ttsEnd' }])
 	})
 })

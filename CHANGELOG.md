@@ -5,6 +5,21 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+## 0.7.0 – 2026-11-01
+
+### Hinzugefügt
+- **Vorlesen:** Im Reader-Menü „Vorlesen“ (sprechender Kopf) liest die App das Buch ab der aktuellen Seite mit der Sprachausgabe des Geräts vor, absatzweise und über Kapitel hinweg bis zum Buchende. Der gerade gesprochene Satz wird markiert, die Seite blättert mit. Steuerleiste mit vorherigem/nächstem Absatz, Pause, Tempo (0,5× bis 2×), Stimmenwahl und Beenden; ein Anruf oder eine andere Audio-App pausiert das Vorlesen, der Bildschirm bleibt währenddessen an.
+- **Sprachen beim Vorlesen:** gelesen wird in der Sprache des Textes (aus dem Buch, auch wenn einzelne Absätze eine andere Sprache haben), sonst in der App-Sprache. Ist für die Textsprache keine Stimme installiert, liest die App in der App-Sprache und bietet „Stimmen installieren“ an. Die gewählte Stimme wird je Sprache gemerkt, das Tempo für alle; alle Texte gibt es in allen App-Sprachen. Comics und Fixed-Layout-Bücher haben keine Vorlesefunktion.
+
+### Behoben
+- Anmeldung an Nextcloud: Beendet Android die App, während man im Browser bestätigt (z. B. bei wenig Speicher), wartet sie nach dem Neustart weiter auf die Bestätigung, statt die Anmeldung zu verlieren. Der Anmeldevorgang wird dafür bis zu 20 Minuten im gespeicherten Zustand des Bildschirms gehalten und danach verworfen.
+- Lokale Bibliotheken: Wird eine Datei im Ordner umbenannt oder in einen Unterordner verschoben, behält das Buch beim nächsten Einlesen Lesestand, Markierungen, Bewertung, Status und Cover (bisher galt es als neues Buch). Erkannt an gleichem Format und gleicher Größe plus gleicher Änderungszeit bzw. gleichem Dateinamen; uneindeutige Fälle werden nicht geraten.
+
+### Geändert
+- CI und Release-Workflow: Die Workflows nutzen jetzt Node.js 24 statt Node.js 22. Die Action `softprops/action-gh-release` ist auf v3.0.3 aktualisiert und läuft damit auf Node.js 24. GitHub zeigt keine Warnung zu Node.js 20 mehr.
+- Release-Workflow: Der Build installiert jetzt das NDK 28.2.13676358 (`ndkVersion` in `app/build.gradle.kts`). Damit packt er die Symboltabellen der nativen Bibliotheken in das App Bundle. Google Play zeigt die Warnung „Dieses App Bundle enthält nativen Code und du hast keine Symbole zum Debuggen hochgeladen“ nicht mehr. Die CI prüft bei jedem Pull Request, dass der Build die Symboltabellen erzeugt.
+- Release-Workflow: Der Upload zu Google Play nutzt den Parameter `tracks` statt `track`. Der alte Parameter `track` ist veraltet und erzeugte eine Warnung.
+
 ## 0.6.0 – 2026-10-30
 
 ### Hinzugefügt

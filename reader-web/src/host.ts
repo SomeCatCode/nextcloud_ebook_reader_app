@@ -16,6 +16,8 @@ import type {
 } from '../../third_party/nextcloud_ebook_reader/packages/reader-core/src/types.ts'
 import type { HostToReaderMsg, ReaderSettings, ReaderToHostMsg, TocItemMsg } from './protocol.ts'
 
+import type { TtsApi, TtsBlock } from './tts.ts'
+
 import { toBridgeError } from './errors.ts'
 import { DEFAULT_SETTINGS } from './protocol.ts'
 import { buildSource } from './source.ts'
@@ -33,6 +35,8 @@ export interface HostDeps {
 	zoom?: { isZoomed: () => boolean, reset: () => void }
 	/** A comic is open (true) or closed (false): the page enables its gesture layer. */
 	onComicMode?: (enabled: boolean) => void
+	/** Read aloud (tts.ts); absent = not supported. */
+	tts?: TtsApi
 }
 
 export interface ReaderHostApi {
@@ -117,6 +121,7 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 	 *
 	 */
 	function teardown(): void {
+		stopTts()
 		token++
 		opening = false
 		pendingRelocate = null
@@ -130,6 +135,46 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 		reader = null
 		deps.onComicMode?.(false)
 		deps.zoom?.reset()
+	}
+
+	/** Increased by every read-aloud request and stop: answers of older requests are dropped. */
+	let ttsSeq = 0
+
+	/**
+	 * @param action
+	 */
+	function tts(action: 'start' | 'next' | 'prev' | 'resume' | 'stop'): void {
+		const api = deps.tts
+		if (action === 'stop') {
+			stopTts()
+			return
+		}
+		const info = reader?.getInfo()
+		// comics and fixed layouts have no text flow to read
+		if (!api || !reader || opening || info?.isComic || info?.fixedLayout) {
+			deps.send({ type: 'ttsEnd' })
+			return
+		}
+		const seq = ++ttsSeq
+		const call: () => Promise<TtsBlock | null> = action === 'start' ? api.start : action === 'next' ? api.next : action === 'prev' ? api.prev : api.resume
+		call.call(api).then((block) => {
+			if (seq !== ttsSeq) {
+				return
+			}
+			deps.send(block ? { type: 'ttsBlock', lang: block.lang, segments: block.segments } : { type: 'ttsEnd' })
+		}).catch(() => {
+			if (seq === ttsSeq) {
+				deps.send({ type: 'ttsEnd' })
+			}
+		})
+	}
+
+	/**
+	 *
+	 */
+	function stopTts(): void {
+		ttsSeq++
+		deps.tts?.stop()
 	}
 
 	/**
@@ -430,6 +475,14 @@ export function createHost(deps: HostDeps): ReaderHostApi {
 				break
 			case 'clearSelection':
 				reader?.clearSelection()
+				break
+			case 'tts':
+				tts(msg.action)
+				break
+			case 'ttsMark':
+				if (typeof msg.mark === 'string') {
+					deps.tts?.mark(msg.mark)
+				}
 				break
 			case 'destroy':
 				annotations = []

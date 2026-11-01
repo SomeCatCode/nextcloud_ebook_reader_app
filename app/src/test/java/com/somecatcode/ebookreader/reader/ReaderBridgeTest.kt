@@ -75,6 +75,8 @@ class ReaderBridgeTest {
         roundTrip(ReaderToHost.ExternalLink("https://example.org"))
         roundTrip(ReaderToHost.Tap("center"))
         roundTrip(ReaderToHost.Swipe("up"))
+        roundTrip(ReaderToHost.TtsBlock("de", listOf(TtsSegment("0", "Satz."), TtsSegment(null, "Vor"))))
+        roundTrip(ReaderToHost.TtsEnd)
         for (code in ErrorCode.entries) {
             roundTrip(ReaderToHost.Error(code, "m"))
         }
@@ -195,6 +197,8 @@ class ReaderBridgeTest {
         val plain = roundTrip(HostToReader.SetAnnotations(listOf(DrawnAnnotation("u2", "epubcfi(/6/2!/4)"))))
         assertFalse(plain["annotations"]!!.jsonArray[0].jsonObject.containsKey("color"))
         assertEquals("""{"type":"clearSelection"}""", BridgeJson.encodeToString<HostToReader>(HostToReader.ClearSelection))
+        assertEquals("""{"type":"tts","action":"start"}""", BridgeJson.encodeToString<HostToReader>(HostToReader.Tts("start")))
+        assertEquals("""{"type":"ttsMark","mark":"3"}""", BridgeJson.encodeToString<HostToReader>(HostToReader.TtsMark("3")))
 
         val rect = SelectionRect(1.0, 2.0, 3.0, 4.0)
         roundTrip(ReaderToHost.Selection("Hello", "epubcfi(/6/4!/4/2,/1:0,/1:5)", locator, rect))

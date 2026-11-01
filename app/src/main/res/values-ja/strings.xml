@@ -369,7 +369,7 @@
     <string name="guide_browse_title">本を探す</string>
     <string name="guide_browse_body">• ライブラリ上部で検索、フィルター、並べ替え。\n\n• 本、シリーズ、フォルダーのタブ（Nextcloud では本棚も）。\n\n• 本をタップすると詳細、評価、読書状況を表示。\n\n• 下に引っ張るとフォルダーの再読み込みとアカウントの同期。</string>
     <string name="guide_read_title">読む</string>
-    <string name="guide_read_body">• 左右をタップまたはスワイプ：ページをめくる。\n\n• 中央をタップまたは上にスワイプ：進捗スライダー付きのメニュー。\n\n• 下にスワイプ：本を閉じる（位置は保存されます）。\n\n• テキストを長押し：ハイライトやメモ。</string>
+    <string name="guide_read_body">• 左右をタップまたはスワイプ：ページをめくる。\n\n• 中央をタップまたは上にスワイプ：進捗スライダー付きのメニュー。\n\n• 下にスワイプ：本を閉じる（位置は保存されます）。\n\n• テキストを長押し：ハイライトやメモ。\n\n• メニュー →「読み上げ」（話している人のアイコン）：本文の言語で本を読み上げます。</string>
     <string name="guide_move_title">オフライン、コピーと移動</string>
     <string name="guide_move_body">• Nextcloud の本は詳細画面からオフライン保存できます。\n\n• 本の詳細 → ⋮：本を別のアカウントにコピーまたは移動（例：スマートフォンのフォルダーから Nextcloud へ）。\n\n• 読書の進捗とハイライトも引き継がれます。</string>
     <string name="settings_guide">使い方ガイド</string>
@@ -398,4 +398,19 @@
     <string name="read_next_continue">続きを読む: %1$s</string>
     <string name="read_next_similar">似た作品</string>
     <string name="book_read_next">次に読む</string>
+    <string name="read_aloud_start">読み上げ</string>
+    <string name="read_aloud_play">読み上げを再開</string>
+    <string name="read_aloud_pause">一時停止</string>
+    <string name="read_aloud_next">次の段落</string>
+    <string name="read_aloud_previous">前の段落</string>
+    <string name="read_aloud_stop">読み上げを終了</string>
+    <string name="read_aloud_rate">%1$s×</string>
+    <string name="read_aloud_voice">音声</string>
+    <string name="read_aloud_voice_title">%1$s の音声</string>
+    <string name="read_aloud_voice_default">標準の音声</string>
+    <string name="read_aloud_voice_online">オンライン</string>
+    <string name="read_aloud_install_voice">音声をインストール</string>
+    <string name="read_aloud_missing_voice">%1$s の音声がインストールされていないため、%2$s で読み上げます。</string>
+    <string name="read_aloud_finished">本の最後です。</string>
+    <string name="read_aloud_unavailable">この端末には音声出力がありません。「Google 音声サービス」などの音声合成エンジンをインストールしてください。</string>
 </resources>

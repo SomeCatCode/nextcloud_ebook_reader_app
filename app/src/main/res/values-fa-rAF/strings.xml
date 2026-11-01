@@ -371,7 +371,7 @@
     <string name="guide_browse_title">پیدا کردن کتاب‌ها</string>
     <string name="guide_browse_body">• جستجو، فلتر و ترتیب در بالای کتابخانه.\n\n• تب‌ها برای کتاب‌ها، سلسله‌ها و پوشه‌ها (و قفسه‌ها با Nextcloud).\n\n• برای دیدن جزئیات، امتیاز و وضعیت مطالعه، یک کتاب را لمس کنید.\n\n• برای خواندن دوبارهٔ پوشه‌ها و همگام‌سازی حساب‌ها، صفحه را به پایین بکشید.</string>
     <string name="guide_read_title">مطالعه</string>
-    <string name="guide_read_body">• برای ورق زدن صفحه، لمس کنید یا به چپ/راست بکشید.\n\n• وسط صفحه را لمس کنید یا به بالا بکشید تا منو با نوار پیشرفت باز شود.\n\n• برای بستن کتاب به پایین بکشید؛ موقعیت شما ذخیره می‌شود.\n\n• روی متن لمس طولانی کنید تا آن را برجسته کنید یا یادداشت اضافه کنید.</string>
+    <string name="guide_read_body">• برای ورق زدن صفحه، لمس کنید یا به چپ/راست بکشید.\n\n• وسط صفحه را لمس کنید یا به بالا بکشید تا منو با نوار پیشرفت باز شود.\n\n• برای بستن کتاب به پایین بکشید؛ موقعیت شما ذخیره می‌شود.\n\n• روی متن لمس طولانی کنید تا آن را برجسته کنید یا یادداشت اضافه کنید.\n\n• منو ← «خواندن با صدا» (نماد سرِ در حال صحبت): کتاب را به زبان متن بشنوید.</string>
     <string name="guide_move_title">آفلاین، کاپی و انتقال</string>
     <string name="guide_move_body">• کتاب‌های Nextcloud را در جزئیات آنها آفلاین در دسترس قرار بدهید.\n\n• جزئیات کتاب ← ⋮: کتاب را به حساب دیگر کاپی یا انتقال بدهید، مثلاً از یک پوشه در موبایل به Nextcloud خود.\n\n• پیشرفت مطالعه و برجسته‌ها همراه منتقل می‌شوند.</string>
     <string name="settings_guide">معرفی</string>
@@ -400,4 +400,19 @@
     <string name="read_next_continue">ادامه: %1$s</string>
     <string name="read_next_similar">عنوان‌های مشابه</string>
     <string name="book_read_next">بعد چه بخوانیم</string>
+    <string name="read_aloud_start">خواندن با صدا</string>
+    <string name="read_aloud_play">ادامهٔ خواندن با صدا</string>
+    <string name="read_aloud_pause">توقف موقت</string>
+    <string name="read_aloud_next">بند بعدی</string>
+    <string name="read_aloud_previous">بند قبلی</string>
+    <string name="read_aloud_stop">پایان خواندن با صدا</string>
+    <string name="read_aloud_rate">%1$s×</string>
+    <string name="read_aloud_voice">صدا</string>
+    <string name="read_aloud_voice_title">صدا برای %1$s</string>
+    <string name="read_aloud_voice_default">صدای پیش‌فرض</string>
+    <string name="read_aloud_voice_online">آنلاین</string>
+    <string name="read_aloud_install_voice">نصب صداها</string>
+    <string name="read_aloud_missing_voice">برای %1$s صدایی نصب نشده است، با %2$s خوانده می‌شود.</string>
+    <string name="read_aloud_finished">پایان کتاب.</string>
+    <string name="read_aloud_unavailable">این دستگاه خروجی گفتار ندارد. یک موتور تبدیل متن به گفتار نصب کنید، مثلاً «خدمات گفتار Google».</string>
 </resources>
