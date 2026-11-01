@@ -371,7 +371,7 @@
     <string name="guide_browse_title">Kitap bulun</string>
     <string name="guide_browse_body">• Kütüphanenin üstünde arama, filtreleme ve sıralama.\n\n• Kitaplar, seriler ve klasörler için sekmeler (Nextcloud ile raflar da).\n\n• Ayrıntılar, puan ve okuma durumu için bir kitaba dokunun.\n\n• Klasörleri yeniden okumak ve hesapları eşitlemek için aşağı çekin.</string>
     <string name="guide_read_title">Okuyun</string>
-    <string name="guide_read_body">• Sayfayı çevirmek için sola/sağa dokunun veya kaydırın.\n\n• İlerleme çubuklu menü için ortaya dokunun veya yukarı kaydırın.\n\n• Kitabı kapatmak için aşağı kaydırın; konumunuz kaydedilir.\n\n• Metni vurgulamak veya not eklemek için uzun basın.</string>
+    <string name="guide_read_body">• Sayfayı çevirmek için sola/sağa dokunun veya kaydırın.\n\n• İlerleme çubuklu menü için ortaya dokunun veya yukarı kaydırın.\n\n• Kitabı kapatmak için aşağı kaydırın; konumunuz kaydedilir.\n\n• Metni vurgulamak veya not eklemek için uzun basın.\n\n• Menü → \"Sesli oku\" (konuşan kafa simgesi): kitabı metnin dilinde dinleyin.</string>
     <string name="guide_move_title">Çevrimdışı, kopyalama ve taşıma</string>
     <string name="guide_move_body">• Nextcloud kitaplarını ayrıntılarından çevrimdışı kullanılabilir yapın.\n\n• Kitap ayrıntıları → ⋮: bir kitabı başka bir hesaba kopyalayın veya taşıyın, örneğin telefonunuzdaki bir klasörden Nextcloud’unuza.\n\n• Okuma ilerlemesi ve vurgular da birlikte gelir.</string>
     <string name="settings_guide">Tanıtım</string>
@@ -400,4 +400,19 @@
     <string name="read_next_continue">Devam et: %1$s</string>
     <string name="read_next_similar">Benzer kitaplar</string>
     <string name="book_read_next">Sırada ne var</string>
+    <string name="read_aloud_start">Sesli oku</string>
+    <string name="read_aloud_play">Sesli okumaya devam et</string>
+    <string name="read_aloud_pause">Duraklat</string>
+    <string name="read_aloud_next">Sonraki paragraf</string>
+    <string name="read_aloud_previous">Önceki paragraf</string>
+    <string name="read_aloud_stop">Sesli okumayı durdur</string>
+    <string name="read_aloud_rate">%1$s×</string>
+    <string name="read_aloud_voice">Ses</string>
+    <string name="read_aloud_voice_title">%1$s için ses</string>
+    <string name="read_aloud_voice_default">Varsayılan ses</string>
+    <string name="read_aloud_voice_online">çevrimiçi</string>
+    <string name="read_aloud_install_voice">Ses yükle</string>
+    <string name="read_aloud_missing_voice">%1$s için yüklü ses yok, %2$s ile okunuyor.</string>
+    <string name="read_aloud_finished">Kitabın sonu.</string>
+    <string name="read_aloud_unavailable">Bu cihazda konuşma çıkışı yok. Bir metin okuma motoru yükleyin, ör. \"Google Konuşma Hizmetleri\".</string>
 </resources>

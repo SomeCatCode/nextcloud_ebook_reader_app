@@ -6,10 +6,12 @@
  * Protocol: docs/CONTRACTS.md section 6 (implemented in host.ts).
  */
 import type { ReaderToHostMsg } from './protocol.ts'
+import type { FoliateTtsView } from './tts.ts'
 
 import { createReader } from '../../third_party/nextcloud_ebook_reader/packages/reader-core/index.ts'
 import { classifySwipe, GestureController, SWIPE_MAX_MS, tapZone, toCss } from './gestures.ts'
 import { createHost } from './host.ts'
+import { createTts } from './tts.ts'
 import { PROTOCOL_VERSION } from './protocol.ts'
 import { comicPageWidth } from './source.ts'
 
@@ -163,6 +165,7 @@ const host = createHost({
 	},
 	onEink: applyEink,
 	zoom: { isZoomed: () => gestures.zoomed, reset: () => gestures.reset() },
+	tts: createTts(() => container.querySelector('foliate-view') as unknown as FoliateTtsView | null, () => einkOn),
 	onComicMode: (enabled) => {
 		overlay.hidden = !enabled
 	},

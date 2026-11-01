@@ -86,6 +86,20 @@ sealed interface HostToReader {
     @SerialName("clearSelection")
     data object ClearSelection : HostToReader
 
+    /**
+     * Read aloud: `start` (from the visible page), `next` / `prev` (paragraph), `resume` (the current
+     * paragraph from the last spoken sentence) or `stop`. The page answers with [ReaderToHost.TtsBlock]
+     * or [ReaderToHost.TtsEnd] (not for `stop`).
+     */
+    @Serializable
+    @SerialName("tts")
+    data class Tts(val action: String) : HostToReader
+
+    /** Android started speaking the sentence with this mark: the page highlights it and turns to it. */
+    @Serializable
+    @SerialName("ttsMark")
+    data class TtsMark(val mark: String) : HostToReader
+
     /** Tears the reader down (the page releases workers and object URLs). */
     @Serializable
     @SerialName("destroy")
@@ -158,10 +172,27 @@ sealed interface ReaderToHost {
     @SerialName("annotationClick")
     data class AnnotationClick(val id: String, val rect: SelectionRect) : ReaderToHost
 
+    /**
+     * The next paragraph to read aloud: its sentences ([TtsSegment.mark] goes back as [HostToReader.TtsMark])
+     * and the language of the text ([lang], BCP 47) when the book declares one.
+     */
+    @Serializable
+    @SerialName("ttsBlock")
+    data class TtsBlock(val lang: String? = null, val segments: List<TtsSegment> = emptyList()) : ReaderToHost
+
+    /** Nothing more to read aloud (end of the book, or the book has no text flow). */
+    @Serializable
+    @SerialName("ttsEnd")
+    data object TtsEnd : ReaderToHost
+
     @Serializable
     @SerialName("error")
     data class Error(val code: ErrorCode, val message: String) : ReaderToHost
 }
+
+/** One sentence to speak; [mark] identifies it on the page (null for text before the first sentence mark). */
+@Serializable
+data class TtsSegment(val mark: String? = null, val text: String)
 
 /** A highlight for the page: reader-core `ReaderAnnotation`. */
 @Serializable

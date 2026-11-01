@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import com.somecatcode.ebookreader.reader.SpeechEngine
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.somecatcode.ebookreader.R
@@ -133,7 +134,16 @@ class ReaderViewModel(
     private val remoteCheckTimeoutMs: Long = 6_000,
     private val saveDebounceMs: Long = 1_000,
     private val edits: EditRepository? = null,
+    /** Speech engine for reading aloud; null = the reader offers no read aloud (tests, no engine). */
+    speechEngine: (() -> SpeechEngine)? = null,
+    readAloudPrefs: ReadAloudPrefs = MemoryReadAloudPrefs(),
 ) : ViewModel() {
+
+    /** Language the book declares (metadata), fallback for paragraphs without their own. */
+    private var bookLanguage: String? = null
+
+    /** Read aloud of this reader; null when there is no speech engine. */
+    val readAloud: ReadAloud? = speechEngine?.let { ReadAloud(viewModelScope, it, readAloudPrefs, { bookLanguage }) }
 
     private val _state = MutableStateFlow(ReaderUiState(keepScreenOn = keepScreenOn))
     val state: StateFlow<ReaderUiState> = _state.asStateFlow()
@@ -240,6 +250,8 @@ class ReaderViewModel(
         when (event) {
             is ReaderToHost.Ready -> Unit
             is ReaderToHost.Opened -> {
+                bookLanguage = event.info.language?.takeIf { it.isNotBlank() } ?: book?.language
+                readAloud?.onPageOpened()
                 val firstRun = !gestureHintShown
                 _state.update {
                     it.copy(
@@ -278,6 +290,7 @@ class ReaderViewModel(
                 event.zone == "center" -> toggleBars()
             }
             is ReaderToHost.Swipe -> onSwipe(event.direction)
+            is ReaderToHost.TtsBlock, ReaderToHost.TtsEnd -> readAloud?.onEvent(event)
             is ReaderToHost.Error -> fail(
                 when (event.code) {
                     ErrorCode.NETWORK -> ReaderFailure.NETWORK
@@ -448,6 +461,10 @@ class ReaderViewModel(
 
     fun showAnnotations(show: Boolean) =
         _state.update { it.copy(showAnnotations = show, popup = null, barsVisible = if (show) it.barsVisible else false) }
+
+    override fun onCleared() {
+        readAloud?.release()
+    }
 
     fun setKeepScreenOn(keep: Boolean) {
         _state.update { it.copy(keepScreenOn = keep) }

@@ -5,6 +5,10 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Hinzugefügt
+- **Vorlesen:** Im Reader-Menü „Vorlesen“ (sprechender Kopf) liest die App das Buch ab der aktuellen Seite mit der Sprachausgabe des Geräts vor, absatzweise und über Kapitel hinweg bis zum Buchende. Der gerade gesprochene Satz wird markiert, die Seite blättert mit. Steuerleiste mit vorherigem/nächstem Absatz, Pause, Tempo (0,5× bis 2×), Stimmenwahl und Beenden; ein Anruf oder eine andere Audio-App pausiert das Vorlesen, der Bildschirm bleibt währenddessen an.
+- **Sprachen beim Vorlesen:** gelesen wird in der Sprache des Textes (aus dem Buch, auch wenn einzelne Absätze eine andere Sprache haben), sonst in der App-Sprache. Ist für die Textsprache keine Stimme installiert, liest die App in der App-Sprache und bietet „Stimmen installieren“ an. Die gewählte Stimme wird je Sprache gemerkt, das Tempo für alle; alle Texte gibt es in allen App-Sprachen. Comics und Fixed-Layout-Bücher haben keine Vorlesefunktion.
+
 ### Behoben
 - Lokale Bibliotheken: Wird eine Datei im Ordner umbenannt oder in einen Unterordner verschoben, behält das Buch beim nächsten Einlesen Lesestand, Markierungen, Bewertung, Status und Cover (bisher galt es als neues Buch). Erkannt an gleichem Format und gleicher Größe plus gleicher Änderungszeit bzw. gleichem Dateinamen; uneindeutige Fälle werden nicht geraten.
 
