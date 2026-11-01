@@ -1,5 +1,7 @@
 package com.somecatcode.ebookreader.ui.util
 
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.SavedStateHandle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.ViewModel
@@ -21,4 +23,14 @@ inline fun <reified VM : ViewModel> containerViewModel(
 ): VM {
     val container = LocalAppContainer.current
     return viewModel(key = key, factory = viewModelFactory { initializer { create(container) } })
+}
+
+/** Like [containerViewModel], with the [SavedStateHandle] of the screen (survives the app being stopped by Android). */
+@Composable
+inline fun <reified VM : ViewModel> containerViewModelWithState(
+    key: String? = null,
+    crossinline create: (AppContainer, SavedStateHandle) -> VM,
+): VM {
+    val container = LocalAppContainer.current
+    return viewModel(key = key, factory = viewModelFactory { initializer { create(container, createSavedStateHandle()) } })
 }

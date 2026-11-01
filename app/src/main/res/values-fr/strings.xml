@@ -373,7 +373,7 @@
     <string name="guide_browse_title">Trouver des livres</string>
     <string name="guide_browse_body">• Recherche, filtres et tri en haut de la bibliothèque.\n\n• Onglets pour les livres, les séries et les dossiers (et les étagères avec Nextcloud).\n\n• Touchez un livre pour voir les détails, la note et le statut de lecture.\n\n• Tirez vers le bas pour relire les dossiers et synchroniser les comptes.</string>
     <string name="guide_read_title">Lire</string>
-    <string name="guide_read_body">• Touchez ou balayez vers la gauche/droite pour tourner la page.\n\n• Touchez le milieu ou balayez vers le haut pour ouvrir le menu avec le curseur de progression.\n\n• Balayez vers le bas pour fermer le livre ; votre position est enregistrée.\n\n• Appuyez longuement sur du texte pour le surligner ou ajouter une note.</string>
+    <string name="guide_read_body">• Touchez ou balayez vers la gauche/droite pour tourner la page.\n\n• Touchez le milieu ou balayez vers le haut pour ouvrir le menu avec le curseur de progression.\n\n• Balayez vers le bas pour fermer le livre ; votre position est enregistrée.\n\n• Appuyez longuement sur du texte pour le surligner ou ajouter une note.\n\n• Menu → « Lire à voix haute » (tête qui parle) : écouter le livre dans la langue du texte.</string>
     <string name="guide_move_title">Hors ligne, copie et déplacement</string>
     <string name="guide_move_body">• Rendez les livres Nextcloud disponibles hors ligne dans leurs détails.\n\n• Détails du livre → ⋮ : copiez ou déplacez un livre vers un autre compte, par exemple d’un dossier de votre téléphone vers votre Nextcloud.\n\n• La progression de lecture et les surlignages suivent.</string>
     <string name="settings_guide">Introduction</string>
@@ -402,4 +402,19 @@
     <string name="read_next_continue">Continuer : %1$s</string>
     <string name="read_next_similar">Titres similaires</string>
     <string name="book_read_next">À lire ensuite</string>
+    <string name="read_aloud_start">Lire à voix haute</string>
+    <string name="read_aloud_play">Reprendre la lecture à voix haute</string>
+    <string name="read_aloud_pause">Pause</string>
+    <string name="read_aloud_next">Paragraphe suivant</string>
+    <string name="read_aloud_previous">Paragraphe précédent</string>
+    <string name="read_aloud_stop">Arrêter la lecture à voix haute</string>
+    <string name="read_aloud_rate">%1$s×</string>
+    <string name="read_aloud_voice">Voix</string>
+    <string name="read_aloud_voice_title">Voix pour : %1$s</string>
+    <string name="read_aloud_voice_default">Voix par défaut</string>
+    <string name="read_aloud_voice_online">en ligne</string>
+    <string name="read_aloud_install_voice">Installer des voix</string>
+    <string name="read_aloud_missing_voice">Aucune voix n\'est installée pour : %1$s. Lecture en %2$s.</string>
+    <string name="read_aloud_finished">Fin du livre.</string>
+    <string name="read_aloud_unavailable">Cet appareil n\'a pas de synthèse vocale. Installez un moteur de synthèse vocale, par exemple « Services vocaux de Google ».</string>
 </resources>

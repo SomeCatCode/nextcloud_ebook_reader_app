@@ -100,8 +100,22 @@ class LocalLibraryImpl(
             throw FolderUnavailableException("Cannot read ${account.displayName}", e)
         }
 
-        val existing = db.bookDao().getAllActive(accountId).associateBy { it.fileId }
-        var changed = 0
+        val existing = db.bookDao().getAllActive(accountId).associateBy { it.fileId }.toMutableMap()
+        // A renamed or moved file has a new document id (and so a new book id): its book moves along with
+        // reading progress, highlights, rating and status instead of starting from scratch.
+        val foundIds = found.mapTo(HashSet()) { localFileId(it.documentId) }
+        val moves = matchMovedFiles(
+            found.filter { localFileId(it.documentId) !in existing },
+            existing.values.filter { it.fileId !in foundIds },
+        )
+        for ((f, old) in moves) {
+            val newId = localFileId(f.documentId)
+            val uri = DocumentsContract.buildDocumentUriUsingTree(tree, f.documentId).toString()
+            existing.remove(old.fileId)
+            existing[newId] = moveLocalBook(db, old, newId, f.path, uri)
+            moveCover(accountId, old.fileId, newId)
+        }
+        var changed = moves.size
         val seen = HashSet<Long>()
         for (f in found) {
             val fileId = localFileId(f.documentId)
@@ -275,6 +289,12 @@ class LocalLibraryImpl(
         Unit
     }
 
+    private fun moveCover(accountId: String, from: Long, to: Long) {
+        val dir = File(coversRoot, safe(accountId))
+        val source = File(dir, from.toString())
+        if (source.isFile) source.renameTo(File(dir, to.toString()))
+    }
+
     private fun saveCover(accountId: String, fileId: Long, bytes: ByteArray): Boolean = runCatching {
         val dir = File(coversRoot, safe(accountId)).apply { mkdirs() }
         val tmp = File(dir, "$fileId.tmp")
@@ -287,7 +307,6 @@ class LocalLibraryImpl(
         target.isFile
     }.getOrDefault(false)
 
-    private data class FoundFile(val documentId: String, val name: String, val path: String, val format: String, val size: Long, val modified: Long)
 
     private fun walk(tree: Uri, parentId: String, prefix: String, out: MutableList<FoundFile>, depth: Int) {
         if (depth > MAX_DEPTH) return
@@ -323,6 +342,52 @@ class LocalLibraryImpl(
         const val MAX_DEPTH = 16
         fun safe(accountId: String) = accountId.replace(Regex("[^A-Za-z0-9_-]"), "_")
     }
+}
+
+/** A book file found in the folder of a local library. */
+internal data class FoundFile(val documentId: String, val name: String, val path: String, val format: String, val size: Long, val modified: Long) {
+    val etag: String get() = "$modified-$size"
+}
+
+/**
+ * Pairs new files with books whose file disappeared in the same scan (renamed or moved within the
+ * folder): same format and size, and the same modification time (a rename keeps it) or the same file
+ * name (a move to another sub-folder). Only unambiguous pairs count; a book is used once.
+ */
+internal fun matchMovedFiles(newFiles: List<FoundFile>, gone: List<BookEntity>): List<Pair<FoundFile, BookEntity>> {
+    val left = gone.toMutableList()
+    val result = ArrayList<Pair<FoundFile, BookEntity>>()
+    for (f in newFiles) {
+        val same = left.filter { it.format == f.format && it.size == f.size }
+        if (same.isEmpty()) continue
+        val byTime = same.filter { it.fileEtag == f.etag }
+        val byName = same.filter { it.path.substringAfterLast('/') == f.name }
+        val match = byTime.singleOrNull() ?: byName.singleOrNull() ?: continue
+        // the same book must not be claimed by another new file with the same properties
+        if (newFiles.count { it !== f && it.format == f.format && it.size == f.size && (it.etag == match.fileEtag || it.name == f.name) } > 0) continue
+        left -= match
+        result += f to match
+    }
+    return result
+}
+
+/** Moves a book of a local library to [newId] (its renamed or moved file) with tags, progress and highlights. */
+internal suspend fun moveLocalBook(db: AppDatabase, old: BookEntity, newId: Long, path: String, uri: String): BookEntity {
+    val acc = old.accountId
+    val ids = listOf(old.fileId)
+    val moved = old.copy(fileId = newId, path = path, localUri = uri)
+    db.withTransaction {
+        db.bookDao().upsertAll(listOf(moved))
+        db.bookTagDao().insertAll(db.bookTagDao().forBook(acc, old.fileId).map { it.copy(fileId = newId) })
+        db.progressDao().get(acc, old.fileId)?.let { db.progressDao().upsert(it.copy(fileId = newId)) }
+        // annotations are keyed by uuid: re-pointing them keeps the same rows
+        for (a in db.annotationDao().allForBook(acc, old.fileId)) db.annotationDao().upsert(a.copy(fileId = newId))
+        db.bookDao().markDeleted(acc, ids)
+        db.bookTagDao().deleteForBooks(acc, ids)
+        db.progressDao().deleteForBooks(acc, ids)
+    }
+    db.bookDao().purgeDeleted(acc)
+    return moved
 }
 
 /**

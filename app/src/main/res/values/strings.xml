@@ -371,7 +371,7 @@
     <string name="guide_browse_title">Find books</string>
     <string name="guide_browse_body">• Search, filter and sort at the top of the library.\n\n• Tabs for books, series and folders (and shelves with Nextcloud).\n\n• Tap a book for details, rating and reading status.\n\n• Pull down to read folders again and sync accounts.</string>
     <string name="guide_read_title">Read</string>
-    <string name="guide_read_body">• Tap or swipe left/right to turn the page.\n\n• Tap the middle or swipe up for the menu with the progress slider.\n\n• Swipe down to close the book; your position is saved.\n\n• Long press text to highlight it or add a note.</string>
+    <string name="guide_read_body">• Tap or swipe left/right to turn the page.\n\n• Tap the middle or swipe up for the menu with the progress slider.\n\n• Swipe down to close the book; your position is saved.\n\n• Long press text to highlight it or add a note.\n\n• Menu → \"Read aloud\" (speaking head): listen to the book in the language of the text.</string>
     <string name="guide_move_title">Offline, copy and move</string>
     <string name="guide_move_body">• Make Nextcloud books available offline in their details.\n\n• Book details → ⋮: copy or move a book to another account, e.g. from a folder on your phone to your Nextcloud.\n\n• Reading progress and highlights come along.</string>
     <string name="settings_guide">Introduction</string>
@@ -400,4 +400,19 @@
     <string name="read_next_continue">Continue: %1$s</string>
     <string name="read_next_similar">Similar titles</string>
     <string name="book_read_next">What to read next</string>
+    <string name="read_aloud_start">Read aloud</string>
+    <string name="read_aloud_play">Continue reading aloud</string>
+    <string name="read_aloud_pause">Pause</string>
+    <string name="read_aloud_next">Next paragraph</string>
+    <string name="read_aloud_previous">Previous paragraph</string>
+    <string name="read_aloud_stop">Stop reading aloud</string>
+    <string name="read_aloud_rate">%1$s×</string>
+    <string name="read_aloud_voice">Voice</string>
+    <string name="read_aloud_voice_title">Voice for %1$s</string>
+    <string name="read_aloud_voice_default">Default voice</string>
+    <string name="read_aloud_voice_online">online</string>
+    <string name="read_aloud_install_voice">Install voices</string>
+    <string name="read_aloud_missing_voice">No voice for %1$s is installed, reading in %2$s.</string>
+    <string name="read_aloud_finished">End of the book.</string>
+    <string name="read_aloud_unavailable">This device has no speech output. Install a text-to-speech engine, e.g. \"Speech Services by Google\".</string>
 </resources>

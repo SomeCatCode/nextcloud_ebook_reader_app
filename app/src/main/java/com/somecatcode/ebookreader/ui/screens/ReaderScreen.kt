@@ -1,5 +1,9 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalConfiguration
+import com.somecatcode.ebookreader.reader.AndroidSpeechEngine
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -114,6 +118,8 @@ fun ReaderScreen(
             gestureHintShown = prefs.readerGestureHintShown,
             onGestureHintShown = { prefs.readerGestureHintShown = true },
             edits = c.editRepository,
+            speechEngine = { AndroidSpeechEngine(c.appContext) },
+            readAloudPrefs = prefs,
         )
     }
     val host = remember(key) { createReaderHost(context, container, key) }
@@ -129,6 +135,16 @@ fun ReaderScreen(
         host.selectionActions.collect { action -> if (vm.onSelectionAction(action)) host.send(HostToReader.ClearSelection) }
     }
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { vm.flushProgress() }
+    // read aloud: requests to the page, in the language of the app when the book declares none
+    val readAloud = vm.readAloud
+    LaunchedEffect(host, readAloud) { readAloud?.commands?.collect(host::send) }
+    val appLocale = LocalConfiguration.current.locales[0]
+    SideEffect { if (appLocale != null) readAloud?.appLocale = appLocale }
+    val readAloudState = readAloud?.state?.collectAsState()?.value
+    val noSpeechText = stringResource(R.string.read_aloud_unavailable)
+    LaunchedEffect(readAloudState?.unavailable) {
+        if (readAloudState?.unavailable == true) Toast.makeText(context, noSpeechText, Toast.LENGTH_LONG).show()
+    }
 
     val state by vm.state.collectAsState()
     // a new host (also after a rotation, which rebuilds the WebView) opens at the current position
@@ -150,7 +166,8 @@ fun ReaderScreen(
     LaunchedEffect(drawn) { host.send(HostToReader.SetAnnotations(drawn)) }
 
     ReaderSystemBars(hidden = true)
-    KeepScreenOn(state.keepScreenOn)
+    // reading aloud keeps the screen (and with it the page) on
+    KeepScreenOn(state.keepScreenOn || readAloudState?.playing == true)
     BackHandler(enabled = state.showToc || state.showSettings || state.barsVisible || state.popup != null || state.showAnnotations || state.showGestureHint) {
         when {
             state.showGestureHint -> vm.dismissGestureHint()
@@ -164,6 +181,13 @@ fun ReaderScreen(
 
     ReaderContent(
         state = state,
+        readAloud = readAloudState,
+        readAloudActions = readAloud?.let { r ->
+            ReadAloudActions(
+                onStart = r::start, onTogglePlay = r::togglePlay, onNext = r::next, onPrevious = r::previous,
+                onStop = r::stop, onRate = r::setRate, onVoice = r::setVoice,
+            )
+        },
         surface = { modifier -> ReaderSurface(host, modifier) },
         onBack = onBack,
         onJumpRemote = { vm.resolveConflict(true) },
@@ -273,7 +297,11 @@ fun ReaderContent(
     onDismissFinished: () -> Unit = {},
     onReadNext: (BookKey) -> Unit = {},
     onOpenSuggestion: (BookKey) -> Unit = {},
+    /** Read-aloud controls; null actions = no read aloud (no speech engine). */
+    readAloud: ReadAloudState? = null,
+    readAloudActions: ReadAloudActions? = null,
 ) {
+    val canReadAloud = readAloudActions != null && !state.fixedLayout && state.phase == ReaderPhase.READING
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
         Box(Modifier.fillMaxSize()) {
             if (state.phase != ReaderPhase.CONFLICT && state.phase != ReaderPhase.ERROR) surface(Modifier.fillMaxSize())
@@ -304,6 +332,11 @@ fun ReaderContent(
                                 Icon(Icons.Filled.Bookmarks, contentDescription = stringResource(R.string.reader_annotations))
                             }
                         }
+                        if (canReadAloud && readAloud?.active != true) {
+                            IconButton(onClick = { readAloudActions?.onStart?.invoke() }, modifier = Modifier.testTag("reader_read_aloud")) {
+                                Icon(Icons.Filled.RecordVoiceOver, contentDescription = stringResource(R.string.read_aloud_start))
+                            }
+                        }
                         IconButton(onClick = onShowToc, enabled = state.toc.isNotEmpty(), modifier = Modifier.testTag("reader_toc")) {
                             Icon(Icons.AutoMirrored.Filled.Toc, contentDescription = stringResource(R.string.reader_toc))
                         }
@@ -312,8 +345,19 @@ fun ReaderContent(
                         }
                     }
                 }
-                Surface(Modifier.align(Alignment.BottomCenter).fillMaxWidth(), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f), tonalElevation = 2.dp) {
-                    ProgressBar(state, onSeek, Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp))
+            }
+            val reading = canReadAloud && readAloud?.active == true
+            val bars = state.barsVisible && state.phase != ReaderPhase.ERROR
+            if (reading || bars) {
+                Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
+                    if (reading && readAloud != null && readAloudActions != null) {
+                        ReadAloudBar(readAloud, readAloudActions, if (bars) Modifier else Modifier.navigationBarsPadding())
+                    }
+                    if (bars) {
+                        Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f), tonalElevation = 2.dp) {
+                            ProgressBar(state, onSeek, Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp))
+                        }
+                    }
                 }
             }
             AnnotationsPage(state, annotationActions)

@@ -371,7 +371,7 @@
     <string name="guide_browse_title">Bücher finden</string>
     <string name="guide_browse_body">• Oben in der Bibliothek suchen, filtern und sortieren.\n\n• Reiter für Bücher, Serien und Ordner (mit Nextcloud auch Regale).\n\n• Tippe auf ein Buch für Details, Bewertung und Lesestatus.\n\n• Nach unten ziehen liest Ordner neu ein und synchronisiert Konten.</string>
     <string name="guide_read_title">Lesen</string>
-    <string name="guide_read_body">• Links/rechts tippen oder wischen: umblättern.\n\n• Mitte antippen oder nach oben wischen: Menü mit Fortschrittsregler.\n\n• Nach unten wischen: Buch schließen, die Position wird gespeichert.\n\n• Text lange drücken: markieren oder Notiz anlegen.</string>
+    <string name="guide_read_body">• Links/rechts tippen oder wischen: umblättern.\n\n• Mitte antippen oder nach oben wischen: Menü mit Fortschrittsregler.\n\n• Nach unten wischen: Buch schließen, die Position wird gespeichert.\n\n• Text lange drücken: markieren oder Notiz anlegen.\n\n• Menü → „Vorlesen“ (sprechender Kopf): Buch in der Sprache des Textes vorlesen lassen.</string>
     <string name="guide_move_title">Offline, kopieren und verschieben</string>
     <string name="guide_move_body">• Nextcloud-Bücher in den Buchdetails offline verfügbar machen.\n\n• Buchdetails → ⋮: Buch in ein anderes Konto kopieren oder verschieben, z. B. vom Handy-Ordner in deine Nextcloud.\n\n• Lesestand und Markierungen ziehen mit.</string>
     <string name="settings_guide">Anleitung</string>
@@ -400,4 +400,19 @@
     <string name="read_next_continue">Weiterlesen: %1$s</string>
     <string name="read_next_similar">Ähnliche Titel</string>
     <string name="book_read_next">Das kommt als Nächstes</string>
+    <string name="read_aloud_start">Vorlesen</string>
+    <string name="read_aloud_play">Vorlesen fortsetzen</string>
+    <string name="read_aloud_pause">Pause</string>
+    <string name="read_aloud_next">Nächster Absatz</string>
+    <string name="read_aloud_previous">Vorheriger Absatz</string>
+    <string name="read_aloud_stop">Vorlesen beenden</string>
+    <string name="read_aloud_rate">%1$s×</string>
+    <string name="read_aloud_voice">Stimme</string>
+    <string name="read_aloud_voice_title">Stimme für %1$s</string>
+    <string name="read_aloud_voice_default">Standardstimme</string>
+    <string name="read_aloud_voice_online">online</string>
+    <string name="read_aloud_install_voice">Stimmen installieren</string>
+    <string name="read_aloud_missing_voice">Für %1$s ist keine Stimme installiert, es wird auf %2$s vorgelesen.</string>
+    <string name="read_aloud_finished">Ende des Buchs.</string>
+    <string name="read_aloud_unavailable">Auf diesem Gerät gibt es keine Sprachausgabe. Installiere eine Sprachausgabe, z. B. „Sprachdienste von Google“.</string>
 </resources>
