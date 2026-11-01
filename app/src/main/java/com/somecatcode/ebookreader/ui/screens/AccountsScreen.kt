@@ -1,5 +1,6 @@
 package com.somecatcode.ebookreader.ui.screens
 
+import com.somecatcode.ebookreader.ui.util.containerViewModelWithState
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -67,8 +68,8 @@ import com.somecatcode.ebookreader.ui.util.title
 /** Account list, add account (Login Flow v2), remove account. */
 @Composable
 fun AccountsScreen(onBack: () -> Unit, onAccountAdded: () -> Unit = {}) {
-    val vm = containerViewModel { c ->
-        AccountsViewModel(c.accountStore, c.loginFlowClient, c.apiClientFactory, c.syncEngine, c.localLibrary)
+    val vm = containerViewModelWithState { c, saved ->
+        AccountsViewModel(c.accountStore, c.loginFlowClient, c.apiClientFactory, c.syncEngine, c.localLibrary, savedState = saved)
     }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { vm.onForeground(true) }
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { vm.onForeground(false) }

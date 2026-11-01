@@ -152,6 +152,44 @@ class ViewModelTests {
     }
 
     @Test
+    fun addAccount_aLoginRunningWhenAndroidStopsTheAppContinuesAfterTheRestart() = runTest(dispatcher) {
+        val saved = androidx.lifecycle.SavedStateHandle()
+        val login = FakeLoginFlowClient().apply { result = null }
+        val store = FakeAccountStore()
+        var now = 1_000_000L
+        val first = AccountsViewModel(store, login, FakeApiClientFactory(), FakeSyncEngine(), pollIntervalMs = 10, pollTimeoutMs = 60_000, savedState = saved, clock = { now })
+        backgroundScope.launch { first.state.collect {} }
+        first.showAddAccount()
+        first.onServerInputChange("cloud.example.org")
+        first.startLogin()
+        advanceTimeBy(50)
+        assertEquals(AddStage.WAITING, first.state.value.addFlow?.stage)
+        assertEquals("t", saved.get<String>("login_poll_token"))
+
+        // the app is in the background behind the browser and Android ends it there
+        first.onForeground(false)
+        advanceTimeBy(50)
+        login.result = LoginFlowResult("https://cloud.example.org", "alice", "app-password")
+        now += 30_000
+        val second = AccountsViewModel(store, login, FakeApiClientFactory(), FakeSyncEngine(), pollIntervalMs = 10, pollTimeoutMs = 60_000, savedState = saved, clock = { now })
+        backgroundScope.launch { second.state.collect {} }
+        advanceTimeBy(100)
+        assertEquals("app-password", store.added?.appPassword)
+        assertNull(second.state.value.addFlow)
+        assertNull("the token is forgotten once the login ended", saved.get<String>("login_poll_token"))
+    }
+
+    @Test
+    fun addAccount_anExpiredSavedLoginIsDropped() = runTest(dispatcher) {
+        val saved = androidx.lifecycle.SavedStateHandle(
+            mapOf("login_poll_token" to "t", "login_poll_endpoint" to "https://cloud.example.org/poll", "login_started" to 0L),
+        )
+        val vm = AccountsViewModel(FakeAccountStore(), FakeLoginFlowClient(), FakeApiClientFactory(), FakeSyncEngine(), pollTimeoutMs = 60_000, savedState = saved, clock = { 10 * 60_000L })
+        assertNull(vm.state.value.addFlow)
+        assertNull(saved.get<String>("login_poll_token"))
+    }
+
+    @Test
     fun addAccount_cancelWhileWaitingReturnsToInput() = runTest(dispatcher) {
         val login = FakeLoginFlowClient().apply { result = null }
         val vm = accountsVm(login = login)
