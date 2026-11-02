@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Behoben
+- **Vorlesen klingt flüssiger.** Die App gibt jetzt einen ganzen Absatz auf einmal an die Sprachausgabe, nicht mehr jeden Satz einzeln. Bisher machte die Sprachausgabe nach jedem Satz eine Pause und begann neu. Das klang abgehackt, besonders mit der Samsung-Sprachausgabe und bei Abkürzungen wie „Mr.“. Die Markierung folgt dem gesprochenen Satz weiter. Wenn die Sprachausgabe keine Position im Text meldet, schätzt die App die Position aus der Sprechdauer. Stimme, Sprache und Geschwindigkeit setzt die App nur bei einer Änderung neu.
+
 ## 0.7.0 – 2026-11-01
 
 ### Hinzugefügt
