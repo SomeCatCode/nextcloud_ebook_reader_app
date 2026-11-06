@@ -33,6 +33,9 @@ interface AccountDao {
     suspend fun updateVersions(id: String, serverVersion: String?, appVersion: String?)
 
     /** Cascades to all rows of the account (books, progress, shelves, downloads, pending edits, annotations). */
+    @Query("UPDATE account SET enabled = :enabled WHERE id = :id")
+    suspend fun setEnabled(id: String, enabled: Boolean)
+
     @Query("DELETE FROM account WHERE id = :id")
     suspend fun delete(id: String)
 }

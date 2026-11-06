@@ -30,6 +30,12 @@
     <string name="account_sign_in_again">Volver a iniciar sesión</string>
     <string name="account_sync_now">Sincronizar ahora</string>
     <string name="account_remove">Quitar</string>
+    <string name="account_disable">Desactivar</string>
+    <string name="account_enable">Activar</string>
+    <string name="status_disabled">Desactivada</string>
+    <string name="account_disabled_hint">Desactivada: la biblioteca oculta los libros de esta cuenta y no la sincroniza. Los libros, el progreso de lectura y las descargas se conservan.</string>
+    <string name="library_all_disabled_title">Todas las cuentas están desactivadas</string>
+    <string name="library_all_disabled_body">Activa una cuenta en Cuentas para volver a ver sus libros.</string>
     <string name="status_ok">Conectada</string>
     <string name="status_syncing">Sincronizando…</string>
     <string name="status_offline">Sin conexión</string>

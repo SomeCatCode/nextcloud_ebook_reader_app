@@ -30,6 +30,12 @@
     <string name="account_sign_in_again">再ログイン</string>
     <string name="account_sync_now">今すぐ同期</string>
     <string name="account_remove">削除</string>
+    <string name="account_disable">無効にする</string>
+    <string name="account_enable">有効にする</string>
+    <string name="status_disabled">無効</string>
+    <string name="account_disabled_hint">無効：このアカウントの本はライブラリに表示されず、同期もされません。本、読書の進捗、ダウンロードは保持されます。</string>
+    <string name="library_all_disabled_title">すべてのアカウントが無効です</string>
+    <string name="library_all_disabled_body">アカウント画面でアカウントを有効にすると、本が再び表示されます。</string>
     <string name="status_ok">接続済み</string>
     <string name="status_syncing">同期中…</string>
     <string name="status_offline">オフライン</string>

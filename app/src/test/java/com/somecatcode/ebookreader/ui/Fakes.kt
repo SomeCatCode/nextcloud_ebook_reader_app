@@ -131,6 +131,9 @@ class FakeAccountStore(initial: List<Account> = emptyList(), private val missing
     override suspend fun updateCredentials(accountId: String, credentials: Credentials) { updatedCredentials = accountId to credentials }
     override suspend fun credentials(accountId: String) = if (accountId in missingCredentials) null else Credentials("u", "p")
     override suspend fun remove(accountId: String) { removed += accountId; state.value = state.value.filterNot { it.id == accountId } }
+    override suspend fun setEnabled(accountId: String, enabled: Boolean) {
+        state.value = state.value.map { if (it.id == accountId) it.copy(enabled = enabled) else it }
+    }
 }
 
 class FakeSettingsRepository(initial: AppSettings = AppSettings()) : SettingsRepository {

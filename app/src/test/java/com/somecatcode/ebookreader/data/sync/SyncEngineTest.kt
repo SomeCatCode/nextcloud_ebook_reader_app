@@ -92,6 +92,15 @@ class SyncEngineTest : DbTest() {
     }
 
     @Test
+    fun aDeactivatedAccountIsNotSynced() = runBlocking {
+        db.accountDao().setEnabled("acc1", false)
+        val outcome = engine.syncNow("acc1")
+        assertEquals(SyncOutcome.Success(0, 0, 0), outcome)
+        assertTrue("no request to the server", dispatcher.requests.isEmpty())
+        assertNull(db.accountDao().get("acc1")!!.lastSyncAt)
+    }
+
+    @Test
     fun cursorIsOnlySavedAfterThePageWasCommitted() = runBlocking {
         dispatcher.on("GET", "/sync") { req ->
             when (cursorOf(req)) {

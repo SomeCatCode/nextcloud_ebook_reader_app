@@ -30,6 +30,12 @@
     <string name="account_sign_in_again">دوباره داخل شوید</string>
     <string name="account_sync_now">همین حالا همگام‌سازی شود</string>
     <string name="account_remove">حذف</string>
+    <string name="account_disable">غیرفعال کردن</string>
+    <string name="account_enable">فعال کردن</string>
+    <string name="status_disabled">غیرفعال</string>
+    <string name="account_disabled_hint">غیرفعال: کتابخانه کتاب‌های این حساب را پنهان می‌کند و آن را همگام‌سازی نمی‌کند. کتاب‌ها، پیشرفت خواندن و دانلودها حفظ می‌شوند.</string>
+    <string name="library_all_disabled_title">همه حساب‌ها غیرفعال هستند</string>
+    <string name="library_all_disabled_body">برای دیدن دوباره کتاب‌ها، یک حساب را در بخش حساب‌ها فعال کنید.</string>
     <string name="status_ok">وصل است</string>
     <string name="status_syncing">در حال همگام‌سازی…</string>
     <string name="status_offline">آفلاین</string>

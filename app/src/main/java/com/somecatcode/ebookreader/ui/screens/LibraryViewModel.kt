@@ -141,7 +141,10 @@ internal fun SmartQueryDto.toFilter(): LibraryFilter = LibraryFilter(
 
 data class LibraryUiState(
     val accountsLoaded: Boolean = false,
+    /** Active accounts (deactivated ones are left out). */
     val accounts: List<Account> = emptyList(),
+    /** Number of deactivated accounts. */
+    val disabledAccounts: Int = 0,
     /** Accounts whose library is shown. */
     val shownAccountIds: List<String> = emptyList(),
     val merged: Boolean = false,
@@ -201,7 +204,10 @@ class LibraryViewModel(
 
     private val query = MutableStateFlow(LibraryQuery())
 
-    private val accounts = accountStore.accounts
+    private val allAccounts = accountStore.accounts
+
+    /** Deactivated accounts are hidden: their books, shelves and series do not appear. */
+    private val accounts = allAccounts.map { list -> list.filter { it.enabled } }.distinctUntilChanged()
 
     /** One-off messages (string resource ids) for a snackbar. */
     private val messageChannel = Channel<Int>(Channel.BUFFERED)
@@ -279,6 +285,7 @@ class LibraryViewModel(
         .combine(tabBooks) { st, b -> st.copy(books = b.books, folderListing = b.listing) }
         .combine(collections) { st, c -> st.copy(shelves = c.shelves, series = c.series, facets = c.facets) }
         .combine(continueReading) { st, c -> st.copy(continueReading = c) }
+        .combine(allAccounts) { st, all -> st.copy(disabledAccounts = all.count { !it.enabled }) }
         .combine(syncInfo) { st, (refreshing, banner) ->
             // An outdated server app is only a hint; real problems (offline, auth, errors) take precedence.
             val outdated = st.accounts.firstOrNull { it.id in st.shownAccountIds && !it.local && ServerVersions.isOutdated(it.appVersion) }

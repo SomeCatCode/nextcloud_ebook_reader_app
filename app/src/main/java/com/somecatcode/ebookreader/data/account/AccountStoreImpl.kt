@@ -107,6 +107,10 @@ class AccountStoreImpl(
         }
     }
 
+    override suspend fun setEnabled(accountId: String, enabled: Boolean) = writeLock.withLock {
+        dao.setEnabled(accountId, enabled)
+    }
+
     override suspend fun remove(accountId: String) {
         beforeRemove(accountId)
         writeLock.withLock {
@@ -146,6 +150,7 @@ class AccountStoreImpl(
         appVersion = appVersion,
         lastSyncAt = lastSyncAt,
         local = kind == AccountKind.LOCAL,
+        enabled = enabled,
     )
 
     private companion object {

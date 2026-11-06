@@ -30,6 +30,12 @@
     <string name="account_sign_in_again">Yeniden oturum aç</string>
     <string name="account_sync_now">Şimdi eşitle</string>
     <string name="account_remove">Kaldır</string>
+    <string name="account_disable">Devre dışı bırak</string>
+    <string name="account_enable">Etkinleştir</string>
+    <string name="status_disabled">Devre dışı</string>
+    <string name="account_disabled_hint">Devre dışı: Kitaplık bu hesabın kitaplarını gizler ve hesabı eşitlemez. Kitaplar, okuma ilerlemesi ve indirmeler korunur.</string>
+    <string name="library_all_disabled_title">Tüm hesaplar devre dışı</string>
+    <string name="library_all_disabled_body">Kitaplarını yeniden görmek için Hesaplar bölümünde bir hesabı etkinleştir.</string>
     <string name="status_ok">Bağlı</string>
     <string name="status_syncing">Eşitleniyor…</string>
     <string name="status_offline">Çevrimdışı</string>

@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -94,6 +95,7 @@ fun AccountsScreen(onBack: () -> Unit, onAccountAdded: () -> Unit = {}) {
         onRelogin = vm::showRelogin,
         onSync = vm::sync,
         onRemove = vm::askRemove,
+        onSetEnabled = vm::setEnabled,
         addActions = AddFlowActions(
             onInputChange = vm::onServerInputChange,
             onSignIn = vm::startLogin,
@@ -141,6 +143,7 @@ fun AccountsContent(
     onDismissRevokeHint: () -> Unit,
     onAddLocal: () -> Unit = {},
     onDismissLocalError: () -> Unit = {},
+    onSetEnabled: (Account, Boolean) -> Unit = { _, _ -> },
 ) {
     var chooseKind by remember { mutableStateOf(false) }
     Scaffold(
@@ -173,7 +176,13 @@ fun AccountsContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(state.rows, key = { it.account.id }) { row ->
-                    AccountCard(row, onRelogin = { onRelogin(row.account) }, onSync = { onSync(row.account) }, onRemove = { onRemove(row.account) })
+                    AccountCard(
+                        row,
+                        onRelogin = { onRelogin(row.account) },
+                        onSync = { onSync(row.account) },
+                        onRemove = { onRemove(row.account) },
+                        onSetEnabled = { onSetEnabled(row.account, it) },
+                    )
                 }
             }
         }
@@ -234,7 +243,7 @@ fun AccountsContent(
 }
 
 @Composable
-private fun AccountCard(row: AccountRow, onRelogin: () -> Unit, onSync: () -> Unit, onRemove: () -> Unit) {
+private fun AccountCard(row: AccountRow, onRelogin: () -> Unit, onSync: () -> Unit, onRemove: () -> Unit, onSetEnabled: (Boolean) -> Unit) {
     val account = row.account
     Card(Modifier.fillMaxWidth().testTag("account_${account.id}")) {
         Column(Modifier.padding(16.dp)) {
@@ -266,6 +275,14 @@ private fun AccountCard(row: AccountRow, onRelogin: () -> Unit, onSync: () -> Un
                     modifier = Modifier.padding(top = 4.dp).testTag("outdated_${account.id}"),
                 )
             }
+            if (!account.enabled) {
+                Text(
+                    stringResource(R.string.account_disabled_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
             val problem = row.status in setOf(AccountStatus.AUTH_EXPIRED, AccountStatus.APP_UNAVAILABLE, AccountStatus.FOLDER_UNAVAILABLE, AccountStatus.ERROR)
             Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (row.status == AccountStatus.SYNCING) {
@@ -277,11 +294,18 @@ private fun AccountCard(row: AccountRow, onRelogin: () -> Unit, onSync: () -> Un
                     color = if (problem) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                 )
             }
-            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End) {
-                if (row.status == AccountStatus.AUTH_EXPIRED) {
-                    TextButton(onClick = onRelogin) { Text(stringResource(R.string.account_sign_in_again)) }
-                } else {
-                    TextButton(onClick = onSync) { Text(stringResource(if (account.local) R.string.account_rescan else R.string.account_sync_now)) }
+            FlowRow(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End) {
+                when {
+                    !account.enabled -> TextButton(onClick = { onSetEnabled(true) }, modifier = Modifier.testTag("enable_${account.id}")) {
+                        Text(stringResource(R.string.account_enable))
+                    }
+                    row.status == AccountStatus.AUTH_EXPIRED -> TextButton(onClick = onRelogin) { Text(stringResource(R.string.account_sign_in_again)) }
+                    else -> TextButton(onClick = onSync) { Text(stringResource(if (account.local) R.string.account_rescan else R.string.account_sync_now)) }
+                }
+                if (account.enabled) {
+                    TextButton(onClick = { onSetEnabled(false) }, modifier = Modifier.testTag("disable_${account.id}")) {
+                        Text(stringResource(R.string.account_disable))
+                    }
                 }
                 TextButton(onClick = onRemove) { Text(stringResource(R.string.account_remove)) }
             }
@@ -308,6 +332,7 @@ private fun AccountKindOption(icon: ImageVector, title: String, hint: String, mo
 
 private fun statusText(status: AccountStatus): Int = when (status) {
     AccountStatus.OK -> R.string.status_ok
+    AccountStatus.DISABLED -> R.string.status_disabled
     AccountStatus.SYNCING -> R.string.status_syncing
     AccountStatus.OFFLINE -> R.string.status_offline
     AccountStatus.AUTH_EXPIRED -> R.string.status_auth_expired

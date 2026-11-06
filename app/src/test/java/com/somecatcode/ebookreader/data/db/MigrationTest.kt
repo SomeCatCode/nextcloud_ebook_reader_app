@@ -83,6 +83,32 @@ class MigrationTest {
     }
 
     @Test
+    fun migrate5To6KeepsEveryAccountActive() {
+        createFromSchema(5) { db ->
+            db.execSQL(
+                "INSERT INTO account (id, serverUrl, loginName, userId, displayName, serverVersion, appVersion, lastSyncCursor, lastSyncAt, createdAt, kind) " +
+                    "VALUES ('acc1', 'https://cloud.example.org', 'alice', 'alice', 'Alice', '31', '1.0.0', 'b:5', 1000, 1, 'nextcloud')",
+            )
+        }
+        val room = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
+            .addMigrations(*ALL_MIGRATIONS)
+            .allowMainThreadQueries()
+            .build()
+        try {
+            runBlocking {
+                val account = room.accountDao().get("acc1")!!
+                assertEquals(true, account.enabled)
+                assertEquals("b:5", account.lastSyncCursor)
+                room.accountDao().setEnabled("acc1", false)
+                assertEquals(false, room.accountDao().get("acc1")!!.enabled)
+            }
+        } finally {
+            room.close()
+            context.deleteDatabase(dbName)
+        }
+    }
+
+    @Test
     fun migrate4To5AddsLongstripColumnsKeepsBooksAndResetsOnlyNextcloudCursors() {
         createFromSchema(4) { db ->
             db.execSQL(

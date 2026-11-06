@@ -69,5 +69,12 @@ val MIGRATION_4_5: Migration = object : Migration(4, 5) {
     }
 }
 
+/** Version 6: accounts can be deactivated (`account.enabled`, true for every existing account). */
+val MIGRATION_5_6: Migration = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `account` ADD COLUMN `enabled` INTEGER NOT NULL DEFAULT 1")
+    }
+}
+
 /** All migrations, registered by the database builder. */
-val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)

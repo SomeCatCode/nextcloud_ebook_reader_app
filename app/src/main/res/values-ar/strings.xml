@@ -30,6 +30,12 @@
     <string name="account_sign_in_again">تسجيل الدخول مجددًا</string>
     <string name="account_sync_now">مزامنة الآن</string>
     <string name="account_remove">إزالة</string>
+    <string name="account_disable">إلغاء التفعيل</string>
+    <string name="account_enable">تفعيل</string>
+    <string name="status_disabled">غير مفعّل</string>
+    <string name="account_disabled_hint">غير مفعّل: تُخفي المكتبة كتب هذا الحساب ولا تزامنه. تبقى الكتب وتقدّم القراءة والتنزيلات محفوظة.</string>
+    <string name="library_all_disabled_title">جميع الحسابات غير مفعّلة</string>
+    <string name="library_all_disabled_body">فعّل حسابًا في الحسابات لرؤية كتبه مرة أخرى.</string>
     <string name="status_ok">متصل</string>
     <string name="status_syncing">جارٍ المزامنة…</string>
     <string name="status_offline">غير متصل</string>
