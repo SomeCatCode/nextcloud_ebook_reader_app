@@ -375,7 +375,7 @@
     <string name="guide_welcome_title">Benvenuto</string>
     <string name="guide_welcome_body">Leggi i tuoi e-book e fumetti: da una cartella su questo dispositivo o dal tuo Nextcloud.\n\nQuesta breve guida mostra come funziona. Puoi riaprirla più tardi nelle impostazioni.</string>
     <string name="guide_library_title">Configura la tua libreria</string>
-    <string name="guide_library_body">In \"Account\" → \"Aggiungi account\" hai due possibilità:\n\n• Cartella su questo dispositivo: scegli una cartella con e-book (anche sottocartelle e scheda SD). L\'app la legge, senza bisogno di un server.\n\n• Account Nextcloud: accedi tramite il browser. Il tuo server ha bisogno dell\'app \"E-Book Reader\".\n\nPuoi aggiungere tutte le cartelle e gli account che vuoi. \"Disattiva\" nasconde i libri di un account senza rimuoverlo.</string>
+    <string name="guide_library_body">In \"Account\" → \"Aggiungi account\" hai due possibilità:\n\n• Cartella su questo dispositivo: scegli una cartella con e-book (anche sottocartelle e scheda SD). L\'app la legge, senza bisogno di un server.\n\n• Account Nextcloud: accedi tramite il browser. Il tuo server ha bisogno dell\'app \"E-Book Reader\".\n\nPuoi aggiungere tutte le cartelle e gli account che vuoi. L\'interruttore di un account nasconde i suoi libri senza rimuoverlo.</string>
     <string name="guide_browse_title">Trova i libri</string>
     <string name="guide_browse_body">• Cerca, filtra e ordina in alto nella libreria.\n\n• Schede per libri, serie e cartelle (e scaffali con Nextcloud).\n\n• Tocca un libro per dettagli, valutazione e stato di lettura.\n\n• Trascina verso il basso per rileggere le cartelle e sincronizzare gli account.</string>
     <string name="guide_read_title">Leggi</string>

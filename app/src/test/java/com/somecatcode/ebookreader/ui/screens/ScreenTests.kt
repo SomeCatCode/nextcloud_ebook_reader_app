@@ -7,6 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
@@ -87,10 +91,10 @@ class ScreenTests {
         val c = container(accounts = FakeAccountStore(listOf(local)))
         show(c) { AccountsScreen(onBack = {}) }
         compose.onNodeWithText("Local folder: Books/Comics").assertIsDisplayed()
-        compose.onNodeWithText("Read again").performClick()
+        compose.onNodeWithContentDescription("Read again").performClick()
         assertEquals(listOf("loc"), c.syncEngine.requested)
         compose.onNodeWithTag("versions_loc").assertDoesNotExist()
-        compose.onNodeWithText("Remove").performClick()
+        compose.onNodeWithContentDescription("Remove").performClick()
         compose.onNodeWithText("The e-book files in the folder are not deleted.", substring = true).assertIsDisplayed()
     }
 
@@ -124,12 +128,26 @@ class ScreenTests {
         show(c) { AccountsScreen(onBack = {}) }
         compose.onNodeWithText("Alice").assertIsDisplayed()
         compose.onNodeWithText("Sign-in expired. Please sign in again.").assertIsDisplayed()
-        compose.onNodeWithText("Sign in again").assertIsDisplayed()
-        compose.onNodeWithText("Remove").performClick()
+        compose.onNodeWithContentDescription("Sign in again").assertIsDisplayed()
+        compose.onNodeWithText("Connected").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Remove").performClick()
         compose.onNodeWithText("Remove account?").assertIsDisplayed()
         compose.onNodeWithText("Remove account").performClick()
         compose.waitUntil(5_000) { c.accountStore.removed.isNotEmpty() }
         assertEquals(listOf("acc1"), c.accountStore.removed)
+    }
+
+    @Test
+    fun accountCard_showsGreenConnectedChipAndSwitchDeactivates() {
+        val c = container(accounts = FakeAccountStore(listOf(account("acc1", "Alice"))))
+        show(c) { AccountsScreen(onBack = {}) }
+        compose.onNodeWithText("Connected").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Sync now").assertIsEnabled()
+        compose.onNodeWithTag("enabled_acc1").assertIsOn().performClick()
+        compose.waitUntil(5_000) { !c.accountStore.state.value.single().enabled }
+        compose.onNodeWithTag("enabled_acc1").assertIsOff()
+        compose.onNodeWithText("Deactivated").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Sync now").assertIsNotEnabled()
     }
 
     // ---- library ----------------------------------------------------------------------------------

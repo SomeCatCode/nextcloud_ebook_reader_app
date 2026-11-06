@@ -371,7 +371,7 @@
     <string name="guide_welcome_title">欢迎</string>
     <string name="guide_welcome_body">阅读你的电子书和漫画：来自此设备上的文件夹，或来自你自己的 Nextcloud。\n\n本简短指南将介绍使用方法。之后你可以在设置中再次打开它。</string>
     <string name="guide_library_title">设置你的书库</string>
-    <string name="guide_library_body">在“账号”→“添加账号”中有两个选项：\n\n• 此设备上的文件夹：选择一个存放电子书的文件夹（也支持子文件夹和 SD 卡）。应用会读取该文件夹，无需服务器。\n\n• Nextcloud 账号：通过浏览器登录。你的服务器需要安装“E-Book Reader”应用。\n\n你可以添加任意数量的文件夹和账号。“停用”会隐藏某个账号的书籍，但不会移除该账号。</string>
+    <string name="guide_library_body">在“账号”→“添加账号”中有两个选项：\n\n• 此设备上的文件夹：选择一个存放电子书的文件夹（也支持子文件夹和 SD 卡）。应用会读取该文件夹，无需服务器。\n\n• Nextcloud 账号：通过浏览器登录。你的服务器需要安装“E-Book Reader”应用。\n\n你可以添加任意数量的文件夹和账号。关闭账号上的开关会隐藏该账号的书籍，但不会移除该账号。</string>
     <string name="guide_browse_title">查找书籍</string>
     <string name="guide_browse_body">• 在书库顶部搜索、筛选和排序。\n\n• 书籍、系列和文件夹各有标签页（使用 Nextcloud 时还有书架）。\n\n• 点按书籍可查看详情、评分和阅读状态。\n\n• 下拉可重新读取文件夹并同步账号。</string>
     <string name="guide_read_title">阅读</string>
