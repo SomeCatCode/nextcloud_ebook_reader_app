@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="data_channel_name">同步和下载</string>
+    <string name="data_channel_description">同步书库或下载较大的书籍时显示。</string>
+    <string name="data_notification_downloading">正在下载书籍</string>
+    <string name="data_notification_syncing">正在同步书库</string>
+</resources>

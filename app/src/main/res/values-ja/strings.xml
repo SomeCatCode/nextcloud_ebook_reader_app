@@ -371,7 +371,7 @@
     <string name="guide_welcome_title">ようこそ</string>
     <string name="guide_welcome_body">この端末のフォルダーや、自分の Nextcloud にある電子書籍とコミックを読めます。\n\nこの短いガイドで使い方を説明します。後から設定でいつでも開けます。</string>
     <string name="guide_library_title">ライブラリを設定</string>
-    <string name="guide_library_body">「アカウント」→「アカウントを追加」で次の 2 つから選べます。\n\n• この端末のフォルダー：電子書籍のあるフォルダーを選択（サブフォルダーや SD カードも可）。サーバーなしで読み込みます。\n\n• Nextcloud アカウント：ブラウザーでログイン。サーバーに「E-Book Reader」アプリが必要です。\n\nフォルダーとアカウントはいくつでも追加できます。</string>
+    <string name="guide_library_body">「アカウント」→「アカウントを追加」で次の 2 つから選べます。\n\n• この端末のフォルダー：電子書籍のあるフォルダーを選択（サブフォルダーや SD カードも可）。サーバーなしで読み込みます。\n\n• Nextcloud アカウント：ブラウザーでログイン。サーバーに「E-Book Reader」アプリが必要です。\n\nフォルダーとアカウントはいくつでも追加できます。「無効にする」を使うと、アカウントを削除せずにその本を非表示にできます。</string>
     <string name="guide_browse_title">本を探す</string>
     <string name="guide_browse_body">• ライブラリ上部で検索、フィルター、並べ替え。\n\n• 本、シリーズ、フォルダーのタブ（Nextcloud では本棚も）。\n\n• 本をタップすると詳細、評価、読書状況を表示。\n\n• 下に引っ張るとフォルダーの再読み込みとアカウントの同期。</string>
     <string name="guide_read_title">読む</string>

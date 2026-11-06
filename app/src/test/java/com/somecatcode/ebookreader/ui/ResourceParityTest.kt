@@ -37,7 +37,7 @@ class ResourceParityTest {
         val translations = resDir.listFiles { f -> f.isDirectory && f.name.startsWith("values-") }.orEmpty()
             .filter { File(it, "strings.xml").exists() }
         val languages = translations.map { it.name }.toSet()
-        for (expected in listOf("values-de", "values-es", "values-ja", "values-fr", "values-ar", "values-tr", "values-fa-rAF")) {
+        for (expected in listOf("values-de", "values-es", "values-ja", "values-fr", "values-ar", "values-tr", "values-fa-rAF", "values-it", "values-pt-rBR", "values-ko", "values-zh-rCN")) {
             assertTrue("missing $expected", expected in languages)
         }
         for (file in listOf("strings.xml", "strings_data.xml")) {

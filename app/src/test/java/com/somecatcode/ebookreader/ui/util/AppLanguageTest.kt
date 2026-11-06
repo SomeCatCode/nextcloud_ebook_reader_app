@@ -13,9 +13,9 @@ class AppLanguageTest {
     }
 
     @Test
-    fun offersSystemDefaultAndEightLanguages() {
-        assertEquals(9, AppLanguage.entries.size)
-        assertEquals(listOf("de", "en", "es", "fr", "ja", "ar", "tr", "fa-AF").toSet(), AppLanguage.entries.filter { it != AppLanguage.SYSTEM }.map { it.tag }.toSet())
+    fun offersSystemDefaultAndTwelveLanguages() {
+        assertEquals(13, AppLanguage.entries.size)
+        assertEquals(listOf("de", "en", "es", "fr", "it", "pt-BR", "ja", "ko", "zh-CN", "ar", "tr", "fa-AF").toSet(), AppLanguage.entries.filter { it != AppLanguage.SYSTEM }.map { it.tag }.toSet())
         assertTrue(AppLanguage.entries.filter { it != AppLanguage.SYSTEM }.all { !it.nativeName.isNullOrBlank() })
     }
 
@@ -34,5 +34,18 @@ class AppLanguageTest {
         assertEquals(AppLanguage.FRENCH, AppLanguage.fromTag("fr_CA"))
         assertEquals(AppLanguage.DARI, AppLanguage.fromTag("fa-af"))
         assertEquals(AppLanguage.ARABIC, AppLanguage.fromTag("ar-EG"))
+        assertEquals(AppLanguage.ITALIAN, AppLanguage.fromTag("it-CH"))
+        assertEquals(AppLanguage.PORTUGUESE_BRAZIL, AppLanguage.fromTag("pt"))
+        assertEquals(AppLanguage.PORTUGUESE_BRAZIL, AppLanguage.fromTag("pt_PT"))
+        assertEquals(AppLanguage.KOREAN, AppLanguage.fromTag("ko-KR"))
+    }
+
+    @Test
+    fun onlySimplifiedChineseMapsToChinese() {
+        assertEquals(AppLanguage.CHINESE_SIMPLIFIED, AppLanguage.fromTag("zh"))
+        assertEquals(AppLanguage.CHINESE_SIMPLIFIED, AppLanguage.fromTag("zh-Hans-CN"))
+        assertEquals(AppLanguage.CHINESE_SIMPLIFIED, AppLanguage.fromTag("zh-SG"))
+        assertEquals(AppLanguage.SYSTEM, AppLanguage.fromTag("zh-TW"))
+        assertEquals(AppLanguage.SYSTEM, AppLanguage.fromTag("zh-Hant-HK"))
     }
 }

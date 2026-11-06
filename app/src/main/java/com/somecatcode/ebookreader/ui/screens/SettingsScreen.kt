@@ -268,13 +268,16 @@ fun LicensesScreen(onBack: () -> Unit) {
 }
 
 /**
- * Asset file of the privacy policy for a language: German, English, Spanish, French, Japanese, Arabic and Turkish have
- * their own text, Dari only for Persian with region AF (plain "fa" is Iranian Persian), everything else gets English.
+ * Asset file of the privacy policy for a language: German, English, Spanish, French, Italian, Japanese, Korean, Arabic and
+ * Turkish have their own text; Portuguese gets the Brazilian text, Chinese the Simplified Chinese text (not for Taiwan,
+ * Hong Kong and Macau); Dari only for Persian with region AF (plain "fa" is Iranian Persian); everything else gets English.
  */
 internal fun privacyAssetFor(language: String, country: String = ""): String {
     val lang = language.lowercase()
     return when {
-        lang in setOf("de", "es", "ja", "fr", "ar", "tr") -> "privacy/$lang.md"
+        lang in setOf("de", "es", "ja", "fr", "it", "ko", "ar", "tr") -> "privacy/$lang.md"
+        lang == "pt" -> "privacy/pt-BR.md"
+        lang == "zh" && country.uppercase() !in setOf("TW", "HK", "MO") -> "privacy/zh-CN.md"
         lang == "fa" && country.equals("AF", ignoreCase = true) -> "privacy/fa-AF.md"
         else -> "privacy/en.md"
     }

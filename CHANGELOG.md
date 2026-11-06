@@ -6,7 +6,11 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 ## [Unreleased]
 
 ### Hinzugefügt
+- **Vier neue Sprachen:** Die App gibt es jetzt auch auf Italienisch, Portugiesisch (Brasilien), Koreanisch und Chinesisch (vereinfacht). Die Sprachen stehen in Einstellungen → „Sprache“ und in den Android-Einstellungen unter „App-Sprachen“. Datenschutzerklärung und Play-Store-Texte gibt es auch in diesen Sprachen. Portugiesisch aus Portugal zeigt die brasilianischen Texte. Chinesisch (traditionell) zeigt weiter Englisch.
 - **Konto deaktivieren.** In der Kontenverwaltung hat jedes Konto die Schaltfläche „Deaktivieren“. Ein deaktiviertes Konto bleibt gespeichert: Anmeldung, Bücher, Lesefortschritt, Markierungen und Downloads bleiben erhalten. Die Bibliothek blendet die Bücher, Regale und Serien des Kontos aus, und die App synchronisiert das Konto nicht. Der Kontowechsel in der Bibliothek zeigt nur aktive Konten. Wenn alle Konten deaktiviert sind, zeigt die Bibliothek einen Hinweis mit Link zur Kontenverwaltung. „Aktivieren“ zeigt die Bücher wieder und startet sofort eine Synchronisation. Die Downloads-Ansicht zeigt die Downloads deaktivierter Konten weiter an, damit du den Speicherplatz verwalten kannst. Neue Datenbankversion 6 (Migration 5→6, alle vorhandenen Konten bleiben aktiv).
+
+### Geändert
+- Die Einführung (Einstellungen → „Einführung“) erklärt jetzt „Deaktivieren“ für Konten. Die Play-Store-Texte nennen das Vorlesen, Comics als langer Streifen und das Deaktivieren von Konten. Sie empfehlen die Server-App ab Version 1.0.0 statt 0.7.0.
 
 ## 0.7.1 – 2026-11-02
 

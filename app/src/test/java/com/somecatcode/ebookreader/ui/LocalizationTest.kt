@@ -67,6 +67,22 @@ class LocalizationTest {
 
     @Test
     @Config(qualifiers = "it")
+    fun italianResolves() = assertDiffersFromEnglish()
+
+    @Test
+    @Config(qualifiers = "pt-rBR")
+    fun brazilianPortugueseResolves() = assertDiffersFromEnglish()
+
+    @Test
+    @Config(qualifiers = "ko")
+    fun koreanResolves() = assertDiffersFromEnglish()
+
+    @Test
+    @Config(qualifiers = "zh-rCN")
+    fun simplifiedChineseResolves() = assertDiffersFromEnglish()
+
+    @Test
+    @Config(qualifiers = "nl")
     fun unsupportedLanguageFallsBackToEnglish() {
         assertEquals("Library", context.getString(R.string.nav_library))
     }

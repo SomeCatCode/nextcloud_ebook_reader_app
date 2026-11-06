@@ -24,6 +24,8 @@ OKUMA
 • Açık, sepya ve koyu temalar, yazı tipi boyutu, satır aralığı ve kenar boşlukları olan rahat bir okuyucu
 • Sayfalı veya kaydırmalı, içindekiler, dokunma bölgeleri, sayfa çevirmek için ses tuşları
 • Yakınlaştırmalı (sıkıştırma, çift dokunma) çizgi romanlar, çift sayfa görünümü ve manga için sağdan sola okuma
+• Uzun şerit çizgi romanlar (webtoon) boşluksuz olarak yukarıdan aşağıya kaydırılır
+• Cihazının sesleriyle, metnin dilinde sesli okuma
 • Web uygulamasıyla eşitlenen vurgular ve notlar
 • Okuma konumu otomatik eşitlenir; başka bir cihaz daha ilerideyse uygulama size sorar
 • Yüksek karşıtlıklı ve animasyonsuz e-ink modu
@@ -35,12 +37,13 @@ OKUMA
 
 BİRDEN ÇOK HESAP
 • Birden çok Nextcloud hesabı ve yerel klasör; ayrı ayrı veya tek bir birleşik kütüphane olarak
+• Bir hesabı kaldırmadan kitaplarını gizlemek için devre dışı bırak
 • Tarayıcı üzerinden güvenli oturum açma (Nextcloud Login Flow); uygulama parolanızı asla görmez
 
 GİZLİLİK
 Reklam yok, izleme yok, analiz yok. Yerel kütüphaneler cihazınızda kalır; Nextcloud ile verileriniz yalnızca cihazınız ile kendi sunucunuz arasında dolaşır.
 
 NEXTCLOUD (İSTEĞE BAĞLI)
-Eşitleme, raflar ve tarayıcıda okuma için: “E-Book Reader” uygulamasının 0.7.0 veya daha yeni sürümünün kurulu olduğu bir Nextcloud sunucusu (Nextcloud App Store veya GitHub). Yerel klasörler için sunucu gerekmez.
+Eşitleme, raflar ve tarayıcıda okuma için: “E-Book Reader” uygulamasının 1.0.0 veya daha yeni sürümünün kurulu olduğu bir Nextcloud sunucusu (Nextcloud App Store veya GitHub). Yerel klasörler için sunucu gerekmez.
 
 Resmî olmayan uygulama, Nextcloud GmbH ile bağlantısı yoktur. Nextcloud, Nextcloud GmbH’nin ticari markasıdır.
