@@ -136,6 +136,7 @@ class FakeAccountStore(private val accountsList: List<Account> = emptyList()) : 
     override suspend fun updateCredentials(accountId: String, credentials: Credentials) {}
     override suspend fun credentials(accountId: String) = Credentials("alice", "secret-app-pw")
     override suspend fun remove(accountId: String) {}
+    override suspend fun setEnabled(accountId: String, enabled: Boolean) {}
 }
 
 fun newDatabase(context: Context): AppDatabase =

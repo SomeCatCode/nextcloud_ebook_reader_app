@@ -300,6 +300,24 @@ class ViewModelTests {
         assertEquals(AccountStatus.AUTH_EXPIRED, status["d"])
     }
 
+    @Test
+    fun disableAccount_keepsItShowsDisabledAndEnablingSyncs() = runTest(dispatcher) {
+        val store = FakeAccountStore(listOf(account("acc1")))
+        val sync = FakeSyncEngine()
+        val vm = accountsVm(store = store, sync = sync)
+        backgroundScope.launch { vm.state.collect {} }
+        advanceUntilIdle()
+        vm.setEnabled(store.state.value.first(), false)
+        advanceUntilIdle()
+        assertEquals(AccountStatus.DISABLED, vm.state.value.rows.single().status)
+        assertTrue(store.removed.isEmpty())
+        assertTrue(sync.requested.isEmpty())
+        vm.setEnabled(store.state.value.first(), true)
+        advanceUntilIdle()
+        assertEquals(AccountStatus.OK, vm.state.value.rows.single().status)
+        assertEquals(listOf<String?>("acc1"), sync.requested)
+    }
+
     // ---- library ----------------------------------------------------------------------------------
 
     private fun libraryVm(
@@ -494,6 +512,37 @@ class ViewModelTests {
         assertEquals(listOf("B"), vm.state.value.books.map { it.title })
         vm.refresh()
         assertEquals(listOf<String?>("acc2"), sync.requested)
+    }
+
+    @Test
+    fun library_hidesTheBooksOfDeactivatedAccounts() = runTest(dispatcher) {
+        val library = FakeLibraryRepository(listOf(book(1, "A", accountId = "acc1"), book(2, "B", accountId = "acc2")))
+        val store = FakeAccountStore(listOf(account("acc1"), account("acc2", "Bob")))
+        val settings = FakeSettingsRepository()
+        val vm = libraryVm(library, store = store, settings = settings)
+        backgroundScope.launch { vm.state.collect {} }
+        vm.selectAccount(null)
+        advanceUntilIdle()
+        assertEquals(listOf("A", "B"), vm.state.value.books.map { it.title })
+
+        store.setEnabled("acc1", false)
+        advanceUntilIdle()
+        assertEquals(listOf("B"), vm.state.value.books.map { it.title })
+        assertEquals(listOf("acc2"), vm.state.value.accounts.map { it.id })
+        assertEquals(1, vm.state.value.disabledAccounts)
+
+        // the last selected account was deactivated: the first active account is shown
+        vm.selectAccount("acc2")
+        store.setEnabled("acc2", false)
+        store.setEnabled("acc1", true)
+        advanceUntilIdle()
+        assertEquals(listOf("A"), vm.state.value.books.map { it.title })
+
+        store.setEnabled("acc1", false)
+        advanceUntilIdle()
+        assertTrue(vm.state.value.accounts.isEmpty())
+        assertTrue(vm.state.value.books.isEmpty())
+        assertEquals(2, vm.state.value.disabledAccounts)
     }
 
     @Test

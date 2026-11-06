@@ -70,7 +70,7 @@ class SyncEngineImpl(
 
     override fun requestSync(accountId: String?) {
         scope.launch {
-            val ids = accountId?.let { listOf(it) } ?: db.accountDao().getAll().map { it.id }
+            val ids = db.accountDao().getAll().filter { it.enabled && (accountId == null || it.id == accountId) }.map { it.id }
             for (id in ids) {
                 // a local library needs no network
                 val network = if (db.isLocalAccount(id)) NetworkType.NOT_REQUIRED else NetworkType.CONNECTED
@@ -87,7 +87,7 @@ class SyncEngineImpl(
     override fun schedulePeriodic(intervalHours: Int, wifiOnly: Boolean) {
         scope.launch {
             val wm = runCatching { workManager() }.getOrNull() ?: return@launch
-            if (db.accountDao().getAll().isEmpty()) {
+            if (db.accountDao().getAll().none { it.enabled }) {
                 wm.cancelUniqueWork(PERIODIC_NAME)
                 return@launch
             }
@@ -120,6 +120,8 @@ class SyncEngineImpl(
 
     private suspend fun run(accountId: String): SyncOutcome {
         val account = db.accountDao().get(accountId) ?: return SyncOutcome.Failure(SyncError.UNKNOWN, retryable = false)
+        // a deactivated account is not synced (no network, its local changes wait)
+        if (!account.enabled) return SyncOutcome.Success(0, 0, 0)
         if (account.kind == AccountKind.LOCAL) return scanLocal(accountId)
         return try {
             val api = apiFactory.forAccount(accountId)

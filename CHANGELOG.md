@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Hinzugefügt
+- **Konto deaktivieren.** In der Kontenverwaltung hat jedes Konto die Schaltfläche „Deaktivieren“. Ein deaktiviertes Konto bleibt gespeichert: Anmeldung, Bücher, Lesefortschritt, Markierungen und Downloads bleiben erhalten. Die Bibliothek blendet die Bücher, Regale und Serien des Kontos aus, und die App synchronisiert das Konto nicht. Der Kontowechsel in der Bibliothek zeigt nur aktive Konten. Wenn alle Konten deaktiviert sind, zeigt die Bibliothek einen Hinweis mit Link zur Kontenverwaltung. „Aktivieren“ zeigt die Bücher wieder und startet sofort eine Synchronisation. Die Downloads-Ansicht zeigt die Downloads deaktivierter Konten weiter an, damit du den Speicherplatz verwalten kannst. Neue Datenbankversion 6 (Migration 5→6, alle vorhandenen Konten bleiben aktiv).
+
 ## 0.7.1 – 2026-11-02
 
 ### Behoben
