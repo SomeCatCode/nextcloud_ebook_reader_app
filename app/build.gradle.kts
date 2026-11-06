@@ -143,6 +143,10 @@ val copyPrivacyPolicy = tasks.register<Copy>("copyPrivacyPolicy") {
     from(docs.file("politica-de-privacidad.md")) { rename { "es.md" } }
     from(docs.file("privacy-policy-ja.md")) { rename { "ja.md" } }
     from(docs.file("politique-de-confidentialite.md")) { rename { "fr.md" } }
+    from(docs.file("privacy-policy-it.md")) { rename { "it.md" } }
+    from(docs.file("privacy-policy-pt-BR.md")) { rename { "pt-BR.md" } }
+    from(docs.file("privacy-policy-ko.md")) { rename { "ko.md" } }
+    from(docs.file("privacy-policy-zh-CN.md")) { rename { "zh-CN.md" } }
     from(docs.file("privacy-policy-ar.md")) { rename { "ar.md" } }
     from(docs.file("gizlilik-politikasi.md")) { rename { "tr.md" } }
     from(docs.file("privacy-policy-fa-AF.md")) { rename { "fa-AF.md" } }

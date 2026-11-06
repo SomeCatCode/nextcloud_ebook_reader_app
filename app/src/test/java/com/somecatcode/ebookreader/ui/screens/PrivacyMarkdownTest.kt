@@ -13,7 +13,13 @@ class PrivacyMarkdownTest {
         assertEquals("privacy/ar.md", privacyAssetFor("ar"))
         assertEquals("privacy/tr.md", privacyAssetFor("tr"))
         assertEquals("privacy/en.md", privacyAssetFor("en"))
-        assertEquals("privacy/en.md", privacyAssetFor("it"))
+        assertEquals("privacy/it.md", privacyAssetFor("it"))
+        assertEquals("privacy/ko.md", privacyAssetFor("ko"))
+        assertEquals("privacy/pt-BR.md", privacyAssetFor("pt", "BR"))
+        assertEquals("privacy/pt-BR.md", privacyAssetFor("pt", "PT"))
+        assertEquals("privacy/zh-CN.md", privacyAssetFor("zh", "CN"))
+        assertEquals("privacy/en.md", privacyAssetFor("zh", "TW"))
+        assertEquals("privacy/en.md", privacyAssetFor("nl"))
     }
 
     @Test
