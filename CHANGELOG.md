@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Geändert
+- **Kontenverwaltung übersichtlicher.** Jedes Konto hat jetzt einen Schalter für „Aktiv“ statt der Schaltflächen „Aktivieren“ und „Deaktivieren“. Bearbeiten (neu anmelden), Synchronisieren und Entfernen sind jetzt Symbole. Die Symbole haben immer dieselbe Position, unabhängig vom Zustand des Kontos. Der Status steht als farbiges Label neben dem Kontonamen: grün bei „Verbunden“, rot bei Problemen. Während der Synchronisation dreht sich das Symbol. Bei einem deaktivierten Konto ist Synchronisieren nicht verfügbar. Die Einführung beschreibt den Schalter.
+
 ## 1.0.1 – 2026-11-06
 
 ### Hinzugefügt

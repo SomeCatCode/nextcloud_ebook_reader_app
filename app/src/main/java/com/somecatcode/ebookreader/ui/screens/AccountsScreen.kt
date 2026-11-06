@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -14,24 +15,32 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -44,10 +53,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -61,6 +74,7 @@ import com.somecatcode.ebookreader.ui.components.BackButton
 import com.somecatcode.ebookreader.ui.components.ConfirmDialog
 import com.somecatcode.ebookreader.ui.components.EmptyState
 import com.somecatcode.ebookreader.ui.components.rememberLocalText
+import com.somecatcode.ebookreader.ui.theme.LocalEinkMode
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 import com.somecatcode.ebookreader.ui.util.formatRelativeTime
 import com.somecatcode.ebookreader.ui.util.serverLabel
@@ -246,17 +260,38 @@ fun AccountsContent(
 private fun AccountCard(row: AccountRow, onRelogin: () -> Unit, onSync: () -> Unit, onRemove: () -> Unit, onSetEnabled: (Boolean) -> Unit) {
     val account = row.account
     Card(Modifier.fillMaxWidth().testTag("account_${account.id}")) {
-        Column(Modifier.padding(16.dp)) {
-            Text(account.title(), style = MaterialTheme.typography.titleMedium)
-            Text(
-                if (account.local) stringResource(R.string.account_local_folder, localFolderLabel(account.serverUrl)) else "${account.loginName} @ ${account.serverLabel()}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        Column(Modifier.padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 4.dp)) {
+            Row(verticalAlignment = Alignment.Top) {
+                Column(Modifier.weight(1f).padding(top = 4.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        itemVerticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(account.title(), style = MaterialTheme.typography.titleMedium)
+                        StatusChip(row.status, Modifier.testTag("status_${account.id}"))
+                    }
+                    Text(
+                        if (account.local) stringResource(R.string.account_local_folder, localFolderLabel(account.serverUrl)) else "${account.loginName} @ ${account.serverLabel()}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+                val enabledLabel = stringResource(R.string.account_enable)
+                Switch(
+                    checked = account.enabled,
+                    onCheckedChange = onSetEnabled,
+                    modifier = Modifier
+                        .padding(start = 8.dp, end = 8.dp)
+                        .semantics { contentDescription = enabledLabel }
+                        .testTag("enabled_${account.id}"),
+                )
+            }
             val sync = account.lastSyncAt?.let {
                 stringResource(if (account.local) R.string.account_last_scan else R.string.account_last_sync, formatRelativeTime(it))
             } ?: stringResource(R.string.account_never_synced)
-            Text(sync, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(sync, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
             if (!account.local) Text(
                 stringResource(
                     R.string.account_versions,
@@ -283,35 +318,68 @@ private fun AccountCard(row: AccountRow, onRelogin: () -> Unit, onSync: () -> Un
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
-            val problem = row.status in setOf(AccountStatus.AUTH_EXPIRED, AccountStatus.APP_UNAVAILABLE, AccountStatus.FOLDER_UNAVAILABLE, AccountStatus.ERROR)
-            Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (row.status == AccountStatus.SYNCING) {
-                    CircularProgressIndicator(Modifier.padding(end = 8.dp).testTag("syncing"), strokeWidth = 2.dp)
-                }
-                Text(
-                    stringResource(statusText(row.status)),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (problem) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                )
-            }
-            FlowRow(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.End) {
-                when {
-                    !account.enabled -> TextButton(onClick = { onSetEnabled(true) }, modifier = Modifier.testTag("enable_${account.id}")) {
-                        Text(stringResource(R.string.account_enable))
-                    }
-                    row.status == AccountStatus.AUTH_EXPIRED -> TextButton(onClick = onRelogin) { Text(stringResource(R.string.account_sign_in_again)) }
-                    else -> TextButton(onClick = onSync) { Text(stringResource(if (account.local) R.string.account_rescan else R.string.account_sync_now)) }
-                }
-                if (account.enabled) {
-                    TextButton(onClick = { onSetEnabled(false) }, modifier = Modifier.testTag("disable_${account.id}")) {
-                        Text(stringResource(R.string.account_disable))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                if (!account.local) {
+                    val expired = row.status == AccountStatus.AUTH_EXPIRED
+                    IconButton(onClick = onRelogin, modifier = Modifier.testTag("relogin_${account.id}")) {
+                        Icon(
+                            Icons.Filled.Edit,
+                            contentDescription = stringResource(R.string.account_sign_in_again),
+                            tint = if (expired) MaterialTheme.colorScheme.error else LocalContentColor.current,
+                        )
                     }
                 }
-                TextButton(onClick = onRemove) { Text(stringResource(R.string.account_remove)) }
+                IconButton(
+                    onClick = onSync,
+                    enabled = account.enabled && row.status != AccountStatus.SYNCING,
+                    modifier = Modifier.testTag("sync_${account.id}"),
+                ) {
+                    if (row.status == AccountStatus.SYNCING) {
+                        CircularProgressIndicator(Modifier.size(20.dp).testTag("syncing"), strokeWidth = 2.dp)
+                    } else {
+                        Icon(
+                            Icons.Filled.Sync,
+                            contentDescription = stringResource(if (account.local) R.string.account_rescan else R.string.account_sync_now),
+                        )
+                    }
+                }
+                IconButton(onClick = onRemove, modifier = Modifier.testTag("remove_${account.id}")) {
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.account_remove))
+                }
             }
         }
     }
 }
+
+/** Small coloured label with the account status: green when connected, red for problems. */
+@Composable
+private fun StatusChip(status: AccountStatus, modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    val eink = LocalEinkMode.current
+    val dark = scheme.surface.luminance() < 0.5f
+    val (container, content) = when {
+        eink -> scheme.surface to scheme.onSurface
+        status == AccountStatus.OK -> if (dark) Color(0xFF1E4620) to Color(0xFFB7F0B1) else Color(0xFFD7F5D3) to Color(0xFF145A1C)
+        status in PROBLEM_STATUSES -> scheme.errorContainer to scheme.onErrorContainer
+        status == AccountStatus.SYNCING -> scheme.primaryContainer to scheme.onPrimaryContainer
+        else -> scheme.surfaceVariant to scheme.onSurfaceVariant
+    }
+    Surface(
+        color = container,
+        contentColor = content,
+        shape = RoundedCornerShape(8.dp),
+        border = if (eink) BorderStroke(1.dp, scheme.outline) else null,
+        modifier = modifier,
+    ) {
+        Text(
+            stringResource(statusText(status)),
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+        )
+    }
+}
+
+private val PROBLEM_STATUSES = setOf(AccountStatus.AUTH_EXPIRED, AccountStatus.APP_UNAVAILABLE, AccountStatus.FOLDER_UNAVAILABLE, AccountStatus.ERROR)
 
 /** Readable folder of a tree URI, e.g. `primary:Books/Comics` -> `Books/Comics`. */
 internal fun localFolderLabel(treeUri: String): String =

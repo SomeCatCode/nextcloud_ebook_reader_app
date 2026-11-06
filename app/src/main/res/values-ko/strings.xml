@@ -371,7 +371,7 @@
     <string name="guide_welcome_title">환영합니다</string>
     <string name="guide_welcome_body">이 기기의 폴더나 내 Nextcloud에 있는 전자책과 만화를 읽어 보세요.\n\n이 짧은 안내에서 사용 방법을 설명합니다. 나중에 설정에서 다시 열 수 있습니다.</string>
     <string name="guide_library_title">서재 설정</string>
-    <string name="guide_library_body">\"계정\" → \"계정 추가\"에서 두 가지 방법을 선택할 수 있습니다.\n\n• 이 기기의 폴더: 전자책이 있는 폴더를 선택하세요(하위 폴더와 SD 카드도 가능). 앱이 폴더를 읽어 들이며 서버가 필요 없습니다.\n\n• Nextcloud 계정: 브라우저에서 로그인하세요. 서버에 \"E-Book Reader\" 앱이 있어야 합니다.\n\n폴더와 계정은 원하는 만큼 추가할 수 있습니다. \"비활성화\"를 사용하면 계정을 제거하지 않고 책만 숨깁니다.</string>
+    <string name="guide_library_body">\"계정\" → \"계정 추가\"에서 두 가지 방법을 선택할 수 있습니다.\n\n• 이 기기의 폴더: 전자책이 있는 폴더를 선택하세요(하위 폴더와 SD 카드도 가능). 앱이 폴더를 읽어 들이며 서버가 필요 없습니다.\n\n• Nextcloud 계정: 브라우저에서 로그인하세요. 서버에 \"E-Book Reader\" 앱이 있어야 합니다.\n\n폴더와 계정은 원하는 만큼 추가할 수 있습니다. 계정의 스위치를 끄면 계정을 제거하지 않고 책만 숨깁니다.</string>
     <string name="guide_browse_title">책 찾기</string>
     <string name="guide_browse_body">• 서재 위쪽에서 검색, 필터, 정렬을 사용하세요.\n\n• 책, 시리즈, 폴더 탭(Nextcloud에서는 책장 탭도)이 있습니다.\n\n• 책을 탭하면 정보, 평점, 읽기 상태가 표시됩니다.\n\n• 아래로 당기면 폴더를 다시 읽어 들이고 계정을 동기화합니다.</string>
     <string name="guide_read_title">읽기</string>
