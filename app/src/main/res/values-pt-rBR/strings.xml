@@ -375,7 +375,7 @@
     <string name="guide_welcome_title">Boas-vindas</string>
     <string name="guide_welcome_body">Leia seus e-books e quadrinhos: de uma pasta neste dispositivo ou do seu próprio Nextcloud.\n\nEste guia rápido mostra como funciona. Você pode abri-lo novamente mais tarde nas configurações.</string>
     <string name="guide_library_title">Configure sua biblioteca</string>
-    <string name="guide_library_body">Em \"Contas\" → \"Adicionar conta\" você tem duas opções:\n\n• Pasta neste dispositivo: escolha uma pasta com e-books (incluindo subpastas e cartão SD). O app lê a pasta, sem precisar de servidor.\n\n• Conta Nextcloud: entre pelo navegador. Seu servidor precisa do app \"E-Book Reader\".\n\nVocê pode adicionar quantas pastas e contas quiser. \"Desativar\" oculta os livros de uma conta sem removê-la.</string>
+    <string name="guide_library_body">Em \"Contas\" → \"Adicionar conta\" você tem duas opções:\n\n• Pasta neste dispositivo: escolha uma pasta com e-books (incluindo subpastas e cartão SD). O app lê a pasta, sem precisar de servidor.\n\n• Conta Nextcloud: entre pelo navegador. Seu servidor precisa do app \"E-Book Reader\".\n\nVocê pode adicionar quantas pastas e contas quiser. O interruptor de uma conta oculta os livros dela sem removê-la.</string>
     <string name="guide_browse_title">Encontrar livros</string>
     <string name="guide_browse_body">• Pesquise, filtre e ordene no topo da biblioteca.\n\n• Abas para livros, séries e pastas (e estantes com o Nextcloud).\n\n• Toque em um livro para ver detalhes, avaliação e status de leitura.\n\n• Puxe para baixo para ler as pastas novamente e sincronizar as contas.</string>
     <string name="guide_read_title">Ler</string>

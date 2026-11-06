@@ -373,7 +373,7 @@
     <string name="guide_welcome_title">Welcome</string>
     <string name="guide_welcome_body">Read your e-books and comics: from a folder on this device or from your own Nextcloud.\n\nThis short guide shows how it works. You can open it again later in the settings.</string>
     <string name="guide_library_title">Set up your library</string>
-    <string name="guide_library_body">Under \"Accounts\" → \"Add account\" you have two options:\n\n• Folder on this device: pick a folder with e-books (sub-folders and SD card too). The app reads it, no server needed.\n\n• Nextcloud account: sign in through the browser. Your server needs the \"E-Book Reader\" app.\n\nYou can add as many folders and accounts as you like. \"Deactivate\" hides the books of an account without removing it.</string>
+    <string name="guide_library_body">Under \"Accounts\" → \"Add account\" you have two options:\n\n• Folder on this device: pick a folder with e-books (sub-folders and SD card too). The app reads it, no server needed.\n\n• Nextcloud account: sign in through the browser. Your server needs the \"E-Book Reader\" app.\n\nYou can add as many folders and accounts as you like. The switch on an account hides its books without removing the account.</string>
     <string name="guide_browse_title">Find books</string>
     <string name="guide_browse_body">• Search, filter and sort at the top of the library.\n\n• Tabs for books, series and folders (and shelves with Nextcloud).\n\n• Tap a book for details, rating and reading status.\n\n• Pull down to read folders again and sync accounts.</string>
     <string name="guide_read_title">Read</string>
