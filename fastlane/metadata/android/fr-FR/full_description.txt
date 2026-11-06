@@ -24,6 +24,8 @@ LECTURE
 • Lecteur confortable avec thèmes clair, sépia et sombre, taille de police, interligne et marges
 • Mode paginé ou défilement, table des matières, zones tactiles, touches de volume pour tourner les pages
 • Bandes dessinées avec zoom (pincement, double toucher), doubles pages et lecture de droite à gauche pour les mangas
+• Les bandes dessinées en bande verticale (webtoons) défilent de haut en bas sans espace
+• Lecture à voix haute avec les voix de votre appareil, dans la langue du texte
 • Surlignages et notes, synchronisés avec l’application web
 • La position de lecture se synchronise automatiquement ; si un autre appareil est plus avancé, l’application vous le propose
 • Mode e-ink avec contraste élevé et sans animations
@@ -35,12 +37,13 @@ HORS LIGNE
 
 PLUSIEURS COMPTES
 • Plusieurs comptes Nextcloud et dossiers locaux, séparés ou réunis en une seule bibliothèque
+• Désactivez un compte pour masquer ses livres sans le supprimer
 • Connexion sécurisée via le navigateur (Nextcloud Login Flow) ; l’application ne voit jamais votre mot de passe
 
 CONFIDENTIALITÉ
 Aucune publicité, aucun suivi, aucune analyse. Les bibliothèques locales restent sur votre appareil ; avec Nextcloud, vos données ne circulent qu’entre votre appareil et votre propre serveur.
 
 NEXTCLOUD (FACULTATIF)
-Pour la synchronisation, les étagères et la lecture dans le navigateur : un serveur Nextcloud avec l’application « E-Book Reader » version 0.7.0 ou ultérieure (Nextcloud App Store ou GitHub). Les dossiers locaux ne nécessitent aucun serveur.
+Pour la synchronisation, les étagères et la lecture dans le navigateur : un serveur Nextcloud avec l’application « E-Book Reader » version 1.0.0 ou ultérieure (Nextcloud App Store ou GitHub). Les dossiers locaux ne nécessitent aucun serveur.
 
 Application non officielle, sans lien avec Nextcloud GmbH. Nextcloud est une marque de Nextcloud GmbH.

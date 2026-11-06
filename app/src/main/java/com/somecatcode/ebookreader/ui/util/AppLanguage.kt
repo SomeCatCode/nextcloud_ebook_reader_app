@@ -13,7 +13,11 @@ enum class AppLanguage(val tag: String, val nativeName: String?) {
     ENGLISH("en", "English"),
     SPANISH("es", "Español"),
     FRENCH("fr", "Français"),
+    ITALIAN("it", "Italiano"),
+    PORTUGUESE_BRAZIL("pt-BR", "Português (Brasil)"),
     JAPANESE("ja", "日本語"),
+    KOREAN("ko", "한국어"),
+    CHINESE_SIMPLIFIED("zh-CN", "简体中文"),
     ARABIC("ar", "العربية"),
     TURKISH("tr", "Türkçe"),
     // Dari (Afghan Persian). Android has no resource qualifier for ISO 639-3 "prs", so fa-AF is used.
@@ -26,8 +30,16 @@ enum class AppLanguage(val tag: String, val nativeName: String?) {
             if (t.isEmpty()) return SYSTEM
             entries.firstOrNull { it.tag.equals(t, ignoreCase = true) }?.let { return it }
             val language = t.substringBefore('-')
+            // Traditional Chinese (Taiwan, Hong Kong, Macau, "Hant") is not Simplified Chinese.
+            if (language.equals("zh", ignoreCase = true)) return if (isSimplifiedChinese(t)) CHINESE_SIMPLIFIED else SYSTEM
             // Persian without a matching region is not Dari: it falls back to the system language.
-            return entries.firstOrNull { it != SYSTEM && it != DARI && it.tag.equals(language, ignoreCase = true) } ?: SYSTEM
+            return entries.firstOrNull { it != SYSTEM && it != DARI && it.tag.substringBefore('-').equals(language, ignoreCase = true) } ?: SYSTEM
+        }
+
+        /** Whether a `zh` tag means Simplified Chinese: script Hans, region CN or SG, or no region at all. */
+        internal fun isSimplifiedChinese(tag: String): Boolean {
+            val parts = tag.split('-').drop(1).map { it.uppercase() }
+            return "HANT" !in parts && parts.none { it in setOf("TW", "HK", "MO") }
         }
 
         /** Language currently applied through the per-app language API. */

@@ -30,6 +30,12 @@
     <string name="account_sign_in_again">Se reconnecter</string>
     <string name="account_sync_now">Synchroniser maintenant</string>
     <string name="account_remove">Supprimer</string>
+    <string name="account_disable">Désactiver</string>
+    <string name="account_enable">Activer</string>
+    <string name="status_disabled">Désactivé</string>
+    <string name="account_disabled_hint">Désactivé : la bibliothèque masque les livres de ce compte et ne le synchronise pas. Les livres, la progression de lecture et les téléchargements sont conservés.</string>
+    <string name="library_all_disabled_title">Tous les comptes sont désactivés</string>
+    <string name="library_all_disabled_body">Activez un compte dans Comptes pour revoir ses livres.</string>
     <string name="status_ok">Connecté</string>
     <string name="status_syncing">Synchronisation…</string>
     <string name="status_offline">Hors ligne</string>
@@ -369,7 +375,7 @@
     <string name="guide_welcome_title">Bienvenue</string>
     <string name="guide_welcome_body">Lisez vos livres numériques et bandes dessinées : depuis un dossier de cet appareil ou depuis votre propre Nextcloud.\n\nCe court guide explique le fonctionnement. Vous pourrez le rouvrir plus tard dans les paramètres.</string>
     <string name="guide_library_title">Configurer votre bibliothèque</string>
-    <string name="guide_library_body">Sous « Comptes » → « Ajouter un compte », vous avez deux possibilités :\n\n• Dossier sur cet appareil : choisissez un dossier contenant des livres numériques (sous-dossiers et carte SD inclus). L’application le lit, aucun serveur n’est nécessaire.\n\n• Compte Nextcloud : connectez-vous via le navigateur. Votre serveur doit disposer de l’application « E-Book Reader ».\n\nVous pouvez ajouter autant de dossiers et de comptes que vous le souhaitez.</string>
+    <string name="guide_library_body">Sous « Comptes » → « Ajouter un compte », vous avez deux possibilités :\n\n• Dossier sur cet appareil : choisissez un dossier contenant des livres numériques (sous-dossiers et carte SD inclus). L’application le lit, aucun serveur n’est nécessaire.\n\n• Compte Nextcloud : connectez-vous via le navigateur. Votre serveur doit disposer de l’application « E-Book Reader ».\n\nVous pouvez ajouter autant de dossiers et de comptes que vous le souhaitez. « Désactiver » masque les livres d\'un compte sans le supprimer.</string>
     <string name="guide_browse_title">Trouver des livres</string>
     <string name="guide_browse_body">• Recherche, filtres et tri en haut de la bibliothèque.\n\n• Onglets pour les livres, les séries et les dossiers (et les étagères avec Nextcloud).\n\n• Touchez un livre pour voir les détails, la note et le statut de lecture.\n\n• Tirez vers le bas pour relire les dossiers et synchroniser les comptes.</string>
     <string name="guide_read_title">Lire</string>

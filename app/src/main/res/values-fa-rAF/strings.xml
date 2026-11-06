@@ -30,6 +30,12 @@
     <string name="account_sign_in_again">دوباره داخل شوید</string>
     <string name="account_sync_now">همین حالا همگام‌سازی شود</string>
     <string name="account_remove">حذف</string>
+    <string name="account_disable">غیرفعال کردن</string>
+    <string name="account_enable">فعال کردن</string>
+    <string name="status_disabled">غیرفعال</string>
+    <string name="account_disabled_hint">غیرفعال: کتابخانه کتاب‌های این حساب را پنهان می‌کند و آن را همگام‌سازی نمی‌کند. کتاب‌ها، پیشرفت خواندن و دانلودها حفظ می‌شوند.</string>
+    <string name="library_all_disabled_title">همه حساب‌ها غیرفعال هستند</string>
+    <string name="library_all_disabled_body">برای دیدن دوباره کتاب‌ها، یک حساب را در بخش حساب‌ها فعال کنید.</string>
     <string name="status_ok">وصل است</string>
     <string name="status_syncing">در حال همگام‌سازی…</string>
     <string name="status_offline">آفلاین</string>
@@ -367,7 +373,7 @@
     <string name="guide_welcome_title">خوش آمدید</string>
     <string name="guide_welcome_body">کتاب‌های الکترونیکی و کمیک‌های خود را بخوانید: از یک پوشه در این دستگاه یا از Nextcloud خودتان.\n\nاین راهنمای کوتاه طرز کار را نشان می‌دهد. بعداً می‌توانید آن را دوباره در تنظیمات باز کنید.</string>
     <string name="guide_library_title">کتابخانهٔ خود را تنظیم کنید</string>
-    <string name="guide_library_body">در «حساب‌ها» ← «افزودن حساب» دو گزینه دارید:\n\n• پوشه در این دستگاه: یک پوشه با کتاب‌های الکترونیکی را انتخاب کنید (زیرپوشه‌ها و کارت SD هم). برنامه آن را می‌خواند و سرور لازم نیست.\n\n• حساب Nextcloud: از طریق مرورگر داخل شوید. سرور شما به برنامهٔ «E-Book Reader» ضرورت دارد.\n\nهر تعداد پوشه و حساب که بخواهید می‌توانید اضافه کنید.</string>
+    <string name="guide_library_body">در «حساب‌ها» ← «افزودن حساب» دو گزینه دارید:\n\n• پوشه در این دستگاه: یک پوشه با کتاب‌های الکترونیکی را انتخاب کنید (زیرپوشه‌ها و کارت SD هم). برنامه آن را می‌خواند و سرور لازم نیست.\n\n• حساب Nextcloud: از طریق مرورگر داخل شوید. سرور شما به برنامهٔ «E-Book Reader» ضرورت دارد.\n\nهر تعداد پوشه و حساب که بخواهید می‌توانید اضافه کنید. «غیرفعال کردن» کتاب‌های یک حساب را بدون حذف آن پنهان می‌کند.</string>
     <string name="guide_browse_title">پیدا کردن کتاب‌ها</string>
     <string name="guide_browse_body">• جستجو، فلتر و ترتیب در بالای کتابخانه.\n\n• تب‌ها برای کتاب‌ها، سلسله‌ها و پوشه‌ها (و قفسه‌ها با Nextcloud).\n\n• برای دیدن جزئیات، امتیاز و وضعیت مطالعه، یک کتاب را لمس کنید.\n\n• برای خواندن دوبارهٔ پوشه‌ها و همگام‌سازی حساب‌ها، صفحه را به پایین بکشید.</string>
     <string name="guide_read_title">مطالعه</string>

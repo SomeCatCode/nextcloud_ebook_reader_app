@@ -74,7 +74,7 @@ class PeriodicSyncWorker(context: Context, params: WorkerParameters) : Coroutine
 
     override suspend fun doWork(): Result {
         val container = (applicationContext as App).container
-        val ids = container.accountStore.list().map { it.id }
+        val ids = container.accountStore.list().filter { it.enabled }.map { it.id }
         var retry = false
         for (id in ids) {
             val outcome = container.syncEngine.syncNow(id)

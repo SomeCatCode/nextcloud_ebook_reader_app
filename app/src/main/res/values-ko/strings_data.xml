@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="data_channel_name">동기화 및 다운로드</string>
+    <string name="data_channel_description">서재를 동기화하거나 큰 책을 다운로드하는 동안 표시됩니다.</string>
+    <string name="data_notification_downloading">책 다운로드 중</string>
+    <string name="data_notification_syncing">서재 동기화 중</string>
+</resources>

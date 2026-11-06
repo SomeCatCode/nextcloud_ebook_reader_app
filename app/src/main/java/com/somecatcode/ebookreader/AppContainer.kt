@@ -180,7 +180,7 @@ class DefaultAppContainer(override val appContext: Context) : AppContainer {
             runCatching {
                 combine(
                     settingsRepository.settings.map { it.syncIntervalHours to it.syncOnlyOnWifi },
-                    accountStore.accounts.map { it.size },
+                    accountStore.accounts.map { list -> list.count { it.enabled } },
                 ) { prefs, count -> Triple(prefs.first, prefs.second, count) }
                     .distinctUntilChanged()
                     .collect { (hours, wifi, _) -> syncEngine.schedulePeriodic(hours, wifi) }

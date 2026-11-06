@@ -30,6 +30,12 @@
     <string name="account_sign_in_again">Neu anmelden</string>
     <string name="account_sync_now">Jetzt synchronisieren</string>
     <string name="account_remove">Entfernen</string>
+    <string name="account_disable">Deaktivieren</string>
+    <string name="account_enable">Aktivieren</string>
+    <string name="status_disabled">Deaktiviert</string>
+    <string name="account_disabled_hint">Deaktiviert: Die Bibliothek blendet die Bücher dieses Kontos aus und synchronisiert es nicht. Bücher, Lesefortschritt und Downloads bleiben erhalten.</string>
+    <string name="library_all_disabled_title">Alle Konten sind deaktiviert</string>
+    <string name="library_all_disabled_body">Aktiviere ein Konto in der Kontenverwaltung, um seine Bücher wieder zu sehen.</string>
     <string name="status_ok">Verbunden</string>
     <string name="status_syncing">Synchronisiere…</string>
     <string name="status_offline">Offline</string>
@@ -367,7 +373,7 @@
     <string name="guide_welcome_title">Willkommen</string>
     <string name="guide_welcome_body">Lies deine E-Books und Comics: aus einem Ordner auf diesem Gerät oder aus deiner eigenen Nextcloud.\n\nDiese kurze Anleitung zeigt dir, wie es geht. Du findest sie später jederzeit in den Einstellungen.</string>
     <string name="guide_library_title">Bibliothek einrichten</string>
-    <string name="guide_library_body">Unter „Konten“ → „Konto hinzufügen“ hast du zwei Möglichkeiten:\n\n• Ordner auf diesem Gerät: Wähle einen Ordner mit E-Books (auch Unterordner und SD-Karte). Die App liest ihn ein, ganz ohne Server.\n\n• Nextcloud-Konto: Melde dich im Browser an. Auf deinem Server muss die App „E-Book Reader“ installiert sein.\n\nDu kannst beliebig viele Ordner und Konten hinzufügen.</string>
+    <string name="guide_library_body">Unter „Konten“ → „Konto hinzufügen“ hast du zwei Möglichkeiten:\n\n• Ordner auf diesem Gerät: Wähle einen Ordner mit E-Books (auch Unterordner und SD-Karte). Die App liest ihn ein, ganz ohne Server.\n\n• Nextcloud-Konto: Melde dich im Browser an. Auf deinem Server muss die App „E-Book Reader“ installiert sein.\n\nDu kannst beliebig viele Ordner und Konten hinzufügen. „Deaktivieren“ blendet die Bücher eines Kontos aus, ohne es zu entfernen.</string>
     <string name="guide_browse_title">Bücher finden</string>
     <string name="guide_browse_body">• Oben in der Bibliothek suchen, filtern und sortieren.\n\n• Reiter für Bücher, Serien und Ordner (mit Nextcloud auch Regale).\n\n• Tippe auf ein Buch für Details, Bewertung und Lesestatus.\n\n• Nach unten ziehen liest Ordner neu ein und synchronisiert Konten.</string>
     <string name="guide_read_title">Lesen</string>

@@ -30,6 +30,12 @@
     <string name="account_sign_in_again">Volver a iniciar sesión</string>
     <string name="account_sync_now">Sincronizar ahora</string>
     <string name="account_remove">Quitar</string>
+    <string name="account_disable">Desactivar</string>
+    <string name="account_enable">Activar</string>
+    <string name="status_disabled">Desactivada</string>
+    <string name="account_disabled_hint">Desactivada: la biblioteca oculta los libros de esta cuenta y no la sincroniza. Los libros, el progreso de lectura y las descargas se conservan.</string>
+    <string name="library_all_disabled_title">Todas las cuentas están desactivadas</string>
+    <string name="library_all_disabled_body">Activa una cuenta en Cuentas para volver a ver sus libros.</string>
     <string name="status_ok">Conectada</string>
     <string name="status_syncing">Sincronizando…</string>
     <string name="status_offline">Sin conexión</string>
@@ -369,7 +375,7 @@
     <string name="guide_welcome_title">Bienvenido</string>
     <string name="guide_welcome_body">Lee tus libros electrónicos y cómics: desde una carpeta de este dispositivo o desde tu propio Nextcloud.\n\nEsta breve guía te muestra cómo funciona. Puedes volver a abrirla en los ajustes.</string>
     <string name="guide_library_title">Configura tu biblioteca</string>
-    <string name="guide_library_body">En «Cuentas» → «Añadir cuenta» tienes dos opciones:\n\n• Carpeta en este dispositivo: elige una carpeta con libros (también subcarpetas y tarjeta SD). La app la lee, sin servidor.\n\n• Cuenta de Nextcloud: inicia sesión en el navegador. Tu servidor necesita la app «E-Book Reader».\n\nPuedes añadir tantas carpetas y cuentas como quieras.</string>
+    <string name="guide_library_body">En «Cuentas» → «Añadir cuenta» tienes dos opciones:\n\n• Carpeta en este dispositivo: elige una carpeta con libros (también subcarpetas y tarjeta SD). La app la lee, sin servidor.\n\n• Cuenta de Nextcloud: inicia sesión en el navegador. Tu servidor necesita la app «E-Book Reader».\n\nPuedes añadir tantas carpetas y cuentas como quieras. «Desactivar» oculta los libros de una cuenta sin eliminarla.</string>
     <string name="guide_browse_title">Encuentra libros</string>
     <string name="guide_browse_body">• Busca, filtra y ordena en la parte superior de la biblioteca.\n\n• Pestañas para libros, series y carpetas (y estanterías con Nextcloud).\n\n• Toca un libro para ver detalles, valoración y estado de lectura.\n\n• Desliza hacia abajo para volver a leer carpetas y sincronizar cuentas.</string>
     <string name="guide_read_title">Leer</string>

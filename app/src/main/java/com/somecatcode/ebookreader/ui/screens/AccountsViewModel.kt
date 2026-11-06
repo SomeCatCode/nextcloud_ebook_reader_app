@@ -37,7 +37,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class AccountStatus { OK, SYNCING, OFFLINE, AUTH_EXPIRED, APP_UNAVAILABLE, FOLDER_UNAVAILABLE, ERROR }
+enum class AccountStatus { OK, DISABLED, SYNCING, OFFLINE, AUTH_EXPIRED, APP_UNAVAILABLE, FOLDER_UNAVAILABLE, ERROR }
 
 data class AccountRow(val account: Account, val status: AccountStatus)
 
@@ -124,6 +124,7 @@ class AccountsViewModel(
     }
 
     private fun statusOf(account: Account, sync: SyncState?, noCredentials: Boolean): AccountStatus = when {
+        !account.enabled -> AccountStatus.DISABLED
         noCredentials -> AccountStatus.AUTH_EXPIRED
         sync is SyncState.Running -> AccountStatus.SYNCING
         sync is SyncState.Failed -> when (sync.error) {
@@ -412,6 +413,14 @@ class AccountsViewModel(
     }
 
     fun sync(account: Account) = syncEngine.requestSync(account.id)
+
+    /** Deactivates or activates [account]; an activated account syncs at once (it may have missed changes). */
+    fun setEnabled(account: Account, enabled: Boolean) {
+        viewModelScope.launch {
+            accountStore.setEnabled(account.id, enabled)
+            if (enabled) syncEngine.requestSync(account.id)
+        }
+    }
 }
 
 private const val TAG = "EbrAccounts"

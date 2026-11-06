@@ -30,6 +30,12 @@
     <string name="account_sign_in_again">Yeniden oturum aç</string>
     <string name="account_sync_now">Şimdi eşitle</string>
     <string name="account_remove">Kaldır</string>
+    <string name="account_disable">Devre dışı bırak</string>
+    <string name="account_enable">Etkinleştir</string>
+    <string name="status_disabled">Devre dışı</string>
+    <string name="account_disabled_hint">Devre dışı: Kitaplık bu hesabın kitaplarını gizler ve hesabı eşitlemez. Kitaplar, okuma ilerlemesi ve indirmeler korunur.</string>
+    <string name="library_all_disabled_title">Tüm hesaplar devre dışı</string>
+    <string name="library_all_disabled_body">Kitaplarını yeniden görmek için Hesaplar bölümünde bir hesabı etkinleştir.</string>
     <string name="status_ok">Bağlı</string>
     <string name="status_syncing">Eşitleniyor…</string>
     <string name="status_offline">Çevrimdışı</string>
@@ -367,7 +373,7 @@
     <string name="guide_welcome_title">Hoş geldiniz</string>
     <string name="guide_welcome_body">E-kitaplarınızı ve çizgi romanlarınızı okuyun: bu cihazdaki bir klasörden veya kendi Nextcloud’unuzdan.\n\nBu kısa rehber nasıl çalıştığını gösterir. Daha sonra ayarlardan yeniden açabilirsiniz.</string>
     <string name="guide_library_title">Kütüphanenizi kurun</string>
-    <string name="guide_library_body">\"Hesaplar\" → \"Hesap ekle\" altında iki seçeneğiniz var:\n\n• Bu cihazdaki klasör: e-kitap içeren bir klasör seçin (alt klasörler ve SD kart da olur). Uygulama onu okur, sunucu gerekmez.\n\n• Nextcloud hesabı: tarayıcı üzerinden oturum açın. Sunucunuzda \"E-Book Reader\" uygulaması bulunmalıdır.\n\nİstediğiniz kadar klasör ve hesap ekleyebilirsiniz.</string>
+    <string name="guide_library_body">\"Hesaplar\" → \"Hesap ekle\" altında iki seçeneğiniz var:\n\n• Bu cihazdaki klasör: e-kitap içeren bir klasör seçin (alt klasörler ve SD kart da olur). Uygulama onu okur, sunucu gerekmez.\n\n• Nextcloud hesabı: tarayıcı üzerinden oturum açın. Sunucunuzda \"E-Book Reader\" uygulaması bulunmalıdır.\n\nİstediğiniz kadar klasör ve hesap ekleyebilirsiniz. “Devre dışı bırak”, bir hesabı kaldırmadan kitaplarını gizler.</string>
     <string name="guide_browse_title">Kitap bulun</string>
     <string name="guide_browse_body">• Kütüphanenin üstünde arama, filtreleme ve sıralama.\n\n• Kitaplar, seriler ve klasörler için sekmeler (Nextcloud ile raflar da).\n\n• Ayrıntılar, puan ve okuma durumu için bir kitaba dokunun.\n\n• Klasörleri yeniden okumak ve hesapları eşitlemek için aşağı çekin.</string>
     <string name="guide_read_title">Okuyun</string>

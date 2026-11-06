@@ -1,0 +1,49 @@
+Leia seus e-books e quadrinhos de uma pasta no seu dispositivo ou diretamente do seu próprio Nextcloud, em qualquer lugar e offline.
+
+O app também funciona sem servidor: basta escolher uma pasta no celular ou no cartão SD, e o app monta sua biblioteca a partir dela, com títulos, autores, séries e capas. Se você tem um Nextcloud com o app "E-Book Reader", conecte-o também e mantenha sua biblioteca, estantes, séries e posição de leitura sincronizadas entre seus dispositivos e o navegador.
+
+SEM SERVIDOR: PASTAS LOCAIS
+• Uma ou mais pastas no dispositivo como bibliotecas separadas, incluindo subpastas
+• Títulos, autores, séries, descrição e capa são lidos de EPUB, FB2 e CBZ
+• Posição de leitura, destaques e notas ficam no dispositivo
+• Sem permissão de armazenamento: o app só vê as pastas que você escolhe
+
+COPIAR E MOVER
+• Copie livros para outra conta, por exemplo, de uma pasta no celular para o seu Nextcloud ou vice-versa
+• Ou mova-os: copiar e depois excluir o original
+• A posição de leitura e os destaques vão junto
+
+BIBLIOTECA
+• EPUB, MOBI, AZW3, FB2 e quadrinhos em CBZ, CBR, CB7 e CBT
+• Visualização em grade e em lista, pesquisa, ordenação, "Continuar lendo"
+• Filtros como na web: gêneros e etiquetas em árvore, autores, séries, formatos, metadados ausentes; incluir ou excluir termos
+• Ocultar livros concluídos, status de leitura e avaliações
+• Crie e gerencie estantes e estantes inteligentes, séries na ordem dos volumes
+
+LEITURA
+• Leitor confortável com temas claro, sépia e escuro, tamanho da fonte, espaçamento entre linhas e margens
+• Paginado ou com rolagem, sumário, zonas de toque, teclas de volume para virar páginas
+• Quadrinhos com zoom (pinça, toque duplo), páginas duplas e leitura da direita para a esquerda para mangás
+• Quadrinhos em tira longa (webtoons) rolam de cima para baixo sem espaços
+• Leitura em voz alta com as vozes do seu dispositivo, no idioma do texto
+• Destaques e notas, sincronizados com o app web
+• A posição de leitura é sincronizada automaticamente; se outro dispositivo estiver mais adiante, o app pergunta
+• Modo e-ink com alto contraste e sem animações
+
+OFFLINE
+• Disponibilize offline livros, estantes inteiras ou séries
+• Novos volumes de séries e estantes fixadas são baixados automaticamente
+• Downloads somente via Wi-Fi, se você preferir
+
+VÁRIAS CONTAS
+• Várias contas Nextcloud e pastas locais, separadas ou como uma única biblioteca combinada
+• Desative uma conta para ocultar os livros dela sem removê-la
+• Login seguro pelo navegador (Nextcloud Login Flow); o app nunca vê sua senha
+
+PRIVACIDADE
+Sem anúncios, sem rastreamento, sem análises. As bibliotecas locais ficam no seu dispositivo; com o Nextcloud, seus dados trafegam somente entre o seu dispositivo e o seu próprio servidor.
+
+NEXTCLOUD (OPCIONAL)
+Para sincronização, estantes e leitura no navegador: um servidor Nextcloud com o app "E-Book Reader" na versão 1.0.0 ou mais recente (Nextcloud App Store ou GitHub). As pastas locais não precisam de servidor.
+
+App não oficial, sem vínculo com a Nextcloud GmbH. Nextcloud é uma marca registrada da Nextcloud GmbH.

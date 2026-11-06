@@ -53,6 +53,12 @@ interface AccountStore {
     suspend fun credentials(accountId: String): Credentials?
 
     /**
+     * Deactivates ([enabled] false) or activates an account. A deactivated account keeps its credentials,
+     * books, reading progress and downloads; the library hides its books and the sync skips it.
+     */
+    suspend fun setEnabled(accountId: String, enabled: Boolean)
+
+    /**
      * Removes the account locally: credentials, database rows (cascade), downloaded files. Does not
      * contact the server; revoking the app password (`EbookApi.revokeAppPassword`) is done by the caller first.
      */
@@ -71,6 +77,8 @@ data class Account(
     val lastSyncAt: Long?,
     /** Local library: [serverUrl] is the folder's tree URI, [displayName] its name; no credentials. */
     val local: Boolean = false,
+    /** false = deactivated: hidden in the library, not synced (see [AccountStore.setEnabled]). */
+    val enabled: Boolean = true,
 )
 
 class AccountAlreadyExistsException(val existing: Account) : Exception("Account already exists")

@@ -30,6 +30,12 @@
     <string name="account_sign_in_again">تسجيل الدخول مجددًا</string>
     <string name="account_sync_now">مزامنة الآن</string>
     <string name="account_remove">إزالة</string>
+    <string name="account_disable">إلغاء التفعيل</string>
+    <string name="account_enable">تفعيل</string>
+    <string name="status_disabled">غير مفعّل</string>
+    <string name="account_disabled_hint">غير مفعّل: تُخفي المكتبة كتب هذا الحساب ولا تزامنه. تبقى الكتب وتقدّم القراءة والتنزيلات محفوظة.</string>
+    <string name="library_all_disabled_title">جميع الحسابات غير مفعّلة</string>
+    <string name="library_all_disabled_body">فعّل حسابًا في الحسابات لرؤية كتبه مرة أخرى.</string>
     <string name="status_ok">متصل</string>
     <string name="status_syncing">جارٍ المزامنة…</string>
     <string name="status_offline">غير متصل</string>
@@ -375,7 +381,7 @@
     <string name="guide_welcome_title">أهلًا بك</string>
     <string name="guide_welcome_body">اقرأ كتبك الإلكترونية وقصصك المصوّرة: من مجلد على هذا الجهاز أو من Nextcloud الخاص بك.\n\nيوضّح لك هذا الدليل القصير طريقة العمل. يمكنك فتحه مجددًا لاحقًا من الإعدادات.</string>
     <string name="guide_library_title">إعداد مكتبتك</string>
-    <string name="guide_library_body">من «الحسابات» ← «إضافة حساب» أمامك خياران:\n\n• مجلد على هذا الجهاز: اختر مجلدًا يحتوي على كتب إلكترونية (بما فيه المجلدات الفرعية وبطاقة SD). يقرؤه التطبيق دون حاجة إلى خادم.\n\n• حساب Nextcloud: سجّل الدخول عبر المتصفح. يحتاج خادمك إلى تطبيق «E-Book Reader».\n\nيمكنك إضافة أي عدد تشاء من المجلدات والحسابات.</string>
+    <string name="guide_library_body">من «الحسابات» ← «إضافة حساب» أمامك خياران:\n\n• مجلد على هذا الجهاز: اختر مجلدًا يحتوي على كتب إلكترونية (بما فيه المجلدات الفرعية وبطاقة SD). يقرؤه التطبيق دون حاجة إلى خادم.\n\n• حساب Nextcloud: سجّل الدخول عبر المتصفح. يحتاج خادمك إلى تطبيق «E-Book Reader».\n\nيمكنك إضافة أي عدد تشاء من المجلدات والحسابات. يُخفي «إلغاء التفعيل» كتب الحساب دون إزالته.</string>
     <string name="guide_browse_title">العثور على الكتب</string>
     <string name="guide_browse_body">• البحث والتصفية والترتيب في أعلى المكتبة.\n\n• تبويبات للكتب والسلاسل والمجلدات (وللأرفف مع Nextcloud).\n\n• انقر على كتاب لعرض تفاصيله وتقييمه وحالة قراءته.\n\n• اسحب للأسفل لإعادة قراءة المجلدات ومزامنة الحسابات.</string>
     <string name="guide_read_title">القراءة</string>

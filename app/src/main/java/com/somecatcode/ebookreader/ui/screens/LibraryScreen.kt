@@ -297,6 +297,12 @@ fun LibraryContent(
             if (banner != null && state.accounts.isNotEmpty()) LibraryBannerView(banner, actions.onRefresh, onOpenAccounts)
             when {
                 !state.accountsLoaded -> Unit
+                state.accounts.isEmpty() && state.disabledAccounts > 0 -> EmptyState(
+                    title = stringResource(R.string.library_all_disabled_title),
+                    body = stringResource(R.string.library_all_disabled_body),
+                    actionLabel = stringResource(R.string.nav_accounts),
+                    onAction = onOpenAccounts,
+                )
                 state.accounts.isEmpty() -> EmptyState(
                     title = stringResource(R.string.library_welcome_title),
                     body = stringResource(R.string.library_welcome_body),

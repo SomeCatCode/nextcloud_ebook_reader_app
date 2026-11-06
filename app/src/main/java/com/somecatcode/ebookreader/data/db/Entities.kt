@@ -44,6 +44,8 @@ data class AccountEntity(
     val createdAt: Long,
     /** [AccountKind]. */
     @ColumnInfo(defaultValue = AccountKind.NEXTCLOUD) val kind: String = AccountKind.NEXTCLOUD,
+    /** false = deactivated: the library hides its books and the sync skips it; data and downloads are kept. */
+    @ColumnInfo(defaultValue = "1") val enabled: Boolean = true,
 )
 
 @Entity(
