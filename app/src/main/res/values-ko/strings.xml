@@ -198,6 +198,11 @@
     <string name="settings_unofficial">비공식 앱이며 Nextcloud GmbH와 관련이 없습니다.</string>
     <string name="settings_donate">앱 후원하기</string>
     <string name="settings_donate_hint">브라우저에서 후원 페이지를 엽니다. 이 앱에는 광고와 추적이 없습니다.</string>
+    <string name="settings_rate">앱 평가하기</string>
+    <string name="settings_rate_hint">Google Play에서 앱 페이지를 엽니다.</string>
+    <string name="settings_share">앱 공유하기</string>
+    <string name="settings_share_hint">메시지나 이메일 등으로 앱 링크를 보냅니다.</string>
+    <string name="share_app_text">Nextcloud나 휴대폰 폴더에서 전자책과 만화를 읽어 보세요: %1$s</string>
     <string name="settings_third_party_licenses">오픈소스 라이선스</string>
     <string name="settings_privacy">개인정보 처리방침</string>
 

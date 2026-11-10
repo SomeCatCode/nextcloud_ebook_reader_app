@@ -208,6 +208,11 @@
     <string name="settings_unofficial">تطبيق غير رسمي وغير تابع لشركة Nextcloud GmbH.</string>
     <string name="settings_donate">ادعم التطبيق</string>
     <string name="settings_donate_hint">يفتح صفحة التبرع في المتصفح. التطبيق بلا إعلانات وبلا تتبّع.</string>
+    <string name="settings_rate">قيّم التطبيق</string>
+    <string name="settings_rate_hint">يفتح صفحة التطبيق في Google Play.</string>
+    <string name="settings_share">شارك التطبيق</string>
+    <string name="settings_share_hint">يرسل رابطًا إلى التطبيق، مثلًا برسالة أو بريد إلكتروني.</string>
+    <string name="share_app_text">اقرأ الكتب الإلكترونية والقصص المصورة من Nextcloud أو من مجلد على هاتفك: %1$s</string>
     <string name="settings_third_party_licenses">تراخيص الجهات الخارجية</string>
     <string name="settings_privacy">سياسة الخصوصية</string>
 

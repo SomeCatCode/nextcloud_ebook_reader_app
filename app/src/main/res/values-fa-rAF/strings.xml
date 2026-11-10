@@ -200,6 +200,11 @@
     <string name="settings_unofficial">برنامهٔ غیررسمی، بدون ارتباط با Nextcloud GmbH.</string>
     <string name="settings_donate">حمایت از برنامه</string>
     <string name="settings_donate_hint">صفحهٔ کمک مالی را در مرورگر باز می‌کند. این برنامه تبلیغات و ردیابی ندارد.</string>
+    <string name="settings_rate">امتیاز دادن به برنامه</string>
+    <string name="settings_rate_hint">صفحهٔ برنامه را در Google Play باز می‌کند.</string>
+    <string name="settings_share">اشتراک‌گذاری برنامه</string>
+    <string name="settings_share_hint">پیوند برنامه را مثلاً با پیام یا ایمیل می‌فرستد.</string>
+    <string name="share_app_text">کتاب‌های الکترونیکی و کمیک‌ها را از Nextcloud یا از یک پوشه در گوشی بخوانید: %1$s</string>
     <string name="settings_third_party_licenses">جواز‌های اشخاص ثالث</string>
     <string name="settings_privacy">پالیسی حریم خصوصی</string>
 
