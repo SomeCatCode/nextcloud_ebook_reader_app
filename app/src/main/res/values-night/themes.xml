@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.EbookReader" parent="Theme.AppCompat.NoActionBar" />
+    <style name="Base.Theme.EbookReader" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">#801B1B1B</item>
+    </style>
 </resources>

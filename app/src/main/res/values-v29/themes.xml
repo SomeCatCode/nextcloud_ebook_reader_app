@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- From Android 10 the system draws its own scrim behind three-button navigation
+         (enforceNavigationBarContrast), so the bar itself stays transparent. -->
+    <style name="Theme.EbookReader" parent="Base.Theme.EbookReader">
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast">true</item>
+    </style>
+</resources>
