@@ -428,6 +428,22 @@ class ScreenTests {
     }
 
     @Test
+    fun settings_rateAndShareEntriesCallTheirActions() {
+        var rated = 0
+        var shared = 0
+        show(container()) {
+            SettingsContent(
+                com.somecatcode.ebookreader.data.repo.AppSettings(), onBack = {}, onUpdate = {}, onUpdateReader = {},
+                onRateApp = { rated++ }, onShareApp = { shared++ },
+            )
+        }
+        compose.onNodeWithText("Rate the app").performScrollTo().performClick()
+        compose.onNodeWithText("Share the app").performScrollTo().performClick()
+        assertEquals(1, rated)
+        assertEquals(1, shared)
+    }
+
+    @Test
     fun collection_showsReadingStateAndSwitchesBetweenGridAndList() {
         val books = listOf(
             book(1, "Done", status = ReadStatus.FINISHED),

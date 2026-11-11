@@ -200,6 +200,11 @@
     <string name="settings_unofficial">Inoffizielle App, nicht mit der Nextcloud GmbH verbunden.</string>
     <string name="settings_donate">App unterstützen</string>
     <string name="settings_donate_hint">Öffnet die Spendenseite im Browser. Die App hat keine Werbung und kein Tracking.</string>
+    <string name="settings_rate">App bewerten</string>
+    <string name="settings_rate_hint">Öffnet die Seite der App in Google Play.</string>
+    <string name="settings_share">App teilen</string>
+    <string name="settings_share_hint">Sendet einen Link zur App, zum Beispiel per Nachricht oder E-Mail.</string>
+    <string name="share_app_text">E-Books und Comics aus deiner Nextcloud oder aus einem Ordner auf dem Handy lesen: %1$s</string>
     <string name="settings_third_party_licenses">Lizenzen von Drittanbietern</string>
     <string name="settings_privacy">Datenschutzerklärung</string>
 

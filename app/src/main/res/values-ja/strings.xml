@@ -315,6 +315,11 @@
     <string name="reader_annotations">ハイライトとメモ</string>
     <string name="settings_donate">アプリを応援する</string>
     <string name="settings_donate_hint">ブラウザーで寄付ページを開きます。このアプリには広告もトラッキングもありません。</string>
+    <string name="settings_rate">アプリを評価</string>
+    <string name="settings_rate_hint">Google Play のアプリのページを開きます。</string>
+    <string name="settings_share">アプリを共有</string>
+    <string name="settings_share_hint">メッセージやメールなどでアプリへのリンクを送ります。</string>
+    <string name="share_app_text">Nextcloud や端末のフォルダーから電子書籍とコミックを読めます: %1$s</string>
     <string name="settings_third_party_licenses">サードパーティのライセンス</string>
     <string name="library_tab_shared">共有</string>
     <string name="library_tab_folders">フォルダ</string>

@@ -5,6 +5,15 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+## 1.0.3 – 2026-11-11
+
+### Hinzugefügt
+- **App bewerten und App teilen.** Die Einstellungen haben unter „Über“ zwei neue Einträge. „App bewerten“ öffnet die Seite der App in Google Play. Wenn Google Play fehlt, öffnet die App die Seite im Browser. „App teilen“ öffnet das Teilen-Menü von Android mit einem kurzen Text und dem Link zur App in Google Play.
+
+### Behoben
+- **Randlose Anzeige ohne veraltete APIs.** Google Play meldete für 1.0.2 drei APIs, die Android 15 nicht mehr unterstützt: `Window.setStatusBarColor`, `Window.setNavigationBarColor` und `LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES`. Die Aufrufe kamen aus `enableEdgeToEdge()` der AndroidX-Bibliothek. Die App verwendet diese Funktion nicht mehr. Das App-Design macht Statusleiste und Navigationsleiste jetzt durchsichtig. Ab Android 11 darf der Inhalt in jeden Kamera-Ausschnitt reichen (`always` statt `shortEdges`). Unter Android 8 und 9 bleibt die Navigationsleiste halbdurchsichtig dunkel.
+- **Symbole der Statusleiste gut lesbar.** Die Symbole in Statusleiste und Navigationsleiste folgen jetzt dem Design der App, nicht dem Design des Systems. Bisher waren die Symbole kaum sichtbar, wenn das System dunkel und die App hell eingestellt war.
+
 ## 1.0.2 – 2026-11-06
 
 ### Geändert

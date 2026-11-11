@@ -319,6 +319,11 @@
     <string name="reader_annotations">Resaltados y notas</string>
     <string name="settings_donate">Apoyar la app</string>
     <string name="settings_donate_hint">Abre la página de donaciones en el navegador. La app no tiene anuncios ni seguimiento.</string>
+    <string name="settings_rate">Valorar la app</string>
+    <string name="settings_rate_hint">Abre la página de la app en Google Play.</string>
+    <string name="settings_share">Compartir la app</string>
+    <string name="settings_share_hint">Envía un enlace a la app, por ejemplo por mensaje o correo.</string>
+    <string name="share_app_text">Lee e-books y cómics desde tu Nextcloud o desde una carpeta del móvil: %1$s</string>
     <string name="settings_third_party_licenses">Licencias de terceros</string>
     <string name="library_tab_shared">Compartidos</string>
     <string name="library_tab_folders">Carpetas</string>

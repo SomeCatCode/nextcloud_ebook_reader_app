@@ -1,9 +1,9 @@
 package com.somecatcode.ebookreader
 
+import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -15,10 +15,12 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
 import com.somecatcode.ebookreader.data.repo.AppSettings
 import com.somecatcode.ebookreader.ui.components.LocalCoverLoader
 import com.somecatcode.ebookreader.ui.components.createCoverImageLoader
@@ -26,11 +28,18 @@ import com.somecatcode.ebookreader.ui.navigation.AppNavHost
 import com.somecatcode.ebookreader.ui.theme.EbookReaderTheme
 import com.somecatcode.ebookreader.ui.util.LocalAppContainer
 
-/** Single activity of the app: edge-to-edge Compose host with the navigation graph. */
+/**
+ * Single activity of the app: edge-to-edge Compose host with the navigation graph.
+ *
+ * Edge-to-edge does not use `androidx.activity.enableEdgeToEdge()`: it calls `Window.setStatusBarColor`,
+ * `Window.setNavigationBarColor` and `LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES`, which Android 15 deprecates
+ * (Google Play reports them). The theme makes the system bars transparent (the themes.xml files in res), the window
+ * draws behind them, and [applySystemBarIcons] picks dark or light bar icons for the app theme.
+ */
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         val container = (application as App).container
         if (savedInstanceState == null) {
             // Sync on app start (unique work, safe to request repeatedly).
@@ -43,6 +52,8 @@ class MainActivity : AppCompatActivity() {
                 "dark" -> true
                 else -> isSystemInDarkTheme()
             }
+            // The app theme can differ from the system theme: the bar icons follow the app theme.
+            SideEffect { applySystemBarIcons(dark) }
             val coverLoader = remember(container) { createCoverImageLoader(this, container) }
             CompositionLocalProvider(LocalAppContainer provides container, LocalCoverLoader provides coverLoader) {
                 EbookReaderTheme(darkTheme = dark, dynamicColor = settings.dynamicColor, einkMode = settings.einkMode) {
@@ -57,5 +68,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun applySystemBarIcons(dark: Boolean) {
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        controller.isAppearanceLightStatusBars = !dark
+        // Before Android 10 the navigation bar keeps a dark scrim (themes.xml), so its icons stay light.
+        controller.isAppearanceLightNavigationBars = !dark && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
     }
 }

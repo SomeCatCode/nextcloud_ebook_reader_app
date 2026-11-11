@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.EbookReader" parent="Theme.AppCompat.Light.NoActionBar" />
+    <!-- Edge-to-edge without androidx.activity.enableEdgeToEdge(): Android 15 deprecates the Window
+         colour setters and the short-edges cutout mode that it calls (see MainActivity). -->
+    <style name="Base.Theme.EbookReader" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- Android 8 and 9 cannot add a scrim behind three-button navigation: keep a translucent dark bar. -->
+        <item name="android:navigationBarColor">#801B1B1B</item>
+    </style>
+    <style name="Theme.EbookReader" parent="Base.Theme.EbookReader" />
 </resources>
