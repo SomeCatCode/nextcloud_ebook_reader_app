@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- "always" replaces the deprecated "shortEdges": content may extend into every cutout area;
+         MainActivity pads the horizontal cutout insets. -->
+    <style name="Theme.EbookReader" parent="Base.Theme.EbookReader">
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:enforceNavigationBarContrast">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">always</item>
+    </style>
+</resources>
