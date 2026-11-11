@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -54,6 +55,7 @@ import com.somecatcode.ebookreader.data.repo.SettingsRepository
 import com.somecatcode.ebookreader.reader.ReaderSettings
 import com.somecatcode.ebookreader.ui.components.BackButton
 import com.somecatcode.ebookreader.ui.components.rememberLocalText
+import com.somecatcode.ebookreader.ui.util.AppLinks
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 import com.somecatcode.ebookreader.ui.util.readerSettings
 import com.somecatcode.ebookreader.ui.util.withReaderSettings
@@ -81,10 +83,12 @@ class SettingsViewModel(private val repository: SettingsRepository) : ViewModel(
 fun SettingsScreen(onBack: () -> Unit, onOpenLicenses: () -> Unit = {}, onOpenPrivacy: () -> Unit = {}, onOpenGuide: () -> Unit = {}) {
     val vm = containerViewModel { c -> SettingsViewModel(c.settingsRepository) }
     val settings by vm.state.collectAsState()
+    val context = LocalContext.current
     // The language lives in the per-app language API (AppCompatDelegate), not in DataStore; applying it recreates the activity.
     SettingsContent(
         settings, onBack, vm::update, vm::updateReader, onOpenLicenses, onOpenPrivacy = onOpenPrivacy, onOpenGuide = onOpenGuide,
         language = remember { AppLanguage.current() }, onLanguageChange = AppLanguage::apply,
+        onRateApp = { AppLinks.openStorePage(context) }, onShareApp = { AppLinks.share(context) },
     )
 }
 
@@ -101,6 +105,8 @@ fun SettingsContent(
     onOpenGuide: () -> Unit = {},
     language: AppLanguage = AppLanguage.SYSTEM,
     onLanguageChange: (AppLanguage) -> Unit = {},
+    onRateApp: () -> Unit = {},
+    onShareApp: () -> Unit = {},
 ) {
     var languageDialog by remember { mutableStateOf(false) }
     val reader = settings.readerSettings()
@@ -180,7 +186,9 @@ fun SettingsContent(
                 Text(stringResource(R.string.settings_guide), style = MaterialTheme.typography.bodyLarge)
                 Text(stringResource(R.string.settings_guide_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            LinkRow(R.string.settings_rate, R.string.settings_rate_hint, "rate_app", onRateApp)
+            LinkRow(R.string.settings_share, R.string.settings_share_hint, "share_app", onShareApp)
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.settings_version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag("version"))
                 Text(stringResource(R.string.settings_unofficial), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -224,6 +232,15 @@ private fun LanguageDialog(selected: AppLanguage, onSelect: (AppLanguage) -> Uni
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
+}
+
+/** A tappable entry with a title and a hint below. */
+@Composable
+private fun LinkRow(title: Int, hint: Int, tag: String, onClick: () -> Unit) {
+    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp).testTag(tag)) {
+        Text(stringResource(title), style = MaterialTheme.typography.bodyLarge)
+        Text(stringResource(hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 @Composable

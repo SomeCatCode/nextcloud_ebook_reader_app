@@ -198,6 +198,11 @@
     <string name="settings_unofficial">非官方应用，与 Nextcloud GmbH 无关。</string>
     <string name="settings_donate">支持本应用</string>
     <string name="settings_donate_hint">在浏览器中打开捐赠页面。本应用无广告、无跟踪。</string>
+    <string name="settings_rate">为应用评分</string>
+    <string name="settings_rate_hint">在 Google Play 中打开应用页面。</string>
+    <string name="settings_share">分享应用</string>
+    <string name="settings_share_hint">通过消息或电子邮件等方式发送应用链接。</string>
+    <string name="share_app_text">从你的 Nextcloud 或手机上的文件夹阅读电子书和漫画：%1$s</string>
     <string name="settings_third_party_licenses">第三方许可</string>
     <string name="settings_privacy">隐私政策</string>
 

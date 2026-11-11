@@ -200,6 +200,11 @@
     <string name="settings_unofficial">Resmî olmayan uygulama, Nextcloud GmbH ile bağlantısı yoktur.</string>
     <string name="settings_donate">Uygulamayı destekle</string>
     <string name="settings_donate_hint">Bağış sayfasını tarayıcıda açar. Uygulamada reklam ve izleme yoktur.</string>
+    <string name="settings_rate">Uygulamayı değerlendir</string>
+    <string name="settings_rate_hint">Uygulamanın Google Play sayfasını açar.</string>
+    <string name="settings_share">Uygulamayı paylaş</string>
+    <string name="settings_share_hint">Uygulamanın bağlantısını örneğin mesaj veya e-posta ile gönderir.</string>
+    <string name="share_app_text">E-kitapları ve çizgi romanları Nextcloud\'undan veya telefondaki bir klasörden oku: %1$s</string>
     <string name="settings_third_party_licenses">Üçüncü taraf lisansları</string>
     <string name="settings_privacy">Gizlilik politikası</string>
 

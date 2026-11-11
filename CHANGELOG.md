@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Hinzugefügt
+- **App bewerten und App teilen.** Die Einstellungen haben unter „Über“ zwei neue Einträge. „App bewerten“ öffnet die Seite der App in Google Play. Wenn Google Play fehlt, öffnet die App die Seite im Browser. „App teilen“ öffnet das Teilen-Menü von Android mit einem kurzen Text und dem Link zur App in Google Play.
+
 ## 1.0.2 – 2026-11-06
 
 ### Geändert

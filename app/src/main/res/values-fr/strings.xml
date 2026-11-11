@@ -202,6 +202,11 @@
     <string name="settings_unofficial">Application non officielle, sans lien avec Nextcloud GmbH.</string>
     <string name="settings_donate">Soutenir l’application</string>
     <string name="settings_donate_hint">Ouvre la page de don dans le navigateur. L’application n’a ni publicité ni suivi.</string>
+    <string name="settings_rate">Noter l’application</string>
+    <string name="settings_rate_hint">Ouvre la page de l’application sur Google Play.</string>
+    <string name="settings_share">Partager l’application</string>
+    <string name="settings_share_hint">Envoie un lien vers l’application, par exemple par message ou e-mail.</string>
+    <string name="share_app_text">Lisez des livres numériques et des BD depuis votre Nextcloud ou un dossier du téléphone : %1$s</string>
     <string name="settings_third_party_licenses">Licences tierces</string>
     <string name="settings_privacy">Politique de confidentialité</string>
 
