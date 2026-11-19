@@ -5,6 +5,8 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+## 1.0.4 – 2026-11-19
+
 ### Geändert
 - **Klarer Hinweis im Feld „Serveradresse“.** Unter dem Feld steht jetzt: „Nur die Serveradresse. Benutzername und Passwort gibst du danach im Browser ein.“ Wenn die Eingabe wie ein Benutzername oder Passwort aussieht, startet die App keine Anmeldung. Sie erklärt dann, was in das Feld gehört. Die App erkennt das an Leerzeichen, an einem `@` oder an einer Adresse ohne Punkt. `localhost` und IP-Adressen bleiben erlaubt. Grund: Bei der Prüfung durch Google Play hatten die Prüfer die Anmeldedaten in dieses Feld eingegeben.
 
