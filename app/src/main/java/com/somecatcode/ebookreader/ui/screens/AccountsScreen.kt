@@ -411,6 +411,7 @@ private fun statusText(status: AccountStatus): Int = when (status) {
 
 private fun errorText(error: AddError): Int = when (error) {
     AddError.INVALID_URL -> R.string.add_error_invalid_url
+    AddError.LOOKS_LIKE_LOGIN -> R.string.add_error_looks_like_login
     AddError.NETWORK -> R.string.add_error_network
     AddError.TIMEOUT -> R.string.add_error_timeout
     AddError.APP_MISSING -> R.string.add_error_app_missing
@@ -443,7 +444,8 @@ private fun AddAccountDialog(flow: AddFlowState, actions: AddFlowActions) {
                         singleLine = true,
                         isError = flow.error != null,
                         readOnly = relogin,
-                        supportingText = flow.error?.let { { Text(stringResource(errorText(it))) } },
+                        // Without an error the field says that only the address belongs here (not user name or password).
+                        supportingText = { Text(stringResource(flow.error?.let(::errorText) ?: R.string.add_server_only_address)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
                         keyboardActions = KeyboardActions(onGo = { actions.onSignIn() }),
                         modifier = Modifier.fillMaxWidth().padding(top = 12.dp).testTag("server_input"),

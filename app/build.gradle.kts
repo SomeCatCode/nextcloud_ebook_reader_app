@@ -104,6 +104,16 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
+// Google Play installs only the device languages from an app bundle by default. The in-app language
+// setting needs every language on the device, so the bundle keeps all of them in the base APK.
+android {
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
+}
+
 // ---- reader-web: Vite bundle built from reader-core of the server repo (git submodule) ----------
 val readerWebDir = rootProject.layout.projectDirectory.dir("reader-web")
 val readerAssetsDir = layout.projectDirectory.dir("src/main/assets/reader")

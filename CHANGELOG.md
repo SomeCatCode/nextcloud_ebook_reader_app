@@ -5,6 +5,12 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Geändert
+- **Klarer Hinweis im Feld „Serveradresse“.** Unter dem Feld steht jetzt: „Nur die Serveradresse. Benutzername und Passwort gibst du danach im Browser ein.“ Wenn die Eingabe wie ein Benutzername oder Passwort aussieht, startet die App keine Anmeldung. Sie erklärt dann, was in das Feld gehört. Die App erkennt das an Leerzeichen, an einem `@` oder an einer Adresse ohne Punkt. `localhost` und IP-Adressen bleiben erlaubt. Grund: Bei der Prüfung durch Google Play hatten die Prüfer die Anmeldedaten in dieses Feld eingegeben.
+
+### Behoben
+- **Sprachwahl in der Play-Version.** Google Play installierte aus dem App Bundle nur die Sprachen des Geräts. Eine andere Sprache in Einstellungen → „Sprache“ zeigte darum weiter die alte Sprache. Das App Bundle enthält jetzt alle 12 Sprachen in jeder Installation.
+
 ## 1.0.3 – 2026-11-11
 
 ### Hinzugefügt

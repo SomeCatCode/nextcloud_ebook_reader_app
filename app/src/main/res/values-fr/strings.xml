@@ -55,6 +55,8 @@
     <string name="add_open_browser">Rouvrir le navigateur</string>
     <string name="add_verifying">Vérification du serveur…</string>
     <string name="add_error_invalid_url">Saisissez une adresse HTTPS valide, par exemple cloud.example.org.</string>
+    <string name="add_server_only_address">Uniquement l’adresse du serveur. Vous saisirez l’identifiant et le mot de passe ensuite dans le navigateur.</string>
+    <string name="add_error_looks_like_login">Cela ressemble à un identifiant ou à un mot de passe. Saisissez ici uniquement l’adresse du serveur, par exemple cloud.example.org. Vous saisirez l’identifiant et le mot de passe dans le navigateur après avoir touché « Se connecter ».</string>
     <string name="add_error_network">Le serveur est injoignable. Vérifiez l’adresse et votre connexion.</string>
     <string name="add_error_timeout">La connexion n’a pas été terminée à temps. Veuillez réessayer.</string>
     <string name="add_error_app_missing">L’application E-Book Reader n’est pas installée sur ce serveur.</string>

@@ -23,6 +23,7 @@ import com.somecatcode.ebookreader.data.api.ServerCompatibility
 import com.somecatcode.ebookreader.data.sync.SyncEngine
 import com.somecatcode.ebookreader.data.sync.SyncError
 import com.somecatcode.ebookreader.data.sync.SyncState
+import com.somecatcode.ebookreader.ui.util.looksLikeLoginInput
 import com.somecatcode.ebookreader.ui.util.normalizeServerInput
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -43,7 +44,7 @@ data class AccountRow(val account: Account, val status: AccountStatus)
 
 enum class AddStage { INPUT, STARTING, WAITING, VERIFYING }
 
-enum class AddError { INVALID_URL, NETWORK, TIMEOUT, APP_MISSING, APP_TOO_OLD, DUPLICATE, WRONG_USER, REJECTED, GENERIC }
+enum class AddError { INVALID_URL, LOOKS_LIKE_LOGIN, NETWORK, TIMEOUT, APP_MISSING, APP_TOO_OLD, DUPLICATE, WRONG_USER, REJECTED, GENERIC }
 
 /** State of the add-account (or re-login) dialog. `null` in [AccountsUiState.addFlow] = dialog closed. */
 data class AddFlowState(
@@ -184,6 +185,10 @@ class AccountsViewModel(
     fun startLogin() {
         val flow = addFlow.value ?: return
         if (flow.stage != AddStage.INPUT) return
+        if (looksLikeLoginInput(flow.serverInput)) {
+            addFlow.value = flow.copy(error = AddError.LOOKS_LIKE_LOGIN)
+            return
+        }
         val server = normalizeServerInput(flow.serverInput)
         if (server == null) {
             addFlow.value = flow.copy(error = AddError.INVALID_URL)
