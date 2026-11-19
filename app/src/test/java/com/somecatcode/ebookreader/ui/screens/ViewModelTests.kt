@@ -36,6 +36,7 @@ import com.somecatcode.ebookreader.ui.FakeShelfRepository
 import com.somecatcode.ebookreader.ui.FakeSyncEngine
 import com.somecatcode.ebookreader.ui.account
 import com.somecatcode.ebookreader.ui.book
+import com.somecatcode.ebookreader.ui.util.looksLikeLoginInput
 import com.somecatcode.ebookreader.ui.util.normalizeServerInput
 import com.somecatcode.ebookreader.ui.util.readerSettings
 import kotlinx.coroutines.Dispatchers
@@ -83,6 +84,33 @@ class ViewModelTests {
         assertNull(normalizeServerInput("http://cloud.example.org"))
         assertNull(normalizeServerInput("not a url"))
         assertNull(normalizeServerInput("ftp://cloud.example.org"))
+    }
+
+    @Test
+    fun looksLikeLoginInput_detectsUserNamesAndPasswordsButNotAddresses() {
+        assertTrue(looksLikeLoginInput("playstore_test"))
+        assertTrue(looksLikeLoginInput("playstore_test Secret123"))
+        assertTrue(looksLikeLoginInput("user@example.org"))
+        assertTrue(looksLikeLoginInput("https://nextcloud"))
+        assertFalse(looksLikeLoginInput("cloud.example.org"))
+        assertFalse(looksLikeLoginInput("https://cloud.example.org/nextcloud/"))
+        assertFalse(looksLikeLoginInput("192.168.1.5:8443"))
+        assertFalse(looksLikeLoginInput("localhost:8443"))
+        assertFalse(looksLikeLoginInput("[::1]:8443"))
+        assertFalse(looksLikeLoginInput(""))
+    }
+
+    @Test
+    fun addAccount_userNameInServerFieldExplainsTheFieldWithoutStartingLoginFlow() = runTest(dispatcher) {
+        val login = FakeLoginFlowClient()
+        val vm = accountsVm(login = login)
+        backgroundScope.launch { vm.state.collect {} }
+        vm.showAddAccount()
+        vm.onServerInputChange("playstore_test")
+        vm.startLogin()
+        assertEquals(AddError.LOOKS_LIKE_LOGIN, vm.state.value.addFlow?.error)
+        assertEquals(AddStage.INPUT, vm.state.value.addFlow?.stage)
+        assertTrue(login.started.isEmpty())
     }
 
     // ---- accounts ---------------------------------------------------------------------------------

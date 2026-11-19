@@ -21,6 +21,20 @@ fun Account.serverLabel(): String = serverUrl.toHttpUrlOrNull()?.let { url ->
 fun Account.title(): String = displayName?.takeIf { it.isNotBlank() } ?: loginName
 
 /**
+ * Whether the server field holds a user name or a password instead of an address: spaces, an `@`,
+ * or a host without a dot (except `localhost` and IP addresses). Google Play reviewers typed the
+ * test credentials into this field; the app then explains that only the address belongs there.
+ */
+fun looksLikeLoginInput(input: String): Boolean {
+    val value = input.trim()
+    if (value.isEmpty()) return false
+    if (value.any { it.isWhitespace() } || '@' in value) return true
+    val host = value.substringAfter("://").substringBefore('/').substringBefore(':')
+    if (host.startsWith('[')) return false
+    return '.' !in host && !host.equals("localhost", ignoreCase = true)
+}
+
+/**
  * Normalises what the user typed into a server base URL: adds `https://`, trims a trailing `/` and
  * `/index.php`. Returns null for empty input, for plain `http://` (HTTPS only, PLAN.md section 5)
  * and for anything that is not a valid URL with a host.

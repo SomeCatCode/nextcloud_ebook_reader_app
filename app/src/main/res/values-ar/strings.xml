@@ -55,6 +55,8 @@
     <string name="add_open_browser">فتح المتصفح مجددًا</string>
     <string name="add_verifying">جارٍ فحص الخادم…</string>
     <string name="add_error_invalid_url">أدخل عنوان HTTPS صالحًا، مثل cloud.example.org.</string>
+    <string name="add_server_only_address">عنوان الخادم فقط. تُدخل اسم المستخدم وكلمة المرور لاحقًا في المتصفح.</string>
+    <string name="add_error_looks_like_login">يبدو هذا كاسم مستخدم أو كلمة مرور. أدخل هنا عنوان الخادم فقط، مثل cloud.example.org. تُدخل اسم المستخدم وكلمة المرور في المتصفح بعد النقر على «تسجيل الدخول».</string>
     <string name="add_error_network">تعذّر الوصول إلى الخادم. تحقق من العنوان ومن اتصالك.</string>
     <string name="add_error_timeout">لم يكتمل تسجيل الدخول في الوقت المحدد. يرجى المحاولة مجددًا.</string>
     <string name="add_error_app_missing">تطبيق E-Book Reader غير مثبّت على هذا الخادم.</string>
