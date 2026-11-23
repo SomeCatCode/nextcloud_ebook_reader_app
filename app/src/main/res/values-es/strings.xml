@@ -56,6 +56,8 @@
     <string name="add_verifying">Comprobando el servidor…</string>
     <string name="add_error_invalid_url">Introduce una dirección HTTPS válida, por ejemplo cloud.example.org.</string>
     <string name="add_server_only_address">Solo la dirección del servidor. El usuario y la contraseña se introducen después en el navegador.</string>
+    <string name="add_server_app_needed">Tu Nextcloud necesita la aplicación «E-Book Reader» de la tienda de aplicaciones de Nextcloud. La instala un administrador.</string>
+    <string name="add_server_app_open">Mostrar en la tienda de Nextcloud</string>
     <string name="add_error_looks_like_login">Esto parece un nombre de usuario o una contraseña. Introduce aquí solo la dirección del servidor, por ejemplo cloud.example.org. El usuario y la contraseña se introducen en el navegador después de tocar «Iniciar sesión».</string>
     <string name="add_error_network">No se pudo contactar con el servidor. Comprueba la dirección y tu conexión.</string>
     <string name="add_error_timeout">El inicio de sesión no se completó a tiempo. Inténtalo de nuevo.</string>

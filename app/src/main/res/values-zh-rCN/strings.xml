@@ -56,6 +56,8 @@
     <string name="add_verifying">正在检查服务器…</string>
     <string name="add_error_invalid_url">请输入有效的 HTTPS 地址，例如 cloud.example.org。</string>
     <string name="add_server_only_address">仅填写服务器地址。用户名和密码稍后在浏览器中输入。</string>
+    <string name="add_server_app_needed">你的 Nextcloud 需要安装 Nextcloud 应用商店中的“E-Book Reader”应用。由管理员安装。</string>
+    <string name="add_server_app_open">在 Nextcloud 应用商店中查看</string>
     <string name="add_error_looks_like_login">这看起来像用户名或密码。此处只填写服务器地址，例如 cloud.example.org。点按“登录”后，在浏览器中输入用户名和密码。</string>
     <string name="add_error_network">无法连接到服务器。请检查地址和网络连接。</string>
     <string name="add_error_timeout">登录未能及时完成。请重试。</string>

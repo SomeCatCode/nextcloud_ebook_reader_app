@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -75,6 +77,7 @@ import com.somecatcode.ebookreader.ui.components.ConfirmDialog
 import com.somecatcode.ebookreader.ui.components.EmptyState
 import com.somecatcode.ebookreader.ui.components.rememberLocalText
 import com.somecatcode.ebookreader.ui.theme.LocalEinkMode
+import com.somecatcode.ebookreader.ui.util.AppLinks
 import com.somecatcode.ebookreader.ui.util.containerViewModel
 import com.somecatcode.ebookreader.ui.util.formatRelativeTime
 import com.somecatcode.ebookreader.ui.util.serverLabel
@@ -433,7 +436,8 @@ private fun AddAccountDialog(flow: AddFlowState, actions: AddFlowActions) {
             properties = DialogProperties(dismissOnClickOutside = false),
             title = { Text(title) },
             text = {
-                Column {
+                // scrolls: with the keyboard open, a small screen has no room for the whole form
+                Column(Modifier.verticalScroll(rememberScrollState())) {
                     Text(stringResource(R.string.add_server_intro), style = MaterialTheme.typography.bodyMedium)
                     val serverInput = rememberLocalText(flow.serverInput, actions.onInputChange)
                     OutlinedTextField(
@@ -450,6 +454,19 @@ private fun AddAccountDialog(flow: AddFlowState, actions: AddFlowActions) {
                         keyboardActions = KeyboardActions(onGo = { actions.onSignIn() }),
                         modifier = Modifier.fillMaxWidth().padding(top = 12.dp).testTag("server_input"),
                     )
+                    // The server app is a requirement; the sign-in fails without it (AddError.APP_MISSING, APP_TOO_OLD).
+                    Text(
+                        stringResource(R.string.add_server_app_needed),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                    val context = LocalContext.current
+                    TextButton(
+                        onClick = { AppLinks.openServerAppPage(context) },
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.testTag("server_app_link"),
+                    ) { Text(stringResource(R.string.add_server_app_open)) }
                 }
             },
             confirmButton = {

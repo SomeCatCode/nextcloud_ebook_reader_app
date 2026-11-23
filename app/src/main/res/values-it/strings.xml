@@ -56,6 +56,8 @@
     <string name="add_verifying">Verifica del server…</string>
     <string name="add_error_invalid_url">Inserisci un indirizzo HTTPS valido, per esempio cloud.example.org.</string>
     <string name="add_server_only_address">Solo l\'indirizzo del server. Nome utente e password li inserisci dopo nel browser.</string>
+    <string name="add_server_app_needed">La tua Nextcloud ha bisogno dell\'app \"E-Book Reader\" dall\'App Store di Nextcloud. La installa un amministratore.</string>
+    <string name="add_server_app_open">Mostra nell\'App Store di Nextcloud</string>
     <string name="add_error_looks_like_login">Sembra un nome utente o una password. Inserisci qui solo l\'indirizzo del server, per esempio cloud.example.org. Nome utente e password li inserisci nel browser dopo aver toccato \"Accedi\".</string>
     <string name="add_error_network">Impossibile raggiungere il server. Controlla l\'indirizzo e la connessione.</string>
     <string name="add_error_timeout">L\'accesso non è stato completato in tempo. Riprova.</string>
