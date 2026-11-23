@@ -55,6 +55,8 @@
     <string name="add_open_browser">باز کردن دوبارهٔ مرورگر</string>
     <string name="add_verifying">در حال بررسی سرور…</string>
     <string name="add_error_invalid_url">یک آدرس HTTPS معتبر وارد کنید، مثلاً cloud.example.org.</string>
+    <string name="add_server_only_address">فقط آدرس سرور. نام کاربری و رمز عبور را بعداً در مرورگر وارد می‌کنید.</string>
+    <string name="add_error_looks_like_login">این شبیه نام کاربری یا رمز عبور است. اینجا فقط آدرس سرور را وارد کنید، مثلاً cloud.example.org. نام کاربری و رمز عبور را پس از زدن «ورود» در مرورگر وارد می‌کنید.</string>
     <string name="add_error_network">اتصال به سرور برقرار نشد. آدرس و اتصال انترنت خود را بررسی کنید.</string>
     <string name="add_error_timeout">ورود در وقت معین تکمیل نشد. لطفاً دوباره تلاش کنید.</string>
     <string name="add_error_app_missing">برنامهٔ E-Book Reader در این سرور نصب نشده است.</string>

@@ -55,6 +55,8 @@
     <string name="add_open_browser">Tarayıcıyı yeniden aç</string>
     <string name="add_verifying">Sunucu denetleniyor…</string>
     <string name="add_error_invalid_url">Geçerli bir HTTPS adresi girin, örneğin cloud.example.org.</string>
+    <string name="add_server_only_address">Yalnızca sunucu adresi. Kullanıcı adını ve parolayı daha sonra tarayıcıda girersiniz.</string>
+    <string name="add_error_looks_like_login">Bu bir kullanıcı adı veya parolaya benziyor. Buraya yalnızca sunucu adresini girin, örneğin cloud.example.org. Kullanıcı adını ve parolayı \"Oturum aç\" düğmesine dokunduktan sonra tarayıcıda girersiniz.</string>
     <string name="add_error_network">Sunucuya ulaşılamadı. Adresi ve bağlantınızı kontrol edin.</string>
     <string name="add_error_timeout">Oturum açma işlemi zamanında tamamlanmadı. Lütfen yeniden deneyin.</string>
     <string name="add_error_app_missing">E-Book Reader uygulaması bu sunucuda yüklü değil.</string>
