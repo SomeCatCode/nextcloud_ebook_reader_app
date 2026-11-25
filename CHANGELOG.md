@@ -5,6 +5,9 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Hinzugefügt
+- **Hinweis auf die Nextcloud-App „E-Book Reader“.** Ein Nextcloud-Konto braucht auf dem Server die App „E-Book Reader“. Der Dialog „Konto hinzufügen“ nennt diese Voraussetzung jetzt unter dem Feld „Serveradresse“. Die neue Schaltfläche „Im Nextcloud App Store zeigen“ öffnet die Seite der App (`https://apps.nextcloud.com/apps/ebookreader`) im Browser. Wenn die App auf dem Server fehlt oder zu alt ist, steht die Schaltfläche direkt bei der Fehlermeldung. Lokale Ordner brauchen weiterhin keinen Server. Alle 12 Sprachen haben die neuen Texte.
+
 ### Geändert
 - **Datenschutzerklärung ergänzt (12 Sprachen, Stand 25. November 2026).**
   - Neu: Absatz „Vorlesen“. Die App gibt den vorgelesenen Text an die Sprachausgabe des Geräts. Je nach Stimme verarbeitet der Anbieter der Sprachausgabe den Text auf dem Gerät oder auf seinen Servern.

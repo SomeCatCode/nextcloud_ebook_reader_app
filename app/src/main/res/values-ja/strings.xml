@@ -56,6 +56,8 @@
     <string name="add_verifying">サーバーを確認しています…</string>
     <string name="add_error_invalid_url">有効な HTTPS アドレスを入力してください（例: cloud.example.org）。</string>
     <string name="add_server_only_address">サーバーのアドレスだけを入力します。ユーザー名とパスワードはこのあとブラウザーで入力します。</string>
+    <string name="add_server_app_needed">Nextcloud には、Nextcloud アプリストアのアプリ「E-Book Reader」が必要です。管理者がインストールします。</string>
+    <string name="add_server_app_open">Nextcloud アプリストアで表示</string>
     <string name="add_error_looks_like_login">ユーザー名またはパスワードのようです。ここにはサーバーのアドレスだけを入力してください（例: cloud.example.org）。ユーザー名とパスワードは「ログイン」をタップしたあとブラウザーで入力します。</string>
     <string name="add_error_network">サーバーに接続できませんでした。アドレスと接続状況を確認してください。</string>
     <string name="add_error_timeout">時間内にログインが完了しませんでした。もう一度お試しください。</string>

@@ -6,10 +6,25 @@ import android.content.Intent
 import android.net.Uri
 import com.somecatcode.ebookreader.R
 
-/** Links to the app in Google Play. The package name is fixed, so debug builds link to the release app too. */
+/**
+ * Links to the app in Google Play and to the server app in the Nextcloud App Store. The package name is fixed, so
+ * debug builds link to the release app too.
+ */
 object AppLinks {
     const val PACKAGE = "com.somecatcode.ebookreader"
     const val PLAY_URL = "https://play.google.com/store/apps/details?id=$PACKAGE"
+
+    /** The page of the server app "E-Book Reader" that a Nextcloud account needs. */
+    const val SERVER_APP_URL = "https://apps.nextcloud.com/apps/ebookreader"
+
+    /** Opens the page of the server app in the browser. */
+    fun openServerAppPage(context: Context) {
+        try {
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(SERVER_APP_URL)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        } catch (_: ActivityNotFoundException) {
+            // no browser: nothing to open
+        }
+    }
 
     /** Opens the app page in the Play Store app, or in the browser when the Play Store is missing. */
     fun openStorePage(context: Context) {
