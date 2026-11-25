@@ -65,18 +65,18 @@ jobs:
           echo "::error::Secret ANDROID_KEYSTORE_BASE64 (environment 'play') is missing, see docs/RELEASING.md"
           exit 1
 
-      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: '21'
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: reader-web/package-lock.json
 
-      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
       - name: Install NDK (native debug symbols for Play)
         run: |
@@ -139,7 +139,7 @@ jobs:
           [ -s "dist/whatsnew/whatsnew-$lang" ] || echo "Fehlerbehebungen und Verbesserungen" > "dist/whatsnew/whatsnew-$lang"
           cat "dist/whatsnew/whatsnew-$lang"
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ steps.files.outputs.name }}
           path: dist/
@@ -147,7 +147,7 @@ jobs:
 
       - name: GitHub release (APK for sideloading)
         if: github.event_name == 'push'
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           name: ${{ steps.version.outputs.name }}
           body_path: dist/notes.md
