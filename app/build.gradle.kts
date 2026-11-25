@@ -165,6 +165,20 @@ val copyPrivacyPolicy = tasks.register<Copy>("copyPrivacyPolicy") {
 
 tasks.named("preBuild") { dependsOn(buildReaderWeb, copyPrivacyPolicy) }
 
+// ---- Robolectric: Gradle resolves the Android runtime jar ----
+// Without this, Robolectric downloads the jar from Maven Central while the tests run, with no retry and outside the
+// Gradle cache. Maven Central often answers HTTP 429 to CI runners, and then every Robolectric test fails.
+val robolectricRuntime: Configuration by configurations.creating { isTransitive = false }
+val copyRobolectricRuntime = tasks.register<Sync>("copyRobolectricRuntime") {
+    from(robolectricRuntime)
+    into(layout.buildDirectory.dir("robolectric-runtime"))
+}
+tasks.withType<Test>().configureEach {
+    dependsOn(copyRobolectricRuntime)
+    systemProperty("robolectric.offline", "true")
+    systemProperty("robolectric.dependency.dir", layout.buildDirectory.dir("robolectric-runtime").get().asFile.path)
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -198,6 +212,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.okhttp.mockwebserver)
     testImplementation(libs.robolectric)
+    robolectricRuntime(libs.robolectric.android.all)
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.compose.ui.test.junit4)

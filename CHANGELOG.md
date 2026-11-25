@@ -6,6 +6,8 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 ## [Unreleased]
 
 ### Geändert
+- **CI läuft seltener.** Die CI startet nur noch bei einem Pull Request nach `main` und auf Anforderung (Actions → CI → „Run workflow“). Pushes und Pull Requests nach `dev` starten keinen Lauf mehr. Der Release-Workflow prüft weiterhin jeden Tag. Die Debug-APK entsteht jetzt bei einem Lauf auf Anforderung.
+- **Tests laden die Android-Laufzeit nicht mehr selbst.** Robolectric hat während der Tests eine Datei von Maven Central geladen. Maven Central hat oft mit HTTP 429 geantwortet, dann sind alle Robolectric-Tests fehlgeschlagen. Jetzt lädt Gradle die Datei (`android-all-instrumented`) und speichert sie im Gradle-Cache. Robolectric läuft im Offline-Modus.
 - **README und Doku geprüft und korrigiert.**
   - README: Name „Ebook Reader for Nextcloud“, Links zu [Google Play](https://play.google.com/store/apps/details?id=com.somecatcode.ebookreader) und zum [Nextcloud App Store](https://apps.nextcloud.com/apps/ebookreader), weitere Funktionen, 12 Sprachen. Der Abschnitt „Voraussetzungen“ nennt, dass ein Nextcloud-Konto die Nextcloud-App „E-Book Reader“ auf dem Server braucht.
   - README: Node.js 24 statt 22. Das Beispiel für `appVersionCode` folgt jetzt der Formel (1.2.3 → `1020399`).
