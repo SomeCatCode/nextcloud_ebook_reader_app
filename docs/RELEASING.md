@@ -63,7 +63,9 @@ Ohne `PLAY_SERVICE_ACCOUNT_JSON` baut der Workflow trotzdem und legt AAB/APK als
 ## Branches und Testbuilds
 
 - Neue Arbeit kommt per Pull Request in den Branch **`dev`**, nicht direkt nach `main`.
-- Jeder Push auf `dev` läuft durch die CI (Lint, Tests, Debug-Build). Im Actions-Lauf liegt unter *Artifacts* `ebookreader-app-dev-<commit>` mit der Debug-APK (30 Tage). Die Debug-APK hat die eigene Paket-ID `….debug`. Sie lässt sich mit `adb install -r` neben der Play-Version installieren.
+- Die CI (Lint, Tests, Debug-Build) läuft nur in zwei Fällen: bei einem Pull Request nach `main` und auf Anforderung. Pushes und Pull Requests nach `dev` starten keinen Lauf. Der Release-Workflow führt dieselben Prüfungen für jeden Tag aus.
+- Lauf auf Anforderung: **Actions → CI → Run workflow** mit dem Branch, oder `gh workflow run ci.yml --ref <branch>`. Ein solcher Lauf legt unter *Artifacts* `ebookreader-app-dev-<commit>` mit der Debug-APK ab (30 Tage). Die Debug-APK hat die eigene Paket-ID `….debug`. Sie lässt sich mit `adb install -r` neben der Play-Version installieren.
+- Vor einem Pull Request nach `dev`: `./gradlew lint test assembleDebug` lokal ausführen.
 - Für einen Test über Google Play lässt sich auf `dev` ein Vorab-Tag `vX.Y.Z-rc.N` setzen.
 
 ## Release erstellen
