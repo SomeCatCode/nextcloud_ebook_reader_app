@@ -1,10 +1,16 @@
 # Play Store: was du angeben musst
 
-> **Zum Ausfüllen der Console:** [PLAY-CONSOLE-LEITFADEN.md](PLAY-CONSOLE-LEITFADEN.md) folgt Punkt für Punkt der Checkliste der Play Console und enthält fertige Texte. Diese Datei hier bleibt der Hintergrund. Seit 0.2.0 ist die App proprietär und das Repo privat. Für die Datenschutzerklärung siehe den Leitfaden, Punkt 1.
+> **Zum Ausfüllen der Console:** [PLAY-CONSOLE-LEITFADEN.md](PLAY-CONSOLE-LEITFADEN.md) folgt Punkt für Punkt der Checkliste der Play Console und enthält fertige Texte. Diese Datei hier bleibt der Hintergrund. Seit 0.2.0 ist die App proprietär. Für die Datenschutzerklärung siehe den Leitfaden, Punkt 1.
 
 Leitfaden für die Google Play Console, zugeschnitten auf diese App: ein **Client für den eigenen bzw. einen frei gewählten Nextcloud-Server**, ohne eigene Server des Entwicklers, ohne Werbung und ohne Tracking.
 
-> Stand: Oktober 2026. Google ändert Formulare und Richtlinien regelmäßig. Wo die Console etwas anderes fragt, gilt die Console. Rechtsberatung ersetzt diese Datei nicht.
+> **Stand November 2026:** Die App ist bei Google Play veröffentlicht: [Ebook Reader for Nextcloud](https://play.google.com/store/apps/details?id=com.somecatcode.ebookreader), Version 1.0.4. Dieses Dokument beschreibt die erste Einrichtung in der Play Console. Heute gilt:
+> - Store-Name: „Ebook Reader for Nextcloud“. Der Name auf dem Startbildschirm (`app_name`) ist „E-Book Reader“.
+> - Die App, die Store-Texte und die Datenschutzerklärung gibt es in 12 Sprachen.
+> - Die Nextcloud-App „E-Book Reader“ für den Server gibt es im [Nextcloud App Store](https://apps.nextcloud.com/apps/ebookreader).
+> - Das App-Repo ist öffentlich. Die Lizenz ist proprietär.
+
+> Stand der Texte: Oktober 2026. Google ändert Formulare und Richtlinien regelmäßig. Wo die Console etwas anderes fragt, gilt die Console. Rechtsberatung ersetzt diese Datei nicht.
 
 ---
 
@@ -16,7 +22,7 @@ Leitfaden für die Google Play Console, zugeschnitten auf diese App: ein **Clien
 | ⚠️ **Testpflicht bei persönlichen Konten** | Neue persönliche Konten müssen vor der ersten Produktiv-Veröffentlichung einen **geschlossenen Test mit mindestens 12 Testern über 14 Tage am Stück** durchführen. Organisationskonten (mit D-U-N-S-Nummer) sind davon ausgenommen. **Plane die zwei Wochen ein.** |
 | **Identitätsprüfung** | Google verlangt eine Verifizierung (Ausweis, ggf. Adresse, Telefon). Die angegebene Kontakt-E-Mail ist im Store öffentlich sichtbar. |
 | **Paket-ID** | `com.somecatcode.ebookreader`. Sie lässt sich nach dem ersten Upload nie mehr ändern. |
-| **Play App Signing** | Aktivieren (Standard). Du lädst mit einem **Upload-Schlüssel** hoch, Google verwaltet den App-Signaturschlüssel. Den Upload-Schlüssel gut sichern, Anleitung siehe README. |
+| **Play App Signing** | Aktivieren (Standard). Du lädst mit einem **Upload-Schlüssel** hoch, Google verwaltet den App-Signaturschlüssel. Den Upload-Schlüssel gut sichern, Anleitung siehe [RELEASING.md](RELEASING.md), Abschnitt „Upload-Schlüssel“. |
 
 ---
 
@@ -27,7 +33,7 @@ Leitfaden für die Google Play Console, zugeschnitten auf diese App: ein **Clien
 1. **Markenrecht und Verwechslungsgefahr**
    - „Nextcloud“ ist eine eingetragene Marke der Nextcloud GmbH. Der Name darf nicht den Eindruck einer offiziellen App erwecken.
    - Verwende **kein Nextcloud-Logo** im Icon, im Feature-Grafik-Bild oder in Screenshots, auch nicht abgewandelt.
-   - Gut ist ein eigener Name mit beschreibendem Zusatz, z. B. **„SomeCat Reader – E-Books für Nextcloud“**. Riskant sind Namen wie „Nextcloud E-Book Reader“ oder „Nextcloud Books“.
+   - Gut ist ein eigener Name mit beschreibendem Zusatz, z. B. „… für Nextcloud“ oder „… for Nextcloud“. Gewählt ist **„Ebook Reader for Nextcloud“**. Riskant sind Namen wie „Nextcloud E-Book Reader“ oder „Nextcloud Books“.
    - Schreibe in die Beschreibung: *„Inoffizielle App, nicht mit der Nextcloud GmbH verbunden. Nextcloud ist eine Marke der Nextcloud GmbH.“*
    - Prüfe vor der Veröffentlichung die aktuellen Markenrichtlinien auf nextcloud.com (Bereich „Trademarks“).
 2. **Funktionsfähigkeit für die Prüfung**
@@ -39,29 +45,29 @@ Leitfaden für die Google Play Console, zugeschnitten auf diese App: ein **Clien
 
 | Feld | Vorgabe | Vorschlag |
 |---|---|---|
-| App-Name | max. 30 Zeichen | „SomeCat Reader“ (Zusatz „für Nextcloud“ in der Kurzbeschreibung) |
+| App-Name | max. 30 Zeichen | „Ebook Reader for Nextcloud“ (26 Zeichen) |
 | Kurzbeschreibung | max. 80 Zeichen | „E-Books & Comics aus deiner Nextcloud lesen – offline, mit Lesestand-Sync.“ |
-| Vollständige Beschreibung | max. 4000 Zeichen | Funktionen, Hinweis **„funktioniert auch ohne Server mit Ordnern auf dem Gerät; Nextcloud mit der App E-Book Reader ab 0.7.0 optional“**, Hinweis „inoffiziell“, Datenschutz-Kurzfassung |
+| Vollständige Beschreibung | max. 4000 Zeichen | Funktionen, Hinweis **„funktioniert auch ohne Server mit Ordnern auf dem Gerät; Nextcloud mit der App E-Book Reader ab 1.0.0 optional“** (Minimum 0.5.0), mit der Adresse des Nextcloud App Store (`https://apps.nextcloud.com/apps/ebookreader`), Hinweis „inoffiziell“, Datenschutz-Kurzfassung |
 | App-Symbol | 512 × 512 PNG, 32 Bit | eigenes Logo, ohne Nextcloud-Logo |
 | Feature-Grafik | 1024 × 500 | Pflicht |
 | Screenshots | mind. 2 fürs Smartphone (16:9 oder 9:16), besser 4–8; für Tablets 7" und 10" separat, wenn die App bei Tablets gut sichtbar sein soll | mit **gemeinfreien Büchern** (Project Gutenberg, Standard Ebooks), keine urheberrechtlich geschützten Cover |
 | Kategorie | | **Bücher & Nachschlagewerke** |
 | Tags | | E-Book-Reader, Comic-Reader |
 | Kontaktdaten | E-Mail Pflicht, Website optional | |
-| Datenschutzerklärung | **Pflicht-URL** | `PRIVACY.md` aus dem Repo über GitHub Pages veröffentlichen |
+| Datenschutzerklärung | **Pflicht-URL** | öffentliche Seite mit dem Text aus `docs/privacy/` (12 Sprachen) |
 
-Die Texte legen wir im Repo unter `fastlane/metadata/android/de-DE` und `en-US` ab, damit sie versioniert sind.
+Ältere Fassungen der Texte liegen unter `fastlane/metadata/android/<Sprache>` (12 Sprachen). Die aktuellen Store-Texte pflegt der Entwickler in der Play Console.
 
 ---
 
 ## 3. App-Inhalte (Abschnitt „Richtlinie > App-Inhalte“)
 
 ### 3.1 Datenschutzerklärung
-URL zur `PRIVACY.md`, siehe Abschnitt 6. Ohne sie lässt sich nichts veröffentlichen.
+URL zur Datenschutzerklärung, siehe Abschnitt 6. Ohne sie lässt sich nichts veröffentlichen.
 
 ### 3.2 App-Zugriff („Zugriffsbeschränkungen“)
 - Wähle **„Alle oder einige Funktionen sind eingeschränkt“**.
-- Gib eine **Anleitung mit Testzugang** an: Server-URL, Benutzername, Passwort sowie kurze Schritte („Konto hinzufügen → Server-URL eingeben → im Browser anmelden → Bibliothek öffnet sich“).
+- Gib eine **Anleitung mit Testzugang** an: Server-URL, Benutzername, Passwort sowie kurze Schritte („Konto hinzufügen → Nextcloud-Konto → nur die Serveradresse eingeben → „Anmelden“ → Benutzername und Passwort im Browser eingeben → Bibliothek öffnet sich“). Schreibe ausdrücklich: Die App hat kein Feld für Benutzername und Passwort. Der fertige Text steht im [Leitfaden](PLAY-CONSOLE-LEITFADEN.md), Punkt 2.
 - ⚠️ **Lege dafür einen eigenen Test-Nutzer an**, z. B. `<PRÜFER-NUTZER>`, mit:
   - **nur gemeinfreien Büchern** (ein paar EPUBs und ein Comic). Auf keinen Fall Zugriff auf deine eigene Bibliothek, schon gar nicht auf Inhalte für Erwachsene. Sonst drohen eine Ablehnung oder eine falsche Altersfreigabe.
   - ohne Admin-Rechte, mit kleinem Speicherkontingent, ohne Freigaben zu anderen Nutzern
@@ -135,7 +141,7 @@ Erhobene Datentypen, alle **nicht geteilt**, Zweck **App-Funktionalität**, **er
 
 ---
 
-## 6. Datenschutzerklärung (Inhalt der `PRIVACY.md`)
+## 6. Datenschutzerklärung (Texte in `docs/privacy/`)
 
 Sie muss öffentlich erreichbar sein, über GitHub Pages oder deine Website, und mindestens enthalten:
 
@@ -148,7 +154,7 @@ Sie muss öffentlich erreichbar sein, über GitHub Pages oder deine Website, und
 7. **Kinder:** nicht für Kinder unter 16 bestimmt
 8. Datum und Änderungen
 
-Einen Entwurf lege ich in Phase 6 als `PRIVACY.md` (Deutsch und Englisch) an.
+Die Texte liegen in `docs/privacy/` (12 Sprachen). Die App zeigt sie unter Einstellungen → „Datenschutzerklärung“.
 
 ---
 

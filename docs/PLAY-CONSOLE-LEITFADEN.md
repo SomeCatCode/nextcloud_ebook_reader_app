@@ -2,7 +2,13 @@
 
 Schritt für Schritt durch die Checkliste der Play Console, in genau deren Reihenfolge. Zu jedem Punkt findest du die Antworten zum Anklicken und die fertigen Texte zum Einfügen.
 
-> Stand: 5. Oktober 2026, App-Version 0.2.0. Google ändert Formulare regelmäßig. Wo die Console anders fragt, gilt die Console. Das hier ist keine Rechtsberatung.
+> **Stand November 2026:** Die App ist bei Google Play veröffentlicht: [Ebook Reader for Nextcloud](https://play.google.com/store/apps/details?id=com.somecatcode.ebookreader), Version 1.0.4. Dieses Dokument beschreibt die erste Einrichtung in der Play Console. Heute gilt:
+> - Store-Name: „Ebook Reader for Nextcloud“. Der Name auf dem Startbildschirm (`app_name`) ist „E-Book Reader“.
+> - Die App, die Store-Texte und die Datenschutzerklärung gibt es in 12 Sprachen.
+> - Die Nextcloud-App „E-Book Reader“ für den Server gibt es im [Nextcloud App Store](https://apps.nextcloud.com/apps/ebookreader).
+> - Das App-Repo ist öffentlich. Die Lizenz ist proprietär.
+
+> Stand der Texte: 5. Oktober 2026, App-Version 0.2.0. Punkt 2 („App-Zugriff“): November 2026. Google ändert Formulare regelmäßig. Wo die Console anders fragt, gilt die Console. Das hier ist keine Rechtsberatung.
 
 **Grundannahmen, auf denen alle Antworten beruhen. Prüfe sie vor dem Ausfüllen:**
 - Die App ist ein **Client für einen Nextcloud-Server, den die Nutzerin oder der Nutzer selbst einträgt**. Du betreibst keinen Server und bekommst keine Daten.
@@ -11,8 +17,8 @@ Schritt für Schritt durch die Checkliste der Play Console, in genau deren Reihe
 - Die App selbst bietet **kein Teilen und keinen Chat**. Teilen gibt es nur in der Web-App auf dem Server; in der App erscheinen geteilte Bücher nur. Sobald die App selbst teilen kann, müssen „Einstufung“ und „Datensicherheit“ neu geprüft werden.
 
 Material zum Kopieren:
-- Datenschutzerklärung: [Deutsch](privacy/datenschutz.md), [Englisch](privacy/privacy-policy.md), [Spanisch](privacy/politica-de-privacidad.md), [Japanisch](privacy/privacy-policy-ja.md)
-- Store-Texte: `fastlane/metadata/android/` → [`de-DE`](../fastlane/metadata/android/de-DE/), [`en-US`](../fastlane/metadata/android/en-US/), [`es-ES`](../fastlane/metadata/android/es-ES/), [`ja-JP`](../fastlane/metadata/android/ja-JP/). Die App selbst gibt es in denselben vier Sprachen.
+- Datenschutzerklärung: [Deutsch](privacy/datenschutz.md), [Englisch](privacy/privacy-policy.md), [Spanisch](privacy/politica-de-privacidad.md), [Japanisch](privacy/privacy-policy-ja.md) und 8 weitere Sprachen im Ordner [`privacy/`](privacy/)
+- Store-Texte: `fastlane/metadata/android/` → [`de-DE`](../fastlane/metadata/android/de-DE/), [`en-US`](../fastlane/metadata/android/en-US/), [`es-ES`](../fastlane/metadata/android/es-ES/), [`ja-JP`](../fastlane/metadata/android/ja-JP/). Dort liegen ältere Fassungen in 12 Sprachen. Die App selbst gibt es in 12 Sprachen.
 
 ---
 
@@ -20,7 +26,7 @@ Material zum Kopieren:
 
 ### 1. Datenschutzerklärung festlegen
 
-**Das Problem:** Die Console braucht eine **öffentlich erreichbare URL** ohne Anmeldung, und kein PDF. Das App-Repo ist privat. Ein Link auf GitHub funktioniert für Prüfer deshalb nicht, und der Link, der heute in der App steht, führt ins Leere.
+**Das Problem:** Die Console braucht eine **öffentlich erreichbare URL** ohne Anmeldung, und kein PDF. Die App zeigt die Datenschutzerklärung aus `docs/privacy/` direkt an (Einstellungen → „Datenschutzerklärung“). Die Play Console braucht zusätzlich eine öffentliche URL mit demselben Text.
 
 **Lösung, eine Variante wählen:**
 
@@ -32,9 +38,9 @@ Material zum Kopieren:
 
 **Danach:**
 1. Die URL in der Console eintragen.
-2. Mir die URL nennen. Ich trage sie in der App ein: Einstellungen → „Datenschutzerklärung“, Konstante `PRIVACY_POLICY_URL`. Die App und die Console müssen auf dieselbe Seite zeigen.
+2. Mir die URL nennen. Die Seite und der Text in der App müssen denselben Inhalt haben.
 
-> In der Datenschutzerklärung stehen ein Name und eine Kontaktadresse (Platzhalter `[NAME]`, `[ANSCHRIFT]`). Nach DSGVO muss der Verantwortliche erreichbar sein. Eine E-Mail-Adresse allein reicht oft nicht, eine ladungsfähige Anschrift ist der sichere Weg.
+> In der Datenschutzerklärung stehen ein Name und eine Kontaktadresse (Name und E-Mail-Adresse; eine Anschrift fehlt). Nach DSGVO muss der Verantwortliche erreichbar sein. Eine E-Mail-Adresse allein reicht oft nicht, eine ladungsfähige Anschrift ist der sichere Weg.
 
 ### 2. Anmeldedaten („App-Zugriff“)
 
@@ -45,7 +51,7 @@ Material zum Kopieren:
 **Zuerst einen Prüfer-Nutzer auf deiner Nextcloud anlegen.** Er braucht:
 - einen eigenen, nicht naheliegenden Benutzernamen (im Folgenden `<PRÜFER-NUTZER>`) und ein langes, eigenes Passwort, **ohne Zwei-Faktor-Anmeldung und ohne Ablaufdatum**. Google prüft auch spätere Updates.
 - keine Admin-Rechte, wenig Speicherplatz, keine Gruppen mit deinen Freigaben
-- die App „E-Book Reader“ ab 0.7.0 aktiviert, Bücherordner `/Books`
+- die App „E-Book Reader“ ab 1.0.0 aus dem [Nextcloud App Store](https://apps.nextcloud.com/apps/ebookreader) aktiviert, Bücherordner `/Books`
 - **nur gemeinfreie Inhalte**, z. B. 3–5 EPUBs von Standard Ebooks oder Project Gutenberg und einen gemeinfreien Comic. **Keine Inhalte aus deiner Bibliothek und nichts mit Altersfreigabe über 12.** Sonst droht eine falsche Einstufung oder eine Ablehnung.
 - einmal im Browser anmelden und die Bibliothek einlesen lassen, damit der Prüfer sofort Bücher sieht
 
@@ -57,15 +63,21 @@ Material zum Kopieren:
 - **Weitere Informationen** (auf Englisch, die Prüfer arbeiten international):
 
 ```
-This app is a reader for a self-hosted Nextcloud server. To test it:
-1. Open the app and tap "Add account".
-2. Enter the server address: <SERVER-ADRESSE>
-3. A browser page of the Nextcloud server opens (Nextcloud Login Flow). Log in with the
-   user name and password given above and tap "Grant access".
-4. You return to the app automatically. The library shows public-domain e-books and a comic.
-5. Tap a book and then "Read". Reading position is synced with the server.
+IMPORTANT: The app has NO field for user name or password. The only field in the app
+takes the SERVER ADDRESS. You type user name and password later, in the browser.
+No account is needed for "Folder on this device".
+
+1. Open the app. Tap "Add account", then "Nextcloud account".
+2. In the field "Server address" enter ONLY this address: <SERVER-ADRESSE>
+   Do NOT enter the user name or the password in this field.
+3. Tap "Sign in". A browser page of the Nextcloud server opens (Nextcloud Login Flow).
+4. In the browser: log in with the user name and password given above. Tap "Grant access".
+5. Return to the app. The library shows public-domain e-books and a comic.
+6. Tap a book, then tap "Read". Reading position is synced with the server.
 The account only contains public-domain test content. No purchase or subscription exists.
 ```
+
+> Hintergrund: Google hat eine Prüfung abgelehnt, weil Prüfer Benutzername und Passwort in das Feld „Serveradresse“ eingegeben haben. Seit 1.0.4 erkennt die App diese Eingabe und erklärt das Feld.
 
 ### 3. Anzeigen
 
@@ -172,7 +184,7 @@ Die Daten fließen **nur zwischen dem Gerät und dem eigenen Server**. Google we
 
 ### 11. Store-Eintrag einrichten
 
-**Name.** Den finalen Namen entscheidest du. Er darf nicht wie eine offizielle Nextcloud-App wirken: kein „Nextcloud“ am Anfang, kein Nextcloud-Logo. Vorschläge (max. 30 Zeichen):
+**Name.** Gewählt ist **„Ebook Reader for Nextcloud“** (26 Zeichen). Die folgenden Vorschläge sind überholt. Er darf nicht wie eine offizielle Nextcloud-App wirken: kein „Nextcloud“ am Anfang, kein Nextcloud-Logo. Vorschläge (max. 30 Zeichen):
 
 | Vorschlag | Zeichen |
 |---|---|
@@ -180,7 +192,7 @@ Die Daten fließen **nur zwischen dem Gerät und dem eigenen Server**. Google we
 | `SomeCat Reader: E-Books` | 23 |
 | `Cloud Shelf – E-Book Reader` | 27 |
 
-Der Name auf dem Startbildschirm (`app_name`, heute „E-Book Reader“) kann davon abweichen. „E-Book Reader“ ist als Store-Name zu allgemein und vermutlich schon vergeben.
+Der Name auf dem Startbildschirm (`app_name`, heute „E-Book Reader“) kann davon abweichen. „E-Book Reader“ allein ist als Store-Name zu allgemein.
 
 **Texte:** fertig in `fastlane/metadata/android/de-DE/` und `en-US/`.
 
@@ -192,7 +204,7 @@ Der Name auf dem Startbildschirm (`app_name`, heute „E-Book Reader“) kann da
 
 Standardsprache **Deutsch (de-DE)**. Über „Übersetzungen verwalten“ → „Eigene Übersetzungen hinzufügen“ kommen **Englisch (en-US), Spanisch (es-ES) und Japanisch (ja-JP)** dazu, jeweils mit den Texten aus dem passenden Ordner. Die spanischen und japanischen Texte sind maschinell übersetzt. Lass sie vor der Veröffentlichung von jemandem mit Muttersprache gegenlesen.
 
-Die Datenschutzerklärung gibt es in allen vier Sprachen. In der Console trägst du eine URL ein; am besten eine Seite mit allen Sprachen oder die deutsche Seite mit Links auf die anderen.
+Die Datenschutzerklärung gibt es in 12 Sprachen. In der Console trägst du eine URL ein; am besten eine Seite mit allen Sprachen oder die deutsche Seite mit Links auf die anderen.
 
 **Grafiken, die du noch erstellen musst:**
 
@@ -217,6 +229,8 @@ Screenshots ohne private Bücher, ohne echte Cover urheberrechtlich geschützter
 ---
 
 ## C. Danach
+
+> Erledigt: Die App ist seit November 2026 in der Produktion. Die Liste bleibt als Protokoll der ersten Einrichtung.
 
 1. Interner Test: Tag `v0.2.0-rc.1` auf `dev` setzen → der Release-Workflow lädt das AAB in den internen Test hoch.
 2. Bei einem **persönlichen Entwicklerkonto**: **geschlossener Test mit mindestens 12 Testern über 14 Tage am Stück**, erst dann ist Produktion möglich.

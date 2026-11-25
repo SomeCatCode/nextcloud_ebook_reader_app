@@ -13,7 +13,7 @@ on:
         options: [internal, alpha, beta, production]
         default: internal
       status:
-        description: Release status (an app that was never published only accepts "draft")
+        description: Release status ("completed" releases at once, "draft" only creates a draft in the Play Console)
         type: choice
         options: [completed, draft]
         default: completed

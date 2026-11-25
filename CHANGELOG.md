@@ -8,6 +8,13 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 ### Hinzugefügt
 - **Hinweis auf die Nextcloud-App „E-Book Reader“.** Ein Nextcloud-Konto braucht auf dem Server die App „E-Book Reader“. Der Dialog „Konto hinzufügen“ nennt diese Voraussetzung jetzt unter dem Feld „Serveradresse“. Die neue Schaltfläche „Im Nextcloud App Store zeigen“ öffnet die Seite der App (`https://apps.nextcloud.com/apps/ebookreader`) im Browser. Wenn die App auf dem Server fehlt oder zu alt ist, steht die Schaltfläche direkt bei der Fehlermeldung. Lokale Ordner brauchen weiterhin keinen Server. Alle 12 Sprachen haben die neuen Texte.
 
+### Geändert
+- **README und Doku geprüft und korrigiert.**
+  - README: Name „Ebook Reader for Nextcloud“, Links zu [Google Play](https://play.google.com/store/apps/details?id=com.somecatcode.ebookreader) und zum [Nextcloud App Store](https://apps.nextcloud.com/apps/ebookreader), weitere Funktionen, 12 Sprachen. Der Abschnitt „Voraussetzungen“ nennt, dass ein Nextcloud-Konto die Nextcloud-App „E-Book Reader“ auf dem Server braucht.
+  - README: Node.js 24 statt 22. Das Beispiel für `appVersionCode` folgt jetzt der Formel (1.2.3 → `1020399`).
+  - `docs/RELEASING.md`: echter Ablauf mit Branch `release/X.Y.Z`, zwei Pull Requests und annotiertem Tag. Die Variablen des Environments `play` haben Vorrang: Ein Tag lädt einen Entwurf in den internen Test hoch.
+  - `docs/PLAY-STORE.md` und `docs/PLAY-CONSOLE-LEITFADEN.md`: Hinweis auf den heutigen Stand, Store-Name, 12 Sprachen, Server-App ab 1.0.0. Die Anleitung „App-Zugriff“ für die Prüfer sagt jetzt klar, dass in das Feld nur die Serveradresse gehört.
+
 ## 1.0.4 – 2026-11-23
 
 ### Geändert

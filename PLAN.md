@@ -104,7 +104,7 @@ nextcloud_ebook_reader_app/
 ## 7. Play-Store-Veröffentlichung
 - Signierung: Upload-Key (Keystore) als GitHub-Secrets (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`); Play App Signing aktiv.
 - Release-Workflow bei Tag `vX.Y.Z`: Tests → signiertes **AAB** + APK → GitHub-Release; optional Upload in den Play-Store (Track `internal`) per Service-Account-Secret `PLAY_SERVICE_ACCOUNT_JSON`.
-- `versionCode` aus dem Tag (z. B. 1.2.3 → 10203), `versionName` = Tag.
+- `versionCode` aus dem Tag (z. B. 1.2.3 → 1020399, Formel in `docs/RELEASING.md`), `versionName` = Tag.
 - Store-Eintrag (fastlane-Format, de/en), Datenschutzerklärung (`PRIVACY.md` → GitHub Pages-URL), Inhaltsfreigabe, Data-safety-Formular.
 - Was **du** tun musst: Play-Console-Konto (einmalig 25 $), App anlegen, Upload-Key erzeugen (Anleitung in README), Secrets hinterlegen.
 
