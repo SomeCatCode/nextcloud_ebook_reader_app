@@ -9,6 +9,14 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 - **Hinweis auf die Nextcloud-App „E-Book Reader“.** Ein Nextcloud-Konto braucht auf dem Server die App „E-Book Reader“. Der Dialog „Konto hinzufügen“ nennt diese Voraussetzung jetzt unter dem Feld „Serveradresse“. Die neue Schaltfläche „Im Nextcloud App Store zeigen“ öffnet die Seite der App (`https://apps.nextcloud.com/apps/ebookreader`) im Browser. Wenn die App auf dem Server fehlt oder zu alt ist, steht die Schaltfläche direkt bei der Fehlermeldung. Lokale Ordner brauchen weiterhin keinen Server. Alle 12 Sprachen haben die neuen Texte.
 
 ### Geändert
+- **Datenschutzerklärung ergänzt (12 Sprachen, Stand 25. November 2026).**
+  - Neu: Absatz „Vorlesen“. Die App gibt den vorgelesenen Text an die Sprachausgabe des Geräts. Je nach Stimme verarbeitet der Anbieter der Sprachausgabe den Text auf dem Gerät oder auf seinen Servern.
+  - Neu: Absatz zu den Links zu Google Play und zum Nextcloud App Store. Die App öffnet diese Seiten nur nach einem Tippen und sendet dabei keine Daten.
+  - Neu: Ein deaktiviertes Konto behält alle Daten auf dem Gerät.
+  - Die Überschrift nennt den Store-Namen „Ebook Reader for Nextcloud“ in der jeweiligen Sprache.
+- **Veraltete Store-Texte entfernt.** `fastlane/metadata/android/` enthielt alte Store-Texte mit dem Namen „SomeCat Reader“. Kein Werkzeug hat sie verwendet. Der Ordner enthält jetzt nur noch App-Symbol und Feature-Grafik.
+- **CI läuft seltener.** Die CI startet nur noch bei einem Pull Request nach `main` und auf Anforderung (Actions → CI → „Run workflow“). Pushes und Pull Requests nach `dev` starten keinen Lauf mehr. Der Release-Workflow prüft weiterhin jeden Tag. Die Debug-APK entsteht jetzt bei einem Lauf auf Anforderung.
+- **Tests laden die Android-Laufzeit nicht mehr selbst.** Robolectric hat während der Tests eine Datei von Maven Central geladen. Maven Central hat oft mit HTTP 429 geantwortet, dann sind alle Robolectric-Tests fehlgeschlagen. Jetzt lädt Gradle die Datei (`android-all-instrumented`) und speichert sie im Gradle-Cache. Robolectric läuft im Offline-Modus. Gradle fragt zuerst den Spiegel von Maven Central bei Google (`maven-central.storage-download.googleapis.com`) und erst danach Maven Central.
 - **README und Doku geprüft und korrigiert.**
   - README: Name „Ebook Reader for Nextcloud“, Links zu [Google Play](https://play.google.com/store/apps/details?id=com.somecatcode.ebookreader) und zum [Nextcloud App Store](https://apps.nextcloud.com/apps/ebookreader), weitere Funktionen, 12 Sprachen. Der Abschnitt „Voraussetzungen“ nennt, dass ein Nextcloud-Konto die Nextcloud-App „E-Book Reader“ auf dem Server braucht.
   - README: Node.js 24 statt 22. Das Beispiel für `appVersionCode` folgt jetzt der Formel (1.2.3 → `1020399`).

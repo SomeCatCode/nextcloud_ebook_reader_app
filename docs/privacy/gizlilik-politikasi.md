@@ -1,6 +1,6 @@
-# Android uygulaması “E-Book Reader” (SomeCatCode) için Gizlilik Politikası
+# Android uygulaması “Ebook Reader: Nextcloud için” (SomeCatCode) için Gizlilik Politikası
 
-Son güncelleme: 12 Ekim 2026
+Son güncelleme: 25 Kasım 2026
 
 ## 1. Veri sorumlusu
 
@@ -30,6 +30,10 @@ Veriler hiçbir zaman geliştiriciyle veya başka bir üçüncü tarafla paylaş
 
 Kitapların içindeki bağlantılar, yalnızca siz onayladıktan sonra cihazınızın tarayıcısında açılır. Ziyaret ettiğiniz web sitelerinin gizlilik politikaları orada geçerlidir.
 
+**Sesli okuma:** Sesli okumayı başlattığınızda uygulama, okuduğu metni cihazınızın metin okuma (text-to-speech) motoruna verir. Metin okuma motoru cihazınızdaki ayrı bir hizmettir, örneğin Google veya Samsung tarafından sağlanır. Seçtiğiniz sese göre bu hizmet metni cihazda veya sağlayıcısının sunucularında işler. Bu sağlayıcının gizlilik politikası geçerlidir. Sesli okuma olmadan uygulama hiçbir kitap metnini aktarmaz.
+
+**Google Play ve Nextcloud Uygulama Mağazası bağlantıları:** “Uygulamayı değerlendir” uygulamanın Google Play sayfasını açar. “Uygulamayı paylaş” Android paylaşım menüsünü uygulamanın bağlantısıyla açar. Nextcloud uygulamasıyla ilgili not, Nextcloud Uygulama Mağazası'nı tarayıcıda açar. Uygulama bu sayfaları yalnızca siz dokunduğunuzda açar ve hiçbir verinizi göndermez. Açılan hizmetlerin gizlilik koşulları geçerlidir.
+
 ## 5. İzinler
 
 - **İnternet ve ağ durumu:** sunucunuza bağlantı; isterseniz indirmeler yalnızca Wi-Fi ile.
@@ -43,6 +47,7 @@ Uygulama konumunuza, kişilerinize, kameranıza, mikrofonunuza veya diğer dosya
 Siz silene kadar tüm veriler cihazda kalır:
 
 - Uygulamadaki **“Hesabı kaldır”** işlemi, o hesabın tüm yerel verilerini (kütüphane, indirilen kitaplar ve kimlik bilgileri) siler ve sunucunuzdaki uygulama parolasını iptal eder. Yerel bir klasör için kütüphane, okuma konumu ve vurgular silinir ve klasör erişimi geri bırakılır; klasördeki kitap dosyaları korunur.
+- **Hesabı devre dışı bırakmak** (“Hesaplar” altındaki anahtar) bu hesabın kitaplarını gizler. Hesabı kaldırana kadar hesabın tüm verileri cihazda kalır.
 - Uygulamanın **kaldırılması** tüm yerel verileri siler.
 - İndirilen kitaplar “İndirilenler” bölümünden istediğiniz zaman silinebilir.
 

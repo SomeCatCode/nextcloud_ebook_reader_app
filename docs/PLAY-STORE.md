@@ -56,7 +56,7 @@ Leitfaden für die Google Play Console, zugeschnitten auf diese App: ein **Clien
 | Kontaktdaten | E-Mail Pflicht, Website optional | |
 | Datenschutzerklärung | **Pflicht-URL** | öffentliche Seite mit dem Text aus `docs/privacy/` (12 Sprachen) |
 
-Ältere Fassungen der Texte liegen unter `fastlane/metadata/android/<Sprache>` (12 Sprachen). Die aktuellen Store-Texte pflegt der Entwickler in der Play Console.
+Die Store-Texte (12 Sprachen) pflegt der Entwickler in der Play Console. Das Repo enthält sie nicht. Unter `fastlane/metadata/android/de-DE/images/` liegen nur das App-Symbol und die Feature-Grafik.
 
 ---
 

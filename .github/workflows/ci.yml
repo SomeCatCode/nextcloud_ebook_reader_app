@@ -1,9 +1,12 @@
 name: CI
 
+# Runs for pull requests to main (the release pull request) and on request (Actions -> CI -> Run workflow,
+# or `gh workflow run ci.yml --ref <branch>`). The release workflow runs the same checks for every tag.
+# Pushes and pull requests to dev do not start a run.
 on:
-  push:
-    branches: [main, dev]
   pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -52,8 +55,8 @@ jobs:
           fi
           find app/build/intermediates -path '*native_symbol_tables*' -name '*.sym'
 
-      - name: Upload debug APK (dev builds for testing)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+      - name: Upload debug APK (test build of a manual run)
+        if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ebookreader-app-dev-${{ github.sha }}

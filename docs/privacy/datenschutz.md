@@ -1,6 +1,6 @@
-# Datenschutzerklärung für die Android-App „E-Book Reader“ (SomeCatCode)
+# Datenschutzerklärung für die Android-App „Ebook Reader für Nextcloud“ (SomeCatCode)
 
-Stand: 12. Oktober 2026
+Stand: 25. November 2026
 
 ## 1. Verantwortlicher
 
@@ -30,6 +30,10 @@ Eine Weitergabe an den Entwickler oder an andere Dritte findet nicht statt.
 
 Links in Büchern öffnet die App erst nach deiner Bestätigung im Browser deines Geräts. Für aufgerufene Websites gelten deren Datenschutzbestimmungen.
 
+**Vorlesen:** Wenn du das Vorlesen startest, gibt die App den Text, den sie vorliest, an die Sprachausgabe (Text-to-Speech) deines Geräts. Die Sprachausgabe ist ein eigener Dienst auf deinem Gerät, z. B. von Google oder Samsung. Je nach gewählter Stimme verarbeitet dieser Dienst den Text auf dem Gerät oder auf Servern seines Anbieters. Dafür gilt die Datenschutzerklärung dieses Anbieters. Ohne Vorlesen gibt die App keinen Buchtext weiter.
+
+**Links zu Google Play und zum Nextcloud App Store:** „App bewerten“ öffnet die Seite der App in Google Play. „App teilen“ öffnet das Teilen-Menü von Android mit einem Link zur App. Der Hinweis auf die Nextcloud-App öffnet den Nextcloud App Store im Browser. Die App öffnet diese Seiten nur, wenn du darauf tippst, und sendet dabei keine Daten von dir. Für die geöffneten Dienste gelten deren Datenschutzbestimmungen.
+
 ## 5. Berechtigungen
 
 - **Internet und Netzwerkstatus:** Verbindung zu deinem Server; Downloads auf Wunsch nur im WLAN.
@@ -43,6 +47,7 @@ Die App greift nicht auf Standort, Kontakte, Kamera, Mikrofon oder deine sonstig
 Alle Daten bleiben auf dem Gerät, bis du sie löschst:
 
 - **„Konto entfernen“** in der App löscht alle lokalen Daten dieses Kontos, also Bibliothek, heruntergeladene Bücher und Zugangsdaten, und widerruft das App-Passwort auf deinem Server. Bei einem lokalen Ordner werden Bibliothek, Lesestand und Markierungen gelöscht und der Ordnerzugriff zurückgegeben; die Buchdateien im Ordner bleiben erhalten.
+- **Konto deaktivieren** (Schalter unter „Konten“) blendet die Bücher dieses Kontos aus. Alle Daten des Kontos bleiben auf dem Gerät, bis du das Konto entfernst.
 - **Deinstallieren** der App löscht alle lokalen Daten.
 - Heruntergeladene Bücher kannst du jederzeit unter „Downloads“ löschen.
 
