@@ -5,6 +5,13 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 
 ## [Unreleased]
 
+### Geändert
+- **README und Doku geprüft und korrigiert.**
+  - README: Name „Ebook Reader for Nextcloud“, Links zu [Google Play](https://play.google.com/store/apps/details?id=com.somecatcode.ebookreader) und zum [Nextcloud App Store](https://apps.nextcloud.com/apps/ebookreader), weitere Funktionen, 12 Sprachen. Der Abschnitt „Voraussetzungen“ nennt, dass ein Nextcloud-Konto die Nextcloud-App „E-Book Reader“ auf dem Server braucht.
+  - README: Node.js 24 statt 22. Das Beispiel für `appVersionCode` folgt jetzt der Formel (1.2.3 → `1020399`).
+  - `docs/RELEASING.md`: echter Ablauf mit Branch `release/X.Y.Z`, zwei Pull Requests und annotiertem Tag. Die Variablen des Environments `play` haben Vorrang: Ein Tag lädt einen Entwurf in den internen Test hoch.
+  - `docs/PLAY-STORE.md` und `docs/PLAY-CONSOLE-LEITFADEN.md`: Hinweis auf den heutigen Stand, Store-Name, 12 Sprachen, Server-App ab 1.0.0. Die Anleitung „App-Zugriff“ für die Prüfer sagt jetzt klar, dass in das Feld nur die Serveradresse gehört.
+
 ## 1.0.4 – 2026-11-23
 
 ### Geändert
