@@ -95,7 +95,7 @@ nextcloud_ebook_reader_app/
 │       └── App.kt, MainActivity.kt
 ├── reader-web/                  Vite-Bundle: reader-core → assets/reader
 ├── third_party/nextcloud_ebook_reader/   Git-Submodule (Server-Repo, gepinnt)
-├── fastlane/metadata/android/{de-DE,en-US}/  Store-Texte, Screenshots
+├── fastlane/metadata/android/de-DE/images/  App-Symbol und Feature-Grafik für den Store
 ├── .github/workflows/ (ci.yml, release.yml)
 ├── gradle/libs.versions.toml, settings.gradle.kts, build.gradle.kts
 ├── PRIVACY.md, README.md, CHANGELOG.md, LICENSE

@@ -1,6 +1,6 @@
-# Privacy Policy for the Android app "E-Book Reader" (SomeCatCode)
+# Privacy Policy for the Android app "Ebook Reader for Nextcloud" (SomeCatCode)
 
-Last updated: 12 October 2026
+Last updated: 25 November 2026
 
 ## 1. Controller
 
@@ -30,6 +30,10 @@ Data is never shared with the developer or with any other third party.
 
 Links inside books open in your device's browser only after you confirm. The privacy policies of the websites you visit apply there.
 
+**Read aloud:** When you start read aloud, the app passes the text that it reads to the text-to-speech engine of your device. The text-to-speech engine is a separate service on your device, for example from Google or Samsung. Depending on the voice you choose, this service processes the text on the device or on servers of its provider. The privacy policy of that provider applies. Without read aloud, the app passes no book text on.
+
+**Links to Google Play and to the Nextcloud App Store:** "Rate the app" opens the page of the app in Google Play. "Share the app" opens the Android share sheet with a link to the app. The note about the Nextcloud app opens the Nextcloud App Store in the browser. The app opens these pages only when you tap them, and it sends none of your data. The privacy terms of the opened services apply.
+
 ## 5. Permissions
 
 - **Internet and network state:** connection to your server; downloads on Wi-Fi only if you choose so.
@@ -43,6 +47,7 @@ The app does not access your location, contacts, camera, microphone or your othe
 All data stays on the device until you delete it:
 
 - **"Remove account"** in the app deletes all local data of that account (library, downloaded books and credentials) and revokes the app password on your server. For a local folder, the library, reading position and highlights are deleted and the folder access is given back; the book files in the folder are kept.
+- **Turning an account off** (switch under "Accounts") hides the books of this account. All data of the account stays on the device until you remove the account.
 - **Uninstalling** the app deletes all local data.
 - Downloaded books can be deleted at any time under "Downloads".
 

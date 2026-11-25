@@ -1,6 +1,6 @@
-# Política de privacidad de la app Android «E-Book Reader» (SomeCatCode)
+# Política de privacidad de la app Android «Ebook Reader para Nextcloud» (SomeCatCode)
 
-Última actualización: 12 de octubre de 2026
+Última actualización: 25 de noviembre de 2026
 
 ## 1. Responsable
 
@@ -30,6 +30,10 @@ Los datos nunca se comparten con el desarrollador ni con otros terceros.
 
 Los enlaces dentro de los libros se abren en el navegador del dispositivo solo después de que lo confirmes. En los sitios web que visites se aplican sus propias políticas de privacidad.
 
+**Lectura en voz alta:** Cuando inicias la lectura en voz alta, la app entrega el texto que lee al motor de síntesis de voz (texto a voz) de tu dispositivo. El motor de síntesis de voz es un servicio independiente de tu dispositivo, por ejemplo de Google o Samsung. Según la voz elegida, este servicio procesa el texto en el dispositivo o en servidores de su proveedor. Se aplica la política de privacidad de ese proveedor. Sin la lectura en voz alta, la app no entrega ningún texto de los libros.
+
+**Enlaces a Google Play y a la tienda de aplicaciones de Nextcloud:** «Valorar la app» abre la página de la app en Google Play. «Compartir la app» abre el menú para compartir de Android con un enlace a la app. El aviso sobre la aplicación de Nextcloud abre la tienda de aplicaciones de Nextcloud en el navegador. La app abre estas páginas solo cuando las tocas y no envía ningún dato tuyo. Se aplican las condiciones de privacidad de los servicios abiertos.
+
 ## 5. Permisos
 
 - **Internet y estado de la red:** conexión con tu servidor; descargas solo con wifi, si lo eliges.
@@ -43,6 +47,7 @@ La app no accede a tu ubicación, contactos, cámara, micrófono ni a tus demás
 Todos los datos permanecen en el dispositivo hasta que los eliminas:
 
 - **«Eliminar cuenta»** en la app borra todos los datos locales de esa cuenta (biblioteca, libros descargados y credenciales) y revoca la contraseña de aplicación en tu servidor. En una carpeta local se borran la biblioteca, el progreso de lectura y los resaltados y se devuelve el acceso a la carpeta; los archivos de libros de la carpeta se conservan.
+- **Desactivar una cuenta** (interruptor en «Cuentas») oculta los libros de esa cuenta. Todos los datos de la cuenta permanecen en el dispositivo hasta que elimines la cuenta.
 - **Desinstalar** la app borra todos los datos locales.
 - Puedes borrar los libros descargados en cualquier momento en «Descargas».
 

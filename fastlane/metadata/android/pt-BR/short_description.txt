@@ -1,1 +1,0 @@
-Leia e-books e quadrinhos de pastas no dispositivo ou do seu próprio Nextcloud.

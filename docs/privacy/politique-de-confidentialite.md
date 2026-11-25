@@ -1,6 +1,6 @@
-# Politique de confidentialité de l’application Android « E-Book Reader » (SomeCatCode)
+# Politique de confidentialité de l’application Android « Ebook Reader pour Nextcloud » (SomeCatCode)
 
-Dernière mise à jour : 12 octobre 2026
+Dernière mise à jour : 25 novembre 2026
 
 ## 1. Responsable du traitement
 
@@ -30,6 +30,10 @@ Les données ne sont jamais partagées avec le développeur ni avec un autre tie
 
 Les liens contenus dans les livres ne s’ouvrent dans le navigateur de votre appareil qu’après votre confirmation. Les politiques de confidentialité des sites web que vous visitez s’appliquent alors.
 
+**Lecture à voix haute :** Lorsque vous lancez la lecture à voix haute, l’application transmet le texte qu’elle lit au moteur de synthèse vocale de votre appareil. Le moteur de synthèse vocale est un service distinct de votre appareil, par exemple de Google ou de Samsung. Selon la voix choisie, ce service traite le texte sur l’appareil ou sur des serveurs de son fournisseur. La politique de confidentialité de ce fournisseur s’applique. Sans la lecture à voix haute, l’application ne transmet aucun texte de vos livres.
+
+**Liens vers Google Play et vers le magasin d’applications Nextcloud :** « Noter l’application » ouvre la page de l’application sur Google Play. « Partager l’application » ouvre le menu de partage d’Android avec un lien vers l’application. L’indication sur l’application Nextcloud ouvre le magasin d’applications Nextcloud dans le navigateur. L’application n’ouvre ces pages que lorsque vous les touchez et n’envoie aucune de vos données. Les règles de confidentialité des services ouverts s’appliquent.
+
 ## 5. Autorisations
 
 - **Internet et état du réseau :** connexion à votre serveur ; téléchargements uniquement en Wi-Fi si vous le choisissez.
@@ -43,6 +47,7 @@ L’application n’accède ni à votre position, ni à vos contacts, ni à votr
 Toutes les données restent sur l’appareil jusqu’à ce que vous les supprimiez :
 
 - **« Supprimer le compte »** dans l’application supprime toutes les données locales de ce compte (bibliothèque, livres téléchargés et identifiants) et révoque le mot de passe d’application sur votre serveur. Pour un dossier local, la bibliothèque, la position de lecture et les surlignages sont supprimés et l’accès au dossier est restitué ; les fichiers de livres du dossier sont conservés.
+- **Désactiver un compte** (interrupteur sous « Comptes ») masque les livres de ce compte. Toutes les données du compte restent sur l’appareil jusqu’à la suppression du compte.
 - **La désinstallation** de l’application supprime toutes les données locales.
 - Les livres téléchargés peuvent être supprimés à tout moment sous « Téléchargements ».
 
