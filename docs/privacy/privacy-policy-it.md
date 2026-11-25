@@ -1,6 +1,6 @@
-# Informativa sulla privacy dell'app Android "E-Book Reader" (SomeCatCode)
+# Informativa sulla privacy dell'app Android "Ebook Reader per Nextcloud" (SomeCatCode)
 
-Ultimo aggiornamento: 12 ottobre 2026
+Ultimo aggiornamento: 25 novembre 2026
 
 ## 1. Titolare del trattamento
 
@@ -30,6 +30,10 @@ I dati non vengono mai condivisi con lo sviluppatore né con altri terzi.
 
 I link all'interno dei libri si aprono nel browser del tuo dispositivo solo dopo la tua conferma. Lì si applicano le informative sulla privacy dei siti web che visiti.
 
+**Lettura ad alta voce:** Quando avvii la lettura ad alta voce, l'app passa il testo che legge al motore di sintesi vocale del tuo dispositivo. Il motore di sintesi vocale è un servizio separato del dispositivo, per esempio di Google o Samsung. A seconda della voce scelta, questo servizio elabora il testo sul dispositivo o sui server del suo fornitore. Si applica l'informativa sulla privacy di quel fornitore. Senza la lettura ad alta voce, l'app non passa alcun testo dei libri.
+
+**Link a Google Play e all'App Store di Nextcloud:** "Valuta l'app" apre la pagina dell'app su Google Play. "Condividi l'app" apre il menu di condivisione di Android con un link all'app. L'avviso sull'app Nextcloud apre l'App Store di Nextcloud nel browser. L'app apre queste pagine solo quando le tocchi e non invia alcun tuo dato. Si applicano le condizioni sulla privacy dei servizi aperti.
+
 ## 5. Autorizzazioni
 
 - **Internet e stato della rete:** connessione al tuo server; download solo tramite Wi-Fi, se lo scegli.
@@ -43,6 +47,7 @@ L'app non accede alla tua posizione, ai contatti, alla fotocamera, al microfono 
 Tutti i dati restano sul dispositivo finché non li elimini:
 
 - **"Rimuovi account"** nell'app elimina tutti i dati locali di quell'account (libreria, libri scaricati e credenziali di accesso) e revoca la password per le app sul tuo server. Per una cartella locale, l'app elimina la libreria, la posizione di lettura e le evidenziazioni e rinuncia all'accesso alla cartella; i file dei libri nella cartella restano.
+- **Disattivare un account** (interruttore in "Account") nasconde i libri di quell'account. Tutti i dati dell'account restano sul dispositivo finché non rimuovi l'account.
 - **Disinstallando** l'app elimini tutti i dati locali.
 - Puoi eliminare i libri scaricati in qualsiasi momento in "Download".
 

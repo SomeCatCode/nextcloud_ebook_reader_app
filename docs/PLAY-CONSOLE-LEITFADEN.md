@@ -18,7 +18,7 @@ Schritt für Schritt durch die Checkliste der Play Console, in genau deren Reihe
 
 Material zum Kopieren:
 - Datenschutzerklärung: [Deutsch](privacy/datenschutz.md), [Englisch](privacy/privacy-policy.md), [Spanisch](privacy/politica-de-privacidad.md), [Japanisch](privacy/privacy-policy-ja.md) und 8 weitere Sprachen im Ordner [`privacy/`](privacy/)
-- Store-Texte: `fastlane/metadata/android/` → [`de-DE`](../fastlane/metadata/android/de-DE/), [`en-US`](../fastlane/metadata/android/en-US/), [`es-ES`](../fastlane/metadata/android/es-ES/), [`ja-JP`](../fastlane/metadata/android/ja-JP/). Dort liegen ältere Fassungen in 12 Sprachen. Die App selbst gibt es in 12 Sprachen.
+- Store-Texte: Der Entwickler pflegt die Store-Texte (12 Sprachen) in der Play Console. Das Repo enthält sie nicht. Die App selbst gibt es in 12 Sprachen.
 
 ---
 
@@ -184,17 +184,21 @@ Die Daten fließen **nur zwischen dem Gerät und dem eigenen Server**. Google we
 
 ### 11. Store-Eintrag einrichten
 
-**Name.** Gewählt ist **„Ebook Reader for Nextcloud“** (26 Zeichen). Die folgenden Vorschläge sind überholt. Er darf nicht wie eine offizielle Nextcloud-App wirken: kein „Nextcloud“ am Anfang, kein Nextcloud-Logo. Vorschläge (max. 30 Zeichen):
+**Name.** Gewählt ist **„Ebook Reader for Nextcloud“** (26 Zeichen). Er darf nicht wie eine offizielle Nextcloud-App wirken: kein „Nextcloud“ am Anfang, kein Nextcloud-Logo. Vorschläge (max. 30 Zeichen):
 
-| Vorschlag | Zeichen |
+| Sprache | Store-Name |
 |---|---|
-| `SomeCat Reader` | 14 |
-| `SomeCat Reader: E-Books` | 23 |
-| `Cloud Shelf – E-Book Reader` | 27 |
+| Englisch, Japanisch, Koreanisch, Chinesisch | `Ebook Reader for Nextcloud` |
+| Deutsch | `Ebook Reader für Nextcloud` |
+| Spanisch, Portugiesisch | `Ebook Reader para Nextcloud` |
+| Französisch | `Ebook Reader pour Nextcloud` |
+| Italienisch | `Ebook Reader per Nextcloud` |
+| Türkisch | `Ebook Reader: Nextcloud için` |
+| Arabisch, Persisch | `Ebook Reader` mit dem Zusatz „für Nextcloud“ in der Sprache |
 
 Der Name auf dem Startbildschirm (`app_name`, heute „E-Book Reader“) kann davon abweichen. „E-Book Reader“ allein ist als Store-Name zu allgemein.
 
-**Texte:** fertig in `fastlane/metadata/android/de-DE/` und `en-US/`.
+**Texte:** Die Store-Texte liegen nicht im Repo. Die Tabelle nennt die Felder und Grenzen.
 
 | Datei | Feld | Grenze |
 |---|---|---|

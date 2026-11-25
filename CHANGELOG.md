@@ -6,6 +6,12 @@ Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), die V
 ## [Unreleased]
 
 ### Geändert
+- **Datenschutzerklärung ergänzt (12 Sprachen, Stand 25. November 2026).**
+  - Neu: Absatz „Vorlesen“. Die App gibt den vorgelesenen Text an die Sprachausgabe des Geräts. Je nach Stimme verarbeitet der Anbieter der Sprachausgabe den Text auf dem Gerät oder auf seinen Servern.
+  - Neu: Absatz zu den Links zu Google Play und zum Nextcloud App Store. Die App öffnet diese Seiten nur nach einem Tippen und sendet dabei keine Daten.
+  - Neu: Ein deaktiviertes Konto behält alle Daten auf dem Gerät.
+  - Die Überschrift nennt den Store-Namen „Ebook Reader for Nextcloud“ in der jeweiligen Sprache.
+- **Veraltete Store-Texte entfernt.** `fastlane/metadata/android/` enthielt alte Store-Texte mit dem Namen „SomeCat Reader“. Kein Werkzeug hat sie verwendet. Der Ordner enthält jetzt nur noch App-Symbol und Feature-Grafik.
 - **README und Doku geprüft und korrigiert.**
   - README: Name „Ebook Reader for Nextcloud“, Links zu [Google Play](https://play.google.com/store/apps/details?id=com.somecatcode.ebookreader) und zum [Nextcloud App Store](https://apps.nextcloud.com/apps/ebookreader), weitere Funktionen, 12 Sprachen. Der Abschnitt „Voraussetzungen“ nennt, dass ein Nextcloud-Konto die Nextcloud-App „E-Book Reader“ auf dem Server braucht.
   - README: Node.js 24 statt 22. Das Beispiel für `appVersionCode` folgt jetzt der Formel (1.2.3 → `1020399`).
